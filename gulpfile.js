@@ -8,7 +8,7 @@ var karma = require('karma').server;
 
 gulp.task('scripts', function() {
     var opts = {
-        entries: ['./lib/timeControls.js'],
+        entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
     };
     return browserify(opts).bundle()
