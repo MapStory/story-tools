@@ -16,6 +16,7 @@
             <button class="btn" ng-click="next()">&gt;&gt;</button>
             <button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }">{{ loopText }}</button>
             <span>Dates:</span><span id="dates">{{ currentRange.toString() }}</span>
+            <span>Tiles [remaining] : {{ tilesRemaining }}
         </script>
 
         <script type="text/ng-template" id="playback-settings-template">

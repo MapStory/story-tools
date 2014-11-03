@@ -1,9 +1,14 @@
 'use strict';
 
+// @todo extract map logic to be non-angular
 (function () {
 
     var module = angular.module('timeControls', []);
     var map;
+    var testing = false;
+    var tilesLoading = {};
+    var loadListener = null;
+
     var playbackOptions = {
         mode: 'instant',
         fixed: false
@@ -11,6 +16,58 @@
 
     function isoDate(v) {
         return new Date(v).toISOString();
+    }
+
+    function createLoadListener($rootScope) {
+        var deferred = $.Deferred(),
+                cancelled = false;
+        function remainingTiles() {
+            var t = 0;
+            for (var i in tilesLoading) {
+                t += tilesLoading[i];
+            }
+            return t;
+        }
+        if (loadListener !== null) {
+            loadListener.cancel();
+        }
+        return loadListener = {
+            deferred: deferred,
+            cancel: function() {
+                cancelled = true;
+                for (var s in tilesLoading) {
+                    tilesLoading[s] = 0;
+                }
+                $rootScope.$broadcast('tilesLoaded', 0);
+                loadListener = null;
+                if (deferred) {
+                    deferred.reject(); // notify we've aborted but w/out error
+                }
+            },
+            tileQueued: function (source) {
+                if (cancelled) {
+                    return;
+                }
+                tilesLoading[source] += 1;
+                $rootScope.$broadcast('tilesQueued', remainingTiles());
+            },
+            tileLoaded: function (event, source) {
+                if (cancelled) {
+                    return;
+                }
+                tilesLoading[source] -= 1;
+                var loaded = true;
+                for (var i in tilesLoading) {
+                    loaded = loaded && (tilesLoading[i] === 0);
+                }
+                $rootScope.$broadcast('tilesLoaded', remainingTiles());
+                if (loaded && deferred) {
+                    deferred.resolve();
+                    deferred = null;
+                    loadListener = null;
+                }
+            }
+        };
     }
 
     module.run(function (timeControlsService) {
@@ -24,7 +81,8 @@
                 zoom: 3
             })
         });
-        if (window.location.search.indexOf('_test') >= 0) {
+        testing = window.location.search.indexOf('_test') >= 0;
+        if (testing) {
             var times = [];
             var annotations = [];
 
@@ -45,10 +103,18 @@
                 };
             });
             timeControlsService.createControls(times);
+//            timeControlsService.getTimeControls().on('rangeChange', function() {
+//                // have to use jq.deferred to play nice
+//                var deferred = $.Deferred();
+//                window.setTimeout(function() {
+//                    deferred.resolve();
+//                }, 5000);
+//                timeControlsService.getTimeControls().defer(deferred);
+//            });
         }
     });
 
-    module.factory('timeControlsService', function ($http) {
+    module.factory('timeControlsService', function ($http, $rootScope) {
         var _timeControls = null;
 
         function loadCapabilities(layer) {
@@ -66,15 +132,40 @@
         }
 
         function addLayer(name) {
-            var url = '/geoserver/geonode/' + name + '/wms';
-            var layer = new ol.layer.Tile({
-                source: new ol.source.TileWMS({
-                    url: url,
-                    params: {'LAYERS': name, 'VERSION': '1.1.0', 'TILED': true},
-                    serverType: 'geoserver'
-                })
+            var workspace = 'geonode';
+            var parts = name.split(':');
+            if (parts.length > 1) {
+                workspace = parts[0];
+                name = parts[1];
+            }
+            var url = '/geoserver/' + workspace + '/' + name + '/wms';
+            // @todo use urls for subdomain loading
+            var source = new ol.source.TileWMS({
+                url: url,
+                params: {'LAYERS': name, 'VERSION': '1.1.0', 'TILED': true},
+                serverType: 'geoserver'
             });
+            var layer = new ol.layer.Tile({source: source});
             map.addLayer(layer);
+            source.setTileLoadFunction((function () {
+                var tileLoadFn = source.getTileLoadFunction();
+                tilesLoading[source] = 0;
+                return function (tile, src) {
+                    // grab the active loadListener to avoid phantom onloads
+                    // when listener is cancelled
+                    var currentListener = loadListener;
+                    if (currentListener) {
+                        currentListener.tileQueued(source);
+                        var image = tile.getImage();
+                        // @todo handle onerror and cancel deferred with an example
+                        // to stop automatic playback
+                        image.onload = image.onerror = function (event) {
+                            currentListener.tileLoaded(event, source);
+                        };
+                    }
+                    tileLoadFn(tile, src);
+                };
+            })());
             return loadCapabilities(layer);
         }
 
@@ -90,7 +181,12 @@
         }
 
         function updateLayers(range) {
-            map.getLayers().item(1).getSource().updateParams({TIME: isoDate(range.start) + "/" + isoDate(range.end)});
+            var layers = map.getLayers();
+            // @todo all layers
+            if (layers.getLength() > 1) {
+                map.getLayers().item(1).getSource().updateParams({TIME: isoDate(range.start) + "/" + isoDate(range.end)});
+                _timeControls.defer(createLoadListener($rootScope).deferred);
+            }
         }
 
         var service = {
@@ -106,7 +202,15 @@
     module.controller('timeControlsController', function ($scope, timeControlsService) {
         $scope.timeControlsService = timeControlsService;
         $scope.layerName = '';
-        $scope.timeControls = null;
+        $scope.timeControls = timeControlsService.getTimeControls();
+        function updateRemaining(evt, remaining) {
+            $scope.$apply(function () {
+                $scope.tilesRemaining = remaining;
+            });
+        }
+        ;
+        $scope.$on('tilesQueued', updateRemaining);
+        $scope.$on('tilesLoaded', updateRemaining);
         $scope.addLayer = function () {
             $scope.loading = true;
             timeControlsService.addLayer($scope.layerName).then(function () {

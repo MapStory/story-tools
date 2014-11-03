@@ -1,34 +1,77 @@
 var gulp = require('gulp');
+var util = require('gulp-util');
 var browserify = require('browserify');
+var watchify = require('watchify');
 var source = require('vinyl-source-stream');
-var concat = require('gulp-concat');
 var refresh = require('gulp-livereload');
 var connect = require('gulp-connect');
 var karma = require('karma').server;
+var notifier = require('node-notifier');
 
-gulp.task('scripts', function() {
-    var opts = {
+var watch = false;
+
+function notify(msg) {
+    notifier.notify({
+        'title': 'story-tools notification',
+        'message': msg
+    });
+}
+
+function bundle(browserify, bundleName) {
+    if (watch) {
+        browserify = watchify(browserify);
+    }
+    function doBundle() {
+        var bundle = browserify.bundle();
+        bundle.on('error', function(err) {
+            util.log(util.colors.red('Error:'), err.message);
+            if (watch) {
+                notify('browserify error ' + err.toString());
+            }
+            this.end();
+        });
+        var done = bundle
+                .pipe(source(bundleName))
+                .pipe(gulp.dest('dist'))
+                .pipe(connect.reload());
+        util.log("bundled", util.colors.cyan('bundleName'));
+        return done;
+    }
+    browserify.on('update', doBundle);
+    return doBundle();
+}
+
+function scripts() {
+    return bundle(browserify({
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
-    };
-    return browserify(opts).bundle()
-            .pipe(source('time-controls.js'))
-            .pipe(gulp.dest('dist'))
-            .pipe(connect.reload());
-});
+    }), 'time-controls.js');
+}
+
+gulp.task('scripts', scripts);
 
 gulp.task('connect', function() {
+    var url = require('url');
+    var proxy = require('proxy-middleware');
     connect.server({
         root: '.',
         livereload: true,
         middleware: function(connect, o) {
-            return [(function() {
-                    var url = require('url');
-                    var proxy = require('proxy-middleware');
-                    var options = url.parse('http://mapstory.org/geoserver');
-                    options.route = '/geoserver';
-                    return proxy(options);
-                })()];
+            var fixedProxy = (function() {
+                var options = url.parse('http://mapstory.org/geoserver');
+                options.route = '/geoserver';
+                return proxy(options);
+            })();
+            // this almost works - need to unpack passed url and rewrite stuff
+            var dynamicProxy = function(req, res, next) {
+                var parts = url.parse(req.url);
+                if (parts.pathname === '/proxy') {
+                    var options = url.parse(parts.search.replace('?proxy=', ''));
+                    var x = proxy(options)(req, res, next);
+                }
+                return next();
+            };
+            return [fixedProxy, dynamicProxy];
         }
     });
 });
@@ -47,7 +90,8 @@ gulp.task('tests', function() {
 });
 
 gulp.task('watch', function() {
-    gulp.watch(['lib/**'], ['scripts']);
+    watch = true;
+    scripts();
 });
 
-gulp.task('default', ['scripts', 'connect', 'watch']);
+gulp.task('default', ['connect', 'watch']);
