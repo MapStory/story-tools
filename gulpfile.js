@@ -1,23 +1,27 @@
 var gulp = require('gulp');
 var util = require('gulp-util');
 var browserify = require('browserify');
+var rename = require('gulp-rename');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var refresh = require('gulp-livereload');
 var connect = require('gulp-connect');
 var karma = require('karma').server;
 var notifier = require('node-notifier');
+var uglify = require('gulp-uglify');
 
 var watch = false;
 
 function notify(msg) {
-    notifier.notify({
-        'title': 'story-tools notification',
-        'message': msg
-    });
+    if (watch) {
+        notifier.notify({
+            'title': 'story-tools notification',
+            'message': msg
+        });
+    }
 }
 
-function bundle(browserify, bundleName) {
+function bundle(browserify, bundleName, whenDone) {
     if (watch) {
         browserify = watchify(browserify);
     }
@@ -25,17 +29,20 @@ function bundle(browserify, bundleName) {
         var bundle = browserify.bundle();
         bundle.on('error', function(err) {
             util.log(util.colors.red('Error:'), err.message);
-            if (watch) {
-                notify('browserify error ' + err.toString());
-            }
+            notify('browserify error ' + err.toString());
             this.end();
         });
-        var done = bundle
+        var bundleStream = bundle
                 .pipe(source(bundleName))
                 .pipe(gulp.dest('dist'))
                 .pipe(connect.reload());
-        util.log("bundled", util.colors.cyan('bundleName'));
-        return done;
+        bundleStream.on('end', function() {
+            util.log("bundled", util.colors.cyan(bundleName));
+            if (whenDone) {
+                whenDone();
+            }
+        });
+        return bundleStream;
     }
     browserify.on('update', doBundle);
     return doBundle();
@@ -46,6 +53,17 @@ function scripts() {
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
     }), 'time-controls.js');
+}
+
+function tests(done) {
+    return bundle(browserify('./test/tests.js'), 'tests.js', done);
+}
+
+function runTests(done) {
+    return karma.start({
+        configFile: __dirname + '/karma.conf.js',
+        singleRun: true
+    }, done);
 }
 
 gulp.task('scripts', scripts);
@@ -62,12 +80,13 @@ gulp.task('connect', function() {
                 options.route = '/geoserver';
                 return proxy(options);
             })();
-            // this almost works - need to unpack passed url and rewrite stuff
             var dynamicProxy = function(req, res, next) {
                 var parts = url.parse(req.url);
                 if (parts.pathname === '/proxy') {
-                    var options = url.parse(parts.search.replace('?proxy=', ''));
-                    var x = proxy(options)(req, res, next);
+                    var target = parts.search.replace('?url=', '');
+                    var options = url.parse(target);
+                    req.url = options.path;
+                    return proxy(options)(req, res, next);
                 }
                 return next();
             };
@@ -76,22 +95,33 @@ gulp.task('connect', function() {
     });
 });
 
-gulp.task('test', function(done) {
-    karma.start({
-        configFile: __dirname + '/karma.conf.js',
-        singleRun: true
-    }, done);
+gulp.task('tdd', function(done) {
+    watch = true;
+    function cb() {
+        runTests(function(failed) {
+            notify(failed > 0 ? failed + ' failures' : 'passing!');
+        });
+    }
+    scripts(cb);
+    tests(cb);
 });
 
-gulp.task('tests', function() {
-    return browserify('./test/tests.js').bundle()
-            .pipe(source('tests.js'))
-            .pipe(gulp.dest('dist'));
+gulp.task('test', function() {
+    tests();
+    runTests();
 });
 
 gulp.task('watch', function() {
     watch = true;
     scripts();
+    gulp.watch('examples/*', function() {
+        gulp.src('examples/*').pipe(connect.reload());
+    });
 });
 
-gulp.task('default', ['connect', 'watch']);
+gulp.task('develop', ['connect', 'tdd', 'watch']);
+
+gulp.task('default', [], function() {
+    scripts();
+    gulp.src('dist/time-controls.js').pipe(uglify()).pipe(rename({ extname: '.min.js' })).pipe(gulp.dest('dist'));
+});

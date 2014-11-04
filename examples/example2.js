@@ -118,16 +118,14 @@
         var _timeControls = null;
 
         function loadCapabilities(layer) {
-            var parser = new ol.format.WMSCapabilities();
             var url = layer.getSource().getUrls()[0];
             return $http.get(url + '?request=getcapabilities').success(function (response) {
-                var caps = parser.read(response);
-                var times = caps.Capability.Layer.Layer[0].Dimension[0].values.split(',');
-                times = times.map(function (t) {
-                    return Date.parse(t);
-                });
-                layer._times = times;
-//            updateControls(times);
+                var parser = new ol.format.WMSCapabilities();
+                var found = timeControls.maps.readCapabilitiesTimeDimensions(parser.read(response));
+                var name = layer.get('name');
+                if (name in found) {
+                    layer._times = found[name];
+                }
             });
         }
 
@@ -145,7 +143,7 @@
                 params: {'LAYERS': name, 'VERSION': '1.1.0', 'TILED': true},
                 serverType: 'geoserver'
             });
-            var layer = new ol.layer.Tile({source: source});
+            var layer = new ol.layer.Tile({source: source, name: name});
             map.addLayer(layer);
             source.setTileLoadFunction((function () {
                 var tileLoadFn = source.getTileLoadFunction();
