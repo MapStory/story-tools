@@ -73,6 +73,7 @@ gulp.task('connect', function() {
     var proxy = require('proxy-middleware');
     connect.server({
         root: '.',
+        port: 8001,
         livereload: true,
         middleware: function(connect, o) {
             var fixedProxy = (function() {
@@ -121,7 +122,7 @@ gulp.task('watch', function() {
 
 gulp.task('develop', ['connect', 'tdd', 'watch']);
 
-gulp.task('default', [], function() {
+gulp.task('default', ['test'], function() {
     scripts();
     gulp.src('dist/time-controls.js').pipe(uglify()).pipe(rename({ extname: '.min.js' })).pipe(gulp.dest('dist'));
 });

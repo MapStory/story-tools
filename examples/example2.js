@@ -56,14 +56,10 @@
                     return;
                 }
                 tilesLoading[source] -= 1;
-                var loaded = true;
-                for (var i in tilesLoading) {
-                    loaded = loaded && (tilesLoading[i] === 0);
-                }
-                $rootScope.$broadcast('tilesLoaded', remainingTiles());
-                if (loaded && deferred) {
+                var remaining = remainingTiles();
+                $rootScope.$broadcast('tilesLoaded', remaining);
+                if (remaining == 0 && deferred) {
                     deferred.resolve();
-                    deferred = null;
                     loadListener = null;
                 }
             }
@@ -180,9 +176,10 @@
 
         function updateLayers(range) {
             var layers = map.getLayers();
-            // @todo all layers
+            for (var i = 1; i < layers.getLength(); i++) {
+                map.getLayers().item(i).getSource().updateParams({TIME: isoDate(range.start) + "/" + isoDate(range.end)});
+            }
             if (layers.getLength() > 1) {
-                map.getLayers().item(1).getSource().updateParams({TIME: isoDate(range.start) + "/" + isoDate(range.end)});
                 _timeControls.defer(createLoadListener($rootScope).deferred);
             }
         }
