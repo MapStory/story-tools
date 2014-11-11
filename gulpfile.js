@@ -48,11 +48,11 @@ function bundle(browserify, bundleName, whenDone) {
     return doBundle();
 }
 
-function scripts() {
+function scripts(cb) {
     return bundle(browserify({
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
-    }), 'time-controls.js');
+    }), 'time-controls.js', cb);
 }
 
 function tests(done) {
@@ -104,7 +104,7 @@ gulp.task('tdd', function(done) {
         });
     }
     scripts(cb);
-    tests(cb);
+    tests();
 });
 
 gulp.task('test', function() {
@@ -114,7 +114,6 @@ gulp.task('test', function() {
 
 gulp.task('watch', function() {
     watch = true;
-    scripts();
     gulp.watch('examples/*', function() {
         gulp.src('examples/*').pipe(connect.reload());
     });
