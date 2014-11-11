@@ -1,13 +1,10 @@
 'use strict';
 
-// @todo extract map logic to be non-angular
 (function () {
 
     var module = angular.module('timeControls', []);
     var map;
     var testing = false;
-    var tilesLoading = {};
-    var loadListener = null;
 
     var playbackOptions = {
         mode: 'instant',
@@ -16,54 +13,6 @@
 
     function isoDate(v) {
         return new Date(v).toISOString();
-    }
-
-    function createLoadListener($rootScope) {
-        var deferred = $.Deferred(),
-                cancelled = false;
-        function remainingTiles() {
-            var t = 0;
-            for (var i in tilesLoading) {
-                t += tilesLoading[i];
-            }
-            return t;
-        }
-        if (loadListener !== null) {
-            loadListener.cancel();
-        }
-        return loadListener = {
-            deferred: deferred,
-            cancel: function() {
-                cancelled = true;
-                for (var s in tilesLoading) {
-                    tilesLoading[s] = 0;
-                }
-                $rootScope.$broadcast('tilesLoaded', 0);
-                loadListener = null;
-                if (deferred) {
-                    deferred.reject(); // notify we've aborted but w/out error
-                }
-            },
-            tileQueued: function (source) {
-                if (cancelled) {
-                    return;
-                }
-                tilesLoading[source] += 1;
-                $rootScope.$broadcast('tilesQueued', remainingTiles());
-            },
-            tileLoaded: function (event, source) {
-                if (cancelled) {
-                    return;
-                }
-                tilesLoading[source] -= 1;
-                var remaining = remainingTiles();
-                $rootScope.$broadcast('tilesLoaded', remaining);
-                if (remaining == 0 && deferred) {
-                    deferred.resolve();
-                    loadListener = null;
-                }
-            }
-        };
     }
 
     module.run(function (timeControlsService) {
@@ -140,48 +89,22 @@
                 serverType: 'geoserver'
             });
             var layer = new ol.layer.Tile({source: source, name: name});
-            map.addLayer(layer);
-            source.setTileLoadFunction((function () {
-                var tileLoadFn = source.getTileLoadFunction();
-                tilesLoading[source] = 0;
-                return function (tile, src) {
-                    // grab the active loadListener to avoid phantom onloads
-                    // when listener is cancelled
-                    var currentListener = loadListener;
-                    if (currentListener) {
-                        currentListener.tileQueued(source);
-                        var image = tile.getImage();
-                        // @todo handle onerror and cancel deferred with an example
-                        // to stop automatic playback
-                        image.onload = image.onerror = function (event) {
-                            currentListener.tileLoaded(event, source);
-                        };
-                    }
-                    tileLoadFn(tile, src);
-                };
-            })());
-            return loadCapabilities(layer);
+            return loadCapabilities(layer).then(function() {
+                map.addLayer(layer);
+            });
         }
 
         function createControls(data) {
             _timeControls = timeControls.create({
                 annotations: [],
-                map: null,
+                map: map,
                 data: data || map.getLayers().item(1)._times,
-                playback: playbackOptions
+                playback: playbackOptions,
+                tileStatusCallback: function(remaining) {
+                    $rootScope.$broadcast('tilesLoaded', remaining);
+                }
             });
-            _timeControls.on("rangeChange", updateLayers);
             return _timeControls;
-        }
-
-        function updateLayers(range) {
-            var layers = map.getLayers();
-            for (var i = 1; i < layers.getLength(); i++) {
-                map.getLayers().item(i).getSource().updateParams({TIME: isoDate(range.start) + "/" + isoDate(range.end)});
-            }
-            if (layers.getLength() > 1) {
-                _timeControls.defer(createLoadListener($rootScope).deferred);
-            }
         }
 
         var service = {
@@ -198,21 +121,21 @@
         $scope.timeControlsService = timeControlsService;
         $scope.layerName = '';
         $scope.timeControls = timeControlsService.getTimeControls();
-        function updateRemaining(evt, remaining) {
+        $scope.$on('tilesLoaded', function(evt, remaining) {
             $scope.$apply(function () {
                 $scope.tilesRemaining = remaining;
             });
-        }
-        ;
-        $scope.$on('tilesQueued', updateRemaining);
-        $scope.$on('tilesLoaded', updateRemaining);
+        });
         $scope.addLayer = function () {
             $scope.loading = true;
             timeControlsService.addLayer($scope.layerName).then(function () {
-                $scope.loading = false;
                 if ($scope.timeControls === null) {
                     $scope.timeControls = timeControlsService.createControls();
                 }
+            }, function(problem) {
+                alert(problem.data);
+            }).finally(function() {
+                $scope.loading = false;
             });
             $scope.layerName = null;
         };
