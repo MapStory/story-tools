@@ -66,9 +66,12 @@
             var url = layer.getSource().getUrls()[0];
             return $http.get(url + '?request=getcapabilities').success(function (response) {
                 var parser = new ol.format.WMSCapabilities();
-                var found = timeControls.maps.readCapabilitiesTimeDimensions(parser.read(response));
+                var caps = parser.read(response);
+                var found = timeControls.maps.readCapabilitiesTimeDimensions(caps);
                 var name = layer.get('name');
                 if (name in found) {
+                    var extent = caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox;
+                    layer.setExtent(ol.proj.transformExtent(extent, 'EPSG:4326', map.getView().getProjection()));
                     layer._times = found[name];
                 }
             });
