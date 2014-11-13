@@ -43,6 +43,8 @@ $(function() {
         var status = $("#loadingLayer").html('Loading...');
         $.ajax(url + '?request=getcapabilities').then(function(response) {
             var caps = parser.read(response);
+            var extent = caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox;
+            layer.setExtent(ol.proj.transformExtent(extent, 'EPSG:4326', map.getView().getProjection()));
             var times = caps.Capability.Layer.Layer[0].Dimension[0].values.split(',');
             times = times.map(function(t) {
                 return Date.parse(t);
