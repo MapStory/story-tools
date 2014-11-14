@@ -6,11 +6,14 @@ var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var refresh = require('gulp-livereload');
 var connect = require('gulp-connect');
+var clean = require('gulp-clean');
+var jshint = require('gulp-jshint');
 var karma = require('karma').server;
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
 
 var watch = false;
+var sources = ['lib/time/*.js'];
 
 function notify(msg) {
     if (watch) {
@@ -21,7 +24,18 @@ function notify(msg) {
     }
 }
 
-function bundle(browserify, bundleName, whenDone) {
+function lint() {
+    var lintStream = gulp.src(sources)
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(jshint.reporter('fail'));
+    lintStream.on('error', function() {
+        notify('linting failed');
+    });
+    return lintStream;
+}
+
+function bundle(browserify, bundleName, test) {
     if (watch) {
         browserify = watchify(browserify);
     }
@@ -38,8 +52,10 @@ function bundle(browserify, bundleName, whenDone) {
                 .pipe(connect.reload());
         bundleStream.on('end', function() {
             util.log("bundled", util.colors.cyan(bundleName));
-            if (whenDone) {
-                whenDone();
+            if (watch && test) {
+                runTests(function(failed) {
+                    notify(failed > 0 ? failed + ' failures' : 'passing!');
+                });
             }
         });
         return bundleStream;
@@ -48,15 +64,19 @@ function bundle(browserify, bundleName, whenDone) {
     return doBundle();
 }
 
-function scripts(cb) {
+function scripts() {
+    timeBundle();
+}
+
+function timeBundle(test) {
     return bundle(browserify({
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
-    }), 'time-controls.js', cb);
+    }), 'time-controls.js', test);
 }
 
-function tests(done) {
-    return bundle(browserify('./test/tests.js'), 'tests.js', done);
+function tests() {
+    return bundle(browserify('./test/tests.js'), 'tests.js', true);
 }
 
 function runTests(done) {
@@ -66,7 +86,13 @@ function runTests(done) {
     }, done);
 }
 
-gulp.task('scripts', scripts);
+function tdd() {
+    watch = true;
+    lint();
+    gulp.watch(sources, lint);
+    timeBundle(false);
+    tests();
+}
 
 gulp.task('connect', function() {
     var url = require('url');
@@ -96,32 +122,33 @@ gulp.task('connect', function() {
     });
 });
 
-gulp.task('tdd', function(done) {
-    watch = true;
-    function cb() {
-        runTests(function(failed) {
-            notify(failed > 0 ? failed + ' failures' : 'passing!');
-        });
-    }
-    scripts(cb);
-    tests();
-});
-
-gulp.task('test', function() {
-    tests();
-    runTests();
-});
-
-gulp.task('watch', function() {
-    watch = true;
+gulp.task('watch-examples', function() {
     gulp.watch('examples/*', function() {
         gulp.src('examples/*').pipe(connect.reload());
     });
 });
 
-gulp.task('develop', ['connect', 'tdd', 'watch']);
+gulp.task('clean', function() {
+    gulp.src('dist/*', {read: false})
+        .pipe(clean());
+});
 
-gulp.task('default', ['test'], function() {
-    scripts();
+gulp.task('minify', ['scripts'], function() {
     gulp.src('dist/time-controls.js').pipe(uglify()).pipe(rename({ extname: '.min.js' })).pipe(gulp.dest('dist'));
 });
+
+gulp.task('lint', lint);
+
+gulp.task('timeBundle', timeBundle);
+
+gulp.task('scripts', ['timeBundle']);
+
+gulp.task('tests', tests);
+
+gulp.task('test', ['clean', 'tests'], runTests);
+
+gulp.task('default', ['clean', 'lint', 'test', 'minify']);
+
+gulp.task('develop', ['connect', 'tdd', 'watch-examples']);
+
+gulp.task('tdd', tdd);
