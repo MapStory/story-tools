@@ -1,0 +1,31 @@
+<div class="style-editor-item">
+    <div class="title">Symbol</div>
+    <div class="controls">
+        <div data-dropdown data-click-value>
+            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Symbol" data-popover-trigger="mouseenter">
+                <span>{{ getSymbolizerText() }}</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li ng-repeat="name in styleChoices.symbolizers" ng-click="activeStyle.symbol.shape=name">
+                    {{ name }}
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <input no-close size="3" type="number" min="0" max="30" step="1" value="10" name="symbol-size" ng-model="activeStyle.symbol.size" data-popover-placement="top" data-popover="Symbol size" data-popover-trigger="mouseenter"/>
+        </div>
+
+        <color-editor ng-model="activeStyle.stroke" property="fillColor" popover-text="Fill Color"></color-editor>
+
+        <div data-dropdown>
+            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Fill transparency" data-popover-trigger="mouseenter">
+                {{activeStyle.stroke.fillOpacity}} <span class="caret"></span>
+            </button>
+            <div class="dropdown-menu" role="menu">
+                <input no-close size="3" type="number" min="0" max="100" step="1" value="100" ng-model="activeStyle.stroke.fillOpacity" />
+            </div>
+        </div>
+    </div>
+</div>

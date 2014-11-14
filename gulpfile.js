@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var util = require('gulp-util');
+var concat = require('gulp-concat');
 var browserify = require('browserify');
 var rename = require('gulp-rename');
 var watchify = require('watchify');
@@ -8,12 +9,19 @@ var refresh = require('gulp-livereload');
 var connect = require('gulp-connect');
 var clean = require('gulp-clean');
 var jshint = require('gulp-jshint');
+var less = require('gulp-less');
 var karma = require('karma').server;
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
+var templateCache = require('gulp-angular-templatecache');
 
 var watch = false;
-var sources = ['lib/time/*.js'];
+var styleSources = 'lib/style/*.js';
+var styleBundleDest = 'mapstory-style-editor.js';
+var styleTemplates = 'lib/style/templates/*.html';
+var styleTemplatesBundle = 'mapstory-style-editor-tpls.js';
+var styleCSS = 'mapstory-style-editor.css';
+var sources = ['lib/time/*.js', styleSources];
 
 function notify(msg) {
     if (watch) {
@@ -47,9 +55,9 @@ function bundle(browserify, bundleName, test) {
             this.end();
         });
         var bundleStream = bundle
-                .pipe(source(bundleName))
-                .pipe(gulp.dest('dist'))
-                .pipe(connect.reload());
+            .pipe(source(bundleName))
+            .pipe(gulp.dest('dist'))
+            .pipe(connect.reload());
         bundleStream.on('end', function() {
             util.log("bundled", util.colors.cyan(bundleName));
             if (watch && test) {
@@ -64,15 +72,31 @@ function bundle(browserify, bundleName, test) {
     return doBundle();
 }
 
-function scripts() {
-    timeBundle();
-}
-
 function timeBundle(test) {
     return bundle(browserify({
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
     }), 'time-controls.js', test);
+}
+
+function styleBundle() {
+    var stream = gulp.src(styleSources)
+        .pipe(concat(styleBundleDest))
+        .pipe(gulp.dest('dist'))
+        .pipe(connect.reload());
+    stream.on('end', function() {
+        util.log("bundled", util.colors.cyan(styleBundleDest));
+    });
+}
+
+function styleLess() {
+    gulp.src('lib/style/style.less')
+        .pipe(less({
+            paths: ['bower_components/bootstrap/less']
+        }))
+        .pipe(rename(styleCSS))
+        .pipe(gulp.dest('dist'))
+        .pipe(connect.reload());
 }
 
 function tests() {
@@ -86,12 +110,35 @@ function runTests(done) {
     }, done);
 }
 
+function runAndWatch(sources, func) {
+    func();
+    gulp.watch(sources, func);
+}
+
 function tdd() {
     watch = true;
-    lint();
-    gulp.watch(sources, lint);
+    runAndWatch(sources, lint);
+    runAndWatch(styleSources, styleBundle);
+    runAndWatch(styleTemplates, templates);
+    runAndWatch('lib/style/style.less', styleLess);
     timeBundle(false);
     tests();
+}
+
+function templates() {
+    return gulp.src(styleTemplates)
+        .pipe(templateCache(styleTemplatesBundle, {
+            standalone: true,
+            module: 'styleTemplates'
+        })).pipe(gulp.dest('dist')).pipe(connect.reload());
+}
+
+function minify() {
+    function doMinify(src) {
+        gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
+    }
+    minify('dist/time-controls.js');
+    minify('dist/style.js');
 }
 
 gulp.task('connect', function() {
@@ -133,21 +180,25 @@ gulp.task('clean', function() {
         .pipe(clean());
 });
 
-gulp.task('minify', ['scripts'], function() {
-    gulp.src('dist/time-controls.js').pipe(uglify()).pipe(rename({ extname: '.min.js' })).pipe(gulp.dest('dist'));
-});
+gulp.task('minify', ['scripts'], minify);
 
 gulp.task('lint', lint);
 
 gulp.task('timeBundle', timeBundle);
 
-gulp.task('scripts', ['timeBundle']);
+gulp.task('templates', templates);
+
+gulp.task('styleBundle', styleBundle);
+
+gulp.task('styleLess', styleLess);
+
+gulp.task('scripts', ['tests', ' timeBundle', 'styleBundle', 'styleLess']);
 
 gulp.task('tests', tests);
 
 gulp.task('test', ['clean', 'tests'], runTests);
 
-gulp.task('default', ['clean', 'lint', 'test', 'minify']);
+gulp.task('default', ['clean', 'lint', 'test'], minify);
 
 gulp.task('develop', ['connect', 'tdd', 'watch-examples']);
 

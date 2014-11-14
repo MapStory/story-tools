@@ -17,7 +17,8 @@
   ],
   "dependencies": {
     "jquery": ">=1.8.0",
-    "nouislider" : "7.0.9"
+    "nouislider" : "7.0.9",
+    "angular-bootstrap" : "0.11.2"
   },
   "devDependencies": {
     "bootstrap": "3.0.0",

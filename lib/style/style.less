@@ -1,0 +1,25 @@
+@import (reference) "bootstrap";
+
+.style-editor-item button {
+    &:extend(.btn);
+    &:extend(.btn-xs);
+    &:extend(.btn-primary);
+}
+
+.style-editor-item {
+    &:extend(.btn-toolbar);
+    border-bottom: 1px solid @gray-light;
+}
+
+.style-editor-item .controls {
+    padding-bottom: .5em;
+}
+
+.style-editor-item .controls > div {
+    &:extend(.btn-group);
+}
+
+.style-editor-item .controls input {
+    &:extend(.btn-xs);
+}
+

@@ -1,0 +1,21 @@
+<div class="well">
+    <div class="style-type-header" ng-click="click()">
+        <carousel>
+            <slide ng-repeat="styleType in styleTypes" active="styleType.active">
+                <!--<img ng-src="{{styleType.image}}">-->
+                <h4>{{styleType.displayName}}</h4>
+                <p>Image would go here.</p>
+            </slide>
+        </carousel>
+    </div>
+    <div>
+        <style-type-editor></style-type-editor>
+        <div class="style-editor-item" ng-if="activeStyle.rules">
+            <div class="title">Rules</div>
+            <div ng-repeat="rule in activeStyle.rules">
+                <span class="success">{{ rule.name}}</span>
+                <button>&times;</button>
+            </div>
+        </div>
+    </div>
+</div>
