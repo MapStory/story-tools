@@ -62,9 +62,8 @@
     module.factory('timeControlsService', function ($http, $rootScope) {
         var _timeControls = null;
 
-        function loadCapabilities(layer) {
-            var url = layer.getSource().getUrls()[0];
-            return $http.get(url + '?request=getcapabilities').success(function (response) {
+        function loadCapabilities(layer, url) {
+            return $http.get(url + '?request=GetCapabilities').success(function (response) {
                 var parser = new ol.format.WMSCapabilities();
                 var caps = parser.read(response);
                 var found = timeControls.maps.readCapabilitiesTimeDimensions(caps);
@@ -73,6 +72,17 @@
                     var extent = caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox;
                     layer.setExtent(ol.proj.transformExtent(extent, 'EPSG:4326', map.getView().getProjection()));
                     layer._times = found[name];
+                    // @todo use urls for subdomain loading
+                    layer.setSource(new ol.source.TileWMS({
+                        url: url,
+                        params: {
+                            'TIME': isoDate(layer._times.start || layer._times[0]),
+                            'LAYERS': name,
+                            'VERSION': '1.1.0',
+                            'TILED': true
+                        },
+                        serverType: 'geoserver'
+                    }));
                 }
             });
         }
@@ -85,14 +95,8 @@
                 name = parts[1];
             }
             var url = '/geoserver/' + workspace + '/' + name + '/wms';
-            // @todo use urls for subdomain loading
-            var source = new ol.source.TileWMS({
-                url: url,
-                params: {'LAYERS': name, 'VERSION': '1.1.0', 'TILED': true},
-                serverType: 'geoserver'
-            });
-            var layer = new ol.layer.Tile({source: source, name: name});
-            return loadCapabilities(layer).then(function() {
+            var layer = new ol.layer.Tile({name: name});
+            return loadCapabilities(layer, url).then(function() {
                 map.addLayer(layer);
             });
         }
