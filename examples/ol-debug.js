@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: v3.0.0-418-g41eeed5
+// Version: v3.0.0-437-g32d5300
 
 var CLOSURE_NO_DEPS = true;
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
@@ -53057,9 +53057,13 @@ ol.layer.Group.prototype.getLayerStatesArray = function(opt_states) {
         layerState.maxResolution, ownLayerState.maxResolution);
     layerState.minResolution = Math.max(
         layerState.minResolution, ownLayerState.minResolution);
-    if (goog.isDef(ownLayerState.extent) && goog.isDef(layerState.extent)) {
-      layerState.extent = ol.extent.getIntersection(
-          layerState.extent, ownLayerState.extent);
+    if (goog.isDef(ownLayerState.extent)) {
+      if (goog.isDef(layerState.extent)) {
+        layerState.extent = ol.extent.getIntersection(
+            layerState.extent, ownLayerState.extent);
+      } else {
+        layerState.extent = ownLayerState.extent;
+      }
     }
   }
 
@@ -67121,7 +67125,7 @@ ol.Map = function(options) {
     goog.events.EventType.TOUCHSTART,
     goog.events.EventType.MSPOINTERDOWN,
     ol.MapBrowserEvent.EventType.POINTERDOWN,
-    goog.events.EventType.MOUSEWHEEL
+    goog.userAgent.GECKO ? 'DOMMouseScroll' : 'mousewheel'
   ], goog.events.Event.stopPropagation);
   goog.dom.appendChild(this.viewport_, this.overlayContainerStopEvent_);
 
@@ -95991,7 +95995,7 @@ ol.interaction.Select.prototype.handleMapBrowserEvent =
     }
     features.extend(selected);
   }
-  return false;
+  return this.condition_ == ol.events.condition.mouseMove;
 };
 
 
@@ -101008,8 +101012,7 @@ goog.require('ol.source.Image');
 
 /**
  * @classdesc
- * An image source for 'static', that is, non-georeferenced, images.
- * See examples/static-image for example.
+ * A layer source for displaying a single, static image.
  *
  * @constructor
  * @extends {ol.source.Image}
@@ -103432,7 +103435,6 @@ ol.source.WMTS = function(options) {
 
   var context = {
     'Layer': options.layer,
-    'style': options.style,
     'Style': options.style,
     'TileMatrixSet': options.matrixSet
   };
