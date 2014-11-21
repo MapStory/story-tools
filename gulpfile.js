@@ -129,7 +129,7 @@ function templates() {
     return gulp.src(styleTemplates)
         .pipe(templateCache(styleTemplatesBundle, {
             standalone: true,
-            module: 'styleTemplates'
+            module: 'mapstory.styleEditor.templates'
         })).pipe(gulp.dest('dist')).pipe(connect.reload());
 }
 

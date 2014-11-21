@@ -1,15 +1,16 @@
-<div class="well">
-    <div class="style-type-header" ng-click="click()">
-        <carousel>
-            <slide ng-repeat="styleType in styleTypes" active="styleType.active">
-                <!--<img ng-src="{{styleType.image}}">-->
-                <h4>{{styleType.displayName}}</h4>
-                <p>Image would go here.</p>
-            </slide>
-        </carousel>
+<form name="editorForm" class="well">
+    <div class="style-type-header">
+        <div class="btn-group" data-dropdown>
+            <button type="button" class="btn btn-primary dropdown-toggle">
+                Style: {{currentEditor.displayName}}<span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li ng-repeat="styleType in styleTypes" ng-click="setActiveStyle(styleType)">{{styleType.displayName}}</li>
+            </ul>
+        </div>
     </div>
     <div>
-        <style-type-editor></style-type-editor>
+        <style-type-editor ng-if="layer"></style-type-editor>
         <div class="style-editor-item" ng-if="activeStyle.rules">
             <div class="title">Rules</div>
             <div ng-repeat="rule in activeStyle.rules">
@@ -18,4 +19,4 @@
             </div>
         </div>
     </div>
-</div>
+</form>

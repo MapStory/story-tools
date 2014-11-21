@@ -1,30 +1,35 @@
-<div class="style-editor-item">
+<div ng-form="symbol" class="style-editor-item">
     <div class="title">Symbol</div>
     <div class="controls">
-        <div data-dropdown data-click-value>
+        <div data-dropdown ng-if="showGraphic">
             <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Symbol" data-popover-trigger="mouseenter">
-                <span>{{ getSymbolizerText() }}</span>
+                <span>{{ getSymbolizerText(model) }}</span>
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
-                <li ng-repeat="name in styleChoices.symbolizers" ng-click="activeStyle.symbol.shape=name">
+                <li ng-repeat="name in styleChoices.symbolizers" ng-click="model.shape=name">
                     {{ name }}
                 </li>
             </ul>
         </div>
 
-        <div>
-            <input no-close size="3" type="number" min="0" max="30" step="1" value="10" name="symbol-size" ng-model="activeStyle.symbol.size" data-popover-placement="top" data-popover="Symbol size" data-popover-trigger="mouseenter"/>
+        <div ng-if="showGraphic" data-dropdown>
+            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Symbol size" data-popover-trigger="mouseenter">
+                {{model.size||'number'}} <span class="caret"></span>
+            </button>
+            <div class="dropdown-menu" role="menu">
+                <input no-close size="3" type="number" min="0" max="200" step="1" value="10" name="size" ng-model="model.size" />
+            </div>
         </div>
 
-        <color-editor ng-model="activeStyle.stroke" property="fillColor" popover-text="Fill Color"></color-editor>
+        <color-editor ng-model="model" property="fillColor" popover-text="Fill Color"></color-editor>
 
         <div data-dropdown>
             <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Fill transparency" data-popover-trigger="mouseenter">
-                {{activeStyle.stroke.fillOpacity}} <span class="caret"></span>
+                {{model.fillOpacity||'0-100'}} <span class="caret"></span>
             </button>
             <div class="dropdown-menu" role="menu">
-                <input no-close size="3" type="number" min="0" max="100" step="1" value="100" ng-model="activeStyle.stroke.fillOpacity" />
+                <input no-close size="3" type="number" min="0" max="100" step="1" value="100" name="fillOpacity" ng-model="model.fillOpacity" />
             </div>
         </div>
     </div>

@@ -6,7 +6,7 @@
                 {{activeStyle.classify.attribute || 'Select Attribute'}}<span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
-                <li ng-repeat="attribute in layerInfo.attributes" ng-click="changeClassifyProperty('attribute',attribute)">{{attribute}}</li>
+                <li ng-repeat="attribute in layer.info.attributes" ng-click="changeClassifyProperty('attribute',attribute)">{{attribute}}</li>
             </ul>
         </div>
 
