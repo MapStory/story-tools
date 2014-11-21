@@ -2,7 +2,8 @@
 
 (function() {
 
-    var module = angular.module('styleExample', ['mapstory.styleEditor']);
+    var module = angular.module('styleExample', ['mapstory.styleEditor',
+    'colorpicker.module']);
     var map;
 
     function makeLayers() {

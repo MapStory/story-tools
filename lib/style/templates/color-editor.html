@@ -1,9 +1,10 @@
 <div class="btn-group" data-dropdown>
     <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="{{popover}}" data-popover-trigger="mouseenter">
-        <i style="border-radius:2px;border:1px solid white;margin-right:5px" ng-style="{'backgroundColor': ngModel[property]}"> &nbsp; &nbsp; &nbsp; </i>
+        <i ng-style="{'backgroundColor': ngModel[property]}" class="color-picker">&nbsp; &nbsp; &nbsp;</i>
         <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu color-select" role="menu" style="padding:5px;width:150px">
-        <input no-close popover-placement="top" popover="Use any rgb or hex color" popover-trigger="mouseenter" type="text" style="margin:5px 0; width:95%; text-align: center" ng-model="ngModel[property]"/>
+    <ul no-close class="dropdown-menu color-select" role="menu" style="padding:5px;width:150px">
+        <input ng-model="ngModel[property]">
+        <div no-close colorpicker colorpicker-parent="true" colorpicker-position="bottom" type="button" ng-model="ngModel[property]"></div>
     </ul>
 </div>

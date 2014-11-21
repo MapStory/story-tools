@@ -1,7 +1,10 @@
 {
   "name": "time-controls",
   "version": "0.0.1",
-  "main": ["dist/timecontrols.min.js", "dist/timecontrols.min.css"],
+  "main": [
+    "dist/timecontrols.min.js",
+    "dist/timecontrols.min.css"
+  ],
   "description": "time slider and timeline controls for maps",
   "homepage": "",
   "repository": {
@@ -17,8 +20,9 @@
   ],
   "dependencies": {
     "jquery": ">=1.8.0",
-    "nouislider" : "7.0.9",
-    "angular-bootstrap" : "0.11.2"
+    "nouislider": "7.0.9",
+    "angular-bootstrap": "0.11.2",
+    "angular-bootstrap-colorpicker": "~3.0.8"
   },
   "devDependencies": {
     "bootstrap": "3.0.0",
