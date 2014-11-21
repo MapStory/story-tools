@@ -75,10 +75,8 @@
                         'EPSG:4326',
                         map.getView().getProjection()
                     );
+                    layer.setExtent(extent);
                     layer.getLayers().forEach(function(lyr) {
-                        // TODO can be set on group layer if 
-                        // https://github.com/openlayers/ol3/pull/2960 gets merged
-                        lyr.setExtent(extent);
                         // @todo use urls for subdomain loading
                         lyr.setSource(new ol.source.TileWMS({
                             url: url,
@@ -112,6 +110,7 @@
             });
             return loadCapabilities(layer, url).then(function() {
                 map.addLayer(layer);
+                map.getView().fitExtent(layer.getExtent(), map.getSize());
             });
         }
 
