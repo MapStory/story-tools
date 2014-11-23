@@ -4,6 +4,10 @@ module.exports = function(config) {
     reporters: ['spec'],
     frameworks: ['jasmine'],
     browsers: ['PhantomJS'],
-    files: ['dist/tests.js']
+    files: [
+        'bower_components/angular/angular.js',
+        'bower_components/angular-mocks/angular-mocks.js',
+        'dist/tests.js'
+    ]
   });
 };

@@ -11,7 +11,7 @@
         </div>
 
         <div class="btn-group" ng-if="showMaxClasses">
-            <input class="btn-xs" size="3" type="number" min="0" step="1" ng-model="activeStyle.classify.maxClasses" popover-placement="top" popover="Classes" popover-trigger="mouseenter"/>
+            <input class="btn-xs" size="3" type="number" min="0" step="1" ng-model="activeStyle.classify.maxClasses" ng-change="changeClassifyProperty()" popover-placement="top" popover="Classes" popover-trigger="mouseenter"/>
         </div>
 
         <div class="btn-group" ng-if="showFixedClasses">
@@ -22,7 +22,7 @@
 
     </div>
     <div class="controls">
-        <div class="btn-group" data-dropdown >
+        <div class="btn-group" data-dropdown ng-if="showColorRamp">
             <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Color Ramp" data-popover-trigger="mouseenter">
                 <canvas data-color-ramp width="200" height="14" data-ramp='activeStyle.classify.colorRamp' ng-if="activeStyle.classify.colorRamp"></canvas>
                 <span ng-if="activeStyle.classify.colorRamp == null">Color Ramp</span>
@@ -30,8 +30,22 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 <li ng-click="activeStyle.classify.colorRamp=null">[ None ]</li>
-                <li ng-repeat='ramp in styleChoices.colorRamps' ng-click="activeStyle.classify.colorRamp=ramp">
+                <li ng-repeat='ramp in styleChoices.colorRamps' ng-click="changeClassifyProperty('colorRamp',ramp)">
                     <canvas data-color-ramp width="200" height="14" data-ramp='ramp'></canvas>
+                </li>
+            </ul>
+        </div>
+
+        <div class="btn-group" data-dropdown ng-if="showColorPalette">
+            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Color Palette" data-popover-trigger="mouseenter">
+                <span>{{ activeStyle.classify.colorPalette||'Color Palette'}}</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li ng-click="activeStyle.classify.colorPalette=null">[ None ]</li>
+                <li class="clearfix" ng-repeat='p in styleChoices.colorPalettes' ng-click="changeClassifyProperty('colorPalette',p.name)">
+                    <div>{{ p.name }}</div>
+                    <div class="color-square" ng-repeat="c in p.vals" style="background-color: {{ c }}"></div>
                 </li>
             </ul>
         </div>
@@ -45,6 +59,19 @@
                     <span>{{method}}</span>
                 </li>
             </ul>
+        </div>
+    </div>
+    <div class="controls" ng-if="showRange">
+        <div data-dropdown>
+            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Range" data-popover-trigger="mouseenter">
+                {{activeStyle.classify.range.min}} - {{activeStyle.classify.range.max}}<span class="caret"></span>
+            </button>
+            <div class="dropdown-menu" role="menu">
+                <!--<input no-close size="3" name="classifyRangeMin" ng-init="value = activeStyle.classify.range.min + ' ' + activeStyle.classify.range.max" ng-model="value" ng-change=""/>-->
+                <label>Min:</label><input no-close size="3" name="classifyRangeMin" type="number" min="0" max="{{activeStyle.classify.range.max}}" ng-model="activeStyle.classify.range.min" ng-change="changeClassifyProperty" />
+                <br/>
+                <label>Max:</label><input no-close size="3" name="classifyRangeMax" type="number" min="{{activeStyle.classify.range.min}}" max="200" ng-model="activeStyle.classify.range.max" ng-change="changeClassifyProperty"/>
+            </div>
         </div>
     </div>
 </div>

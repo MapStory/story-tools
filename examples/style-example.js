@@ -18,7 +18,7 @@
             });
             vector._styles = null;
             vector._layerInfo = {
-                type: type,
+                geomType: type,
                 attributes: atts
             };
             vector.set('id', name);
@@ -30,20 +30,20 @@
             {'geometry': new ol.geom.Point([-500000, -300000])},
             {'geometry': new ol.geom.Point([-500000, -200000])},
             {'geometry': new ol.geom.Point([-500000, -100000])}
-        ], ['p1','p2','p3']);
+        ], ['p1a1','p1a2','p1a3']);
         makeLayer('point2', 'point', [
             {'geometry': new ol.geom.Point([-750000, -500000])},
             {'geometry': new ol.geom.Point([-750000, -400000])},
             {'geometry': new ol.geom.Point([-750000, -300000])},
             {'geometry': new ol.geom.Point([-750000, -200000])},
             {'geometry': new ol.geom.Point([-750000, -100000])}
-        ], ['p1','p2','p3']);
+        ], ['p2a1','p2a2','p2a3']);
         makeLayer('line', 'line', [
             {'geometry': new ol.geom.LineString([[0, 0], [-500000, 500000]])}
         ], ['l1','l2','l3']);
     }
 
-    module.run(function($rootScope) {
+    module.run(function() {
         map = new ol.Map({
             layers: [new ol.layer.Tile({
                     source: new ol.source.MapQuest({layer: 'sat'})
@@ -57,7 +57,6 @@
         window.map = map;
 
         makeLayers();
-
     });
 
     module.provider('styleDefaults', function() {
