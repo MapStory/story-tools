@@ -76,19 +76,17 @@
                         map.getView().getProjection()
                     );
                     layer.setExtent(extent);
-                    layer.getLayers().forEach(function(lyr) {
-                        // @todo use urls for subdomain loading
-                        lyr.setSource(new ol.source.TileWMS({
-                            url: url,
-                            params: {
-                                'TIME': isoDate(layer._times.start || layer._times[0]),
-                                'LAYERS': name,
-                                'VERSION': '1.1.0',
-                                'TILED': true
-                            },
-                            serverType: 'geoserver'
-                        }));
-                    });
+                    // @todo use urls for subdomain loading
+                    layer.setSource(new ol.source.TileWMS({
+                        url: url,
+                        params: {
+                            'TIME': isoDate(layer._times.start || layer._times[0]),
+                            'LAYERS': name,
+                            'VERSION': '1.1.0',
+                            'TILED': true
+                        },
+                        serverType: 'geoserver'
+                    }));
                 }
             });
         }
@@ -101,13 +99,7 @@
                 name = parts[1];
             }
             var url = '/geoserver/' + workspace + '/' + name + '/wms';
-            var layer = new ol.layer.Group({
-                name: name,
-                layers: [
-                    new ol.layer.Tile({visible: false}),
-                    new ol.layer.Tile()
-                ]
-            });
+            var layer = new ol.layer.Tile({name: name});
             return loadCapabilities(layer, url).then(function() {
                 map.addLayer(layer);
                 map.getView().fitExtent(layer.getExtent(), map.getSize());

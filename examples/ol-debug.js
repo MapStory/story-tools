@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: v3.0.0-437-g32d5300
+// Version: old-master-8836-gef98dbf
 
 var CLOSURE_NO_DEPS = true;
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
@@ -57463,12 +57463,12 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   }
 
   var i, ii;
-  for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
+  /*for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
     tile = tilesToClear[i];
     x = tilePixelSize * (tile.tileCoord[1] - canvasTileRange.minX);
     y = tilePixelSize * (canvasTileRange.maxY - tile.tileCoord[2]);
     context.clearRect(x, y, tilePixelSize, tilePixelSize);
-  }
+  }*/
 
   /** @type {Array.<number>} */
   var zs = goog.array.map(goog.object.getKeys(tilesToDrawByZ), Number);
