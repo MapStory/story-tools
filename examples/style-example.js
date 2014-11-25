@@ -2,8 +2,9 @@
 
 (function() {
 
-    var module = angular.module('styleExample', ['mapstory.styleEditor',
-    'colorpicker.module']);
+    var module = angular.module('styleExample', [
+        'mapstory.styleEditor',
+        'colorpicker.module']);
     var map;
 
     function makeLayers() {
@@ -59,7 +60,8 @@
         makeLayers();
     });
 
-    module.provider('styleDefaults', function() {
+    // inject some high-contrast defaults
+    module.provider('stStyleDefaults', function() {
         // default values
         var values = {
             fillColor: '#ff0000',
@@ -87,6 +89,35 @@
                 info : l._layerInfo
             };
         });
+    });
+
+    // this is a dummy
+    module.factory('stLayerClassificationService', function($q) {
+        return {
+            classify: function(layer, attribute, method, numClasses) {
+                var defer = $q.defer();
+                var classes = numClasses || (Math.random() * 10) + 1;
+                var classBreak = (Math.random() * 10).toFixed(2) + 1;
+                var results = [];
+                var unique = method == 'unique';
+                if (unique) {
+                    classBreak = Math.floor(classBreak);
+                }
+                for (var i = 0; i < classes; i++) {
+                    var value =  unique ? classBreak * i : {
+                        min : classBreak * i,
+                        max: classBreak * (i + 1)
+                    };
+                    var rule = {
+                        name: unique ? value : value.min + '-' + value.max
+                    };
+                    rule[unique ? 'value' : 'range'] = value;
+                    results.push(rule);
+                }
+                defer.resolve(results);
+                return defer.promise;
+            }
+        };
     });
 
     module.directive("layerSelector", function() {

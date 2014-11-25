@@ -16,7 +16,7 @@ var uglify = require('gulp-uglify');
 var templateCache = require('gulp-angular-templatecache');
 
 var watch = false;
-var styleSources = 'lib/style/*.js';
+var styleSources = 'lib/style/**/*.js';
 var styleBundleDest = 'mapstory-style-editor.js';
 var styleTemplates = 'lib/style/templates/*.html';
 var styleTemplatesBundle = 'mapstory-style-editor-tpls.js';
@@ -137,8 +137,8 @@ function minify() {
     function doMinify(src) {
         gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
     }
-    minify('dist/time-controls.js');
-    minify('dist/style.js');
+    doMinify('dist/time-controls.js');
+    // @todo test+verify w/ minified
 }
 
 gulp.task('connect', function() {
@@ -190,15 +190,17 @@ gulp.task('templates', templates);
 
 gulp.task('styleBundle', styleBundle);
 
+gulp.task('timeBundle', timeBundle);
+
 gulp.task('styleLess', styleLess);
 
-gulp.task('scripts', ['tests', ' timeBundle', 'styleBundle', 'styleLess']);
+gulp.task('scripts', ['tests', 'timeBundle', 'styleBundle', 'styleLess']);
 
 gulp.task('tests', tests);
 
 gulp.task('test', ['clean', 'tests'], runTests);
 
-gulp.task('default', ['clean', 'lint', 'test'], minify);
+gulp.task('default', ['clean', 'lint', 'test', 'scripts'], minify);
 
 gulp.task('develop', ['connect', 'tdd', 'watch-examples']);
 

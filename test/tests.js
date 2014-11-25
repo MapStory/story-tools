@@ -1,4 +1,5 @@
 require('./test-utils');
 require('./test-maps');
 require('./test-boxes');
-require('./test-ruleStyleService');
+require('./test-styleRuleBuilder');
+require('./test-ol3StyleConverter');
