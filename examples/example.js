@@ -89,17 +89,11 @@
                             serverType: 'geoserver'
                         }));
                     } else if (layer instanceof ol.layer.Vector) {
+                        var origStyle = layer.get('origStyle');
                         layer.setStyle(function(feature, resolution) {
                             var startDate = layer._times.start || layer._times[0];
                             if (Date.parse(feature.get('Built')) === startDate) {
-                                var style = new ol.style.Style({
-                                    image: new ol.style.Circle({
-                                        radius: 10,
-                                        fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                                        stroke: new ol.style.Stroke({color: 'red', width: 1})
-                                    })
-                                });
-                                return [style];
+                                return typeof origStyle === 'function' ? origStyle.call(this, feature, resolution) : origStyle;
                             }
                         });
                         layer.setSource(new ol.source.ServerVector({
@@ -138,7 +132,20 @@
             var url = '/geoserver/' + workspace + '/' + name + '/wms';
             var layer;
             if (asVector === true) {
-                layer = new ol.layer.Vector({name: name});
+                // origStyle will contain the style / classification to be used
+                // it will be called by the time-based filtering
+                // TODO cache styles
+                layer = new ol.layer.Vector({
+                    name: name,
+                    /* always configure array or style function here */
+                    origStyle: [new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 10,
+                            fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+                            stroke: new ol.style.Stroke({color: 'red', width: 1})
+                        })
+                    })]
+                });
             } else {
                 layer = new ol.layer.Tile({name: name});
             }
