@@ -1,3 +1,4 @@
+/* global ol, angular, window, $, timeControls */
 'use strict';
 
 (function () {
@@ -63,7 +64,10 @@
         var _timeControls = null;
 
         function loadCapabilities(layer, url) {
-            return $http.get(url + '?request=GetCapabilities').success(function (response) {
+            function parseTime(response) {
+                layer._timeAttribute = response.attribute;
+            }
+            function parseCapabilities(response) {
                 var parser = new ol.format.WMSCapabilities();
                 var caps = parser.read(response);
                 var found = timeControls.maps.readCapabilitiesTimeDimensions(caps);
@@ -92,7 +96,7 @@
                         var origStyle = layer.get('origStyle');
                         layer.setStyle(function(feature, resolution) {
                             var startDate = layer._times.start || layer._times[0];
-                            if (Date.parse(feature.get('Built')) === startDate) {
+                            if (Date.parse(feature.get(layer._timeAttribute)) === startDate) {
                                 return typeof origStyle === 'function' ? origStyle.call(this, feature, resolution) : origStyle;
                             }
                         });
@@ -119,7 +123,15 @@
                         }));
                     }
                 }
-            });
+            }
+            var getcaps = url + '?request=GetCapabilities';
+            if (layer instanceof ol.layer.Vector) {
+                return $http.get('/maps/time_info.json?layer=' + layer.get('name')).success(parseTime).then(function() {
+                    return $http.get(getcaps).success(parseCapabilities);
+                });
+            } else {
+                return $http.get(getcaps).success(parseCapabilities);
+            }
         }
 
         function addLayer(name, asVector) {

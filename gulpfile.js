@@ -154,6 +154,11 @@ gulp.task('connect', function() {
                 options.route = '/geoserver';
                 return proxy(options);
             })();
+            var fixedProxyMaps = (function() {
+                var options = url.parse('http://mapstory.org/maps');
+                options.route = '/maps';
+                return proxy(options);
+            })();
             var dynamicProxy = function(req, res, next) {
                 var parts = url.parse(req.url);
                 if (parts.pathname === '/proxy') {
@@ -164,7 +169,7 @@ gulp.task('connect', function() {
                 }
                 return next();
             };
-            return [fixedProxy, dynamicProxy];
+            return [fixedProxy, fixedProxyMaps, dynamicProxy];
         }
     });
 });
