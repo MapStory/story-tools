@@ -89,6 +89,19 @@
                             serverType: 'geoserver'
                         }));
                     } else if (layer instanceof ol.layer.Vector) {
+                        layer.setStyle(function(feature, resolution) {
+                            var startDate = layer._times.start || layer._times[0];
+                            if (Date.parse(feature.get('Built')) === startDate) {
+                                var style = new ol.style.Style({
+                                    image: new ol.style.Circle({
+                                        radius: 10,
+                                        fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+                                        stroke: new ol.style.Stroke({color: 'red', width: 1})
+                                    })
+                                });
+                                return [style];
+                            }
+                        });
                         layer.setSource(new ol.source.ServerVector({
                             format: new ol.format.GeoJSON(),
                             loader: function(bbox, resolution, projection) {
