@@ -1,5 +1,4 @@
 require('../lib/style/services/ol3StyleConverter.js');
-require('../examples/ol.js');
 
 describe('ol3StyleConverter', function() {
 
