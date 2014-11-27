@@ -106,6 +106,9 @@
                                 <label for="typename">Layer Name</label>
                                 <input ng-model="layerName" type="text" class="form-control" id="typename" placeholder="Layer in mapstory">
                             </div>
+                            <div class="checkbox">
+                                <label for="vector"><input ng-model="asVector" type="checkbox" id="vector">As vector</label>
+                            </div>
                             <button type="submit" class="btn btn-primary">Add</button>
                             <span ng-if="loading">Loading...</span>
                         </form>
