@@ -29,8 +29,12 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(style.length).toBe(1);
-        console.log(style[0]);
-        // @todo verify styles - this looks hard due to mangling :(
+        expect(style[0] instanceof ol.style.Style).toBeTruthy();
+        var image = style[0].getImage();
+        expect(image.getRadius()).toBe(10);
+        expect(image.getFill().getColor()).toBe('#ff0000');
+        expect(image.getStroke().getColor()).toBe('#ffff00');
+        expect(image.getStroke().getWidth()).toBe(3);
     }));
 
 });
