@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: old-master-8836-gef98dbf
+// Version: old-master-8848-g2d74a6b
 
 var CLOSURE_NO_DEPS = true;
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
@@ -51546,6 +51546,7 @@ goog.provide('ol.style.Circle');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
 goog.require('ol.color');
+goog.require('ol.has');
 goog.require('ol.render.canvas');
 goog.require('ol.style.Fill');
 goog.require('ol.style.Image');
@@ -51740,7 +51741,7 @@ ol.style.Circle.prototype.unlistenImageChange = goog.nullFunction;
  */
 ol.style.Circle.prototype.render_ = function() {
   var canvas = this.canvas_;
-  var strokeStyle, strokeWidth;
+  var strokeStyle, strokeWidth, lineDash;
 
   if (goog.isNull(this.stroke_)) {
     strokeWidth = 0;
@@ -51772,6 +51773,10 @@ ol.style.Circle.prototype.render_ = function() {
   }
   if (!goog.isNull(this.stroke_)) {
     context.strokeStyle = strokeStyle;
+    lineDash = this.stroke_.getLineDash();
+    if (ol.has.CANVAS_LINE_DASH && !goog.isNull(lineDash)) {
+      context.setLineDash(lineDash);
+    }
     context.lineWidth = strokeWidth;
     context.stroke();
   }
@@ -51796,6 +51801,10 @@ ol.style.Circle.prototype.render_ = function() {
     context.fill();
     if (!goog.isNull(this.stroke_)) {
       context.strokeStyle = strokeStyle;
+      lineDash = this.stroke_.getLineDash();
+      if (ol.has.CANVAS_LINE_DASH && !goog.isNull(lineDash)) {
+        context.setLineDash(lineDash);
+      }
       context.lineWidth = strokeWidth;
       context.stroke();
     }
@@ -53160,6 +53169,7 @@ ol.proj.EPSG3857.CODES = [
   'EPSG:102113',
   'EPSG:900913',
   'urn:ogc:def:crs:EPSG:6.18:3:3857',
+  'urn:ogc:def:crs:EPSG::3857',
   'http://www.opengis.net/gml/srs/epsg.xml#3857'
 ];
 
@@ -53297,6 +53307,7 @@ ol.proj.EPSG4326.EXTENT = [-180, -90, 180, 90];
 ol.proj.EPSG4326.PROJECTIONS = [
   new ol.proj.EPSG4326_('CRS:84'),
   new ol.proj.EPSG4326_('EPSG:4326', 'neu'),
+  new ol.proj.EPSG4326_('urn:ogc:def:crs:EPSG::4326', 'neu'),
   new ol.proj.EPSG4326_('urn:ogc:def:crs:EPSG:6.6:4326', 'neu'),
   new ol.proj.EPSG4326_('urn:ogc:def:crs:OGC:1.3:CRS84'),
   new ol.proj.EPSG4326_('urn:ogc:def:crs:OGC:2:84'),
@@ -57463,12 +57474,12 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   }
 
   var i, ii;
-  /*for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
+  for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
     tile = tilesToClear[i];
     x = tilePixelSize * (tile.tileCoord[1] - canvasTileRange.minX);
     y = tilePixelSize * (canvasTileRange.maxY - tile.tileCoord[2]);
     context.clearRect(x, y, tilePixelSize, tilePixelSize);
-  }*/
+  }
 
   /** @type {Array.<number>} */
   var zs = goog.array.map(goog.object.getKeys(tilesToDrawByZ), Number);
@@ -77099,8 +77110,8 @@ ol.format.GMLBase.prototype.readFeatures_ = function(node, objectStack) {
     var parsers = {};
     var parsersNS = {};
     parsers[featureType] = (localName == 'featureMembers') ?
-        ol.xml.makeArrayPusher(this.readFeature_, this) :
-        ol.xml.makeReplacer(this.readFeature_, this);
+        ol.xml.makeArrayPusher(this.readFeatureElement, this) :
+        ol.xml.makeReplacer(this.readFeatureElement, this);
     parsersNS[goog.object.get(context, 'featureNS')] = parsers;
     features = ol.xml.pushParseAndPop([], parsersNS, node, objectStack);
   }
@@ -77149,9 +77160,8 @@ ol.format.GMLBase.prototype.readGeometryElement = function(node, objectStack) {
  * @param {Node} node Node.
  * @param {Array.<*>} objectStack Object stack.
  * @return {ol.Feature} Feature.
- * @private
  */
-ol.format.GMLBase.prototype.readFeature_ = function(node, objectStack) {
+ol.format.GMLBase.prototype.readFeatureElement = function(node, objectStack) {
   var n;
   var fid = node.getAttribute('fid') ||
       ol.xml.getAttributeNS(node, 'http://www.opengis.net/gml', 'id');
@@ -87761,6 +87771,153 @@ ol.format.WMSCapabilities.KEYWORDLIST_PARSERS_ = ol.xml.makeParsersNS(
     ol.format.WMSCapabilities.NAMESPACE_URIS_, {
       'Keyword': ol.xml.makeArrayPusher(ol.format.XSD.readString)
     });
+
+goog.provide('ol.format.WMSGetFeatureInfo');
+
+goog.require('goog.array');
+goog.require('goog.asserts');
+goog.require('goog.dom');
+goog.require('goog.dom.NodeType');
+goog.require('goog.object');
+goog.require('goog.string');
+goog.require('ol.format.GML');
+goog.require('ol.format.GML2');
+goog.require('ol.format.XMLFeature');
+goog.require('ol.xml');
+
+
+
+/**
+ * @classdesc
+ * Format for reading WMSGetFeatureInfo format. It uses
+ * {@link ol.format.GML2} to read features.
+ *
+ * @constructor
+ * @extends {ol.format.XMLFeature}
+ * @api
+ */
+ol.format.WMSGetFeatureInfo = function() {
+
+  /**
+   * @private
+   * @type {string}
+   */
+  this.featureNS_ = 'http://mapserver.gis.umn.edu/mapserver';
+
+
+  /**
+   * @private
+   * @type {ol.format.GML2}
+   */
+  this.gmlFormat_ = new ol.format.GML2();
+
+  goog.base(this);
+};
+goog.inherits(ol.format.WMSGetFeatureInfo, ol.format.XMLFeature);
+
+
+/**
+ * @const
+ * @type {string}
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.featureIdentifier_ = '_feature';
+
+
+/**
+ * @const
+ * @type {string}
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.layerIdentifier_ = '_layer';
+
+
+/**
+ * @param {Node} node Node.
+ * @param {Array.<*>} objectStack Object stack.
+ * @return {Array.<ol.Feature>} Features.
+ * @private
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeatures_ =
+    function(node, objectStack) {
+
+  node.namespaceURI = this.featureNS_;
+  goog.asserts.assert(node.nodeType == goog.dom.NodeType.ELEMENT);
+  var localName = ol.xml.getLocalName(node);
+  /** @type {Array.<ol.Feature>} */
+  var features = [];
+  if (node.childNodes.length === 0) {
+    return features;
+  }
+  if (localName == 'msGMLOutput') {
+    goog.array.forEach(node.childNodes, function(layer) {
+      if (layer.nodeType !== goog.dom.NodeType.ELEMENT) {
+        return;
+      }
+      var context = objectStack[0];
+      goog.asserts.assert(goog.isObject(context));
+
+      goog.asserts.assert(layer.localName.indexOf(
+          ol.format.WMSGetFeatureInfo.layerIdentifier_) >= 0);
+
+      var featureType = goog.string.remove(layer.localName,
+          ol.format.WMSGetFeatureInfo.layerIdentifier_) +
+          ol.format.WMSGetFeatureInfo.featureIdentifier_;
+
+      goog.object.set(context, 'featureType', featureType);
+      goog.object.set(context, 'featureNS', this.featureNS_);
+
+      var parsers = {};
+      parsers[featureType] = ol.xml.makeArrayPusher(
+          this.gmlFormat_.readFeatureElement, this.gmlFormat_);
+      var parsersNS = ol.xml.makeParsersNS(
+          [goog.object.get(context, 'featureNS'), null], parsers);
+      layer.namespaceURI = this.featureNS_;
+      var layerFeatures = ol.xml.pushParseAndPop(
+          [], parsersNS, layer, objectStack, this.gmlFormat_);
+      if (goog.isDef(layerFeatures)) {
+        goog.array.extend(features, layerFeatures);
+      }
+    }, this);
+  }
+  if (localName == 'FeatureCollection') {
+    var gmlFeatures = ol.xml.pushParseAndPop([],
+        this.gmlFormat_.FEATURE_COLLECTION_PARSERS, node,
+        [{}], this.gmlFormat_);
+    if (goog.isDef(gmlFeatures)) {
+      features = gmlFeatures;
+    }
+  }
+  return features;
+};
+
+
+/**
+ * Read all features from a WMSGetFeatureInfo response.
+ *
+ * @function
+ * @param {ArrayBuffer|Document|Node|Object|string} source Source.
+ * @param {olx.format.ReadOptions=} opt_options Options.
+ * @return {Array.<ol.Feature>} Features.
+ * @api stable
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeatures;
+
+
+/**
+ * @inheritDoc
+ */
+ol.format.WMSGetFeatureInfo.prototype.readFeaturesFromNode =
+    function(node, opt_options) {
+  var options = {
+    'featureType': this.featureType,
+    'featureNS': this.featureNS
+  };
+  if (goog.isDef(opt_options)) {
+    goog.object.extend(options, this.getReadOptions(node, opt_options));
+  }
+  return this.readFeatures_(node, [options]);
+};
 
 goog.provide('ol.sphere.WGS84');
 
@@ -101984,7 +102141,7 @@ ol.source.MapQuest.TILE_ATTRIBUTION = new ol.Attribution({
  */
 ol.source.MapQuestConfig = {
   'osm': {
-    maxZoom: 28,
+    maxZoom: 19,
     attributions: [
       ol.source.MapQuest.TILE_ATTRIBUTION,
       ol.source.OSM.ATTRIBUTION
@@ -103974,6 +104131,7 @@ goog.provide('ol.style.RegularShape');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
 goog.require('ol.color');
+goog.require('ol.has');
 goog.require('ol.render.canvas');
 goog.require('ol.style.Fill');
 goog.require('ol.style.Image');
@@ -104186,7 +104344,7 @@ ol.style.RegularShape.prototype.unlistenImageChange = goog.nullFunction;
  */
 ol.style.RegularShape.prototype.render_ = function() {
   var canvas = this.canvas_;
-  var strokeStyle, strokeWidth;
+  var strokeStyle, strokeWidth, lineDash;
 
   if (goog.isNull(this.stroke_)) {
     strokeWidth = 0;
@@ -104228,6 +104386,10 @@ ol.style.RegularShape.prototype.render_ = function() {
   }
   if (!goog.isNull(this.stroke_)) {
     context.strokeStyle = strokeStyle;
+    lineDash = this.stroke_.getLineDash();
+    if (ol.has.CANVAS_LINE_DASH && !goog.isNull(lineDash)) {
+      context.setLineDash(lineDash);
+    }
     context.lineWidth = strokeWidth;
     context.stroke();
   }
@@ -104261,6 +104423,10 @@ ol.style.RegularShape.prototype.render_ = function() {
     context.fill();
     if (!goog.isNull(this.stroke_)) {
       context.strokeStyle = strokeStyle;
+      lineDash = this.stroke_.getLineDash();
+      if (ol.has.CANVAS_LINE_DASH && !goog.isNull(lineDash)) {
+        context.setLineDash(lineDash);
+      }
       context.lineWidth = strokeWidth;
       context.stroke();
     }
@@ -104372,6 +104538,7 @@ goog.require('ol.format.TopoJSON');
 goog.require('ol.format.WFS');
 goog.require('ol.format.WKT');
 goog.require('ol.format.WMSCapabilities');
+goog.require('ol.format.WMSGetFeatureInfo');
 goog.require('ol.geom.Circle');
 goog.require('ol.geom.Geometry');
 goog.require('ol.geom.GeometryCollection');
@@ -107410,6 +107577,15 @@ goog.exportProperty(
     ol.format.WMSCapabilities.prototype,
     'read',
     ol.format.WMSCapabilities.prototype.read);
+
+goog.exportSymbol(
+    'ol.format.WMSGetFeatureInfo',
+    ol.format.WMSGetFeatureInfo);
+
+goog.exportProperty(
+    ol.format.WMSGetFeatureInfo.prototype,
+    'readFeatures',
+    ol.format.WMSGetFeatureInfo.prototype.readFeatures);
 
 goog.exportSymbol(
     'ol.format.GML2',
