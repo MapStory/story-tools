@@ -10,6 +10,9 @@
     function makeLayers() {
         function makeLayer(name, type, data, atts) {
             var f = data.map(function(d) {
+                for (var i=0, ii=atts.length; i<ii; ++i) {
+                    d[atts[i]] = parseInt(Math.random()*10);
+                }
                 return new ol.Feature(d);
             });
             var vector = new ol.layer.Vector({
@@ -78,7 +81,9 @@
     module.controller('exampleController', function($scope, ol3StyleConverter) {
         $scope.styleChanged = function(layer) {
             $scope.styleJSON = angular.toJson(layer.style, true);
-            layer._layer.setStyle(ol3StyleConverter.generateStyle(layer.style));
+            layer._layer.setStyle(function(feature, resolution) {
+                return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
+            });
         };
     });
 
