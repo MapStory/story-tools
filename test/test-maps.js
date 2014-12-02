@@ -16,9 +16,9 @@ describe("test maps", function() {
         expect(maps.parseISODuration('PT1H')).toBe(3600000);
         expect(maps.parseISODuration('P1D')).toBe(86400000);
         expect(maps.parseISODuration('P1W')).toBe(604800000);
-        expect(maps.parseISODuration('P1M')).toBe(2629746000);
-        expect(maps.parseISODuration('P1Y')).toBe(31556951999);
-        expect(maps.parseISODuration('P1MT1M')).toBe(2629806000);
+        expect(maps.parseISODuration('P1M')).toBe(2592000000);
+        expect(maps.parseISODuration('P1Y')).toBe(31536000000);
+        expect(maps.parseISODuration('P1MT1M')).toBe(2592000000 + 60000);
     });
     it("readCapabilitiesTimeDimensions works", function() {
         function makeCaps(config) {
@@ -44,7 +44,7 @@ describe("test maps", function() {
         var r = read('1990-01-01T00:00:00.000Z/2009-01-01T00:00:00.000Z/P1Y');
         expect(r.start).toBe(time('1990-01-01T00:00:00.000Z'));
         expect(r.end).toBe(time('2009-01-01T00:00:00.000Z'));
-        expect(r.interval).toBe(31556951999);
+        expect(r.interval).toBe(31536000000);
 
         expectData({list: '1990'}).toEqual(
                 {list: [time('1990')]}
