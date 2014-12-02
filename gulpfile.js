@@ -6,7 +6,7 @@ var rename = require('gulp-rename');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream');
 var connect = require('gulp-connect');
-var clean = require('gulp-clean');
+var rimraf = require('gulp-rimraf');
 var jshint = require('gulp-jshint');
 var less = require('gulp-less');
 var karma = require('karma').server;
@@ -95,7 +95,7 @@ gulp.task('connect', function() {
 
 gulp.task('clean', function() {
     gulp.src('dist/*', {read: false})
-        .pipe(clean());
+        .pipe(rimraf());
 });
 
 gulp.task('minify', ['scripts'], function() {
