@@ -5,7 +5,6 @@ var browserify = require('browserify');
 var rename = require('gulp-rename');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream');
-var refresh = require('gulp-livereload');
 var connect = require('gulp-connect');
 var clean = require('gulp-clean');
 var jshint = require('gulp-jshint');
@@ -32,22 +31,15 @@ function notify(msg) {
     }
 }
 
-function lint() {
-    var lintStream = gulp.src(sources)
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(jshint.reporter('fail'));
-    lintStream.on('error', function() {
-        notify('linting failed');
-    });
-    return lintStream;
-}
-
-function bundle(browserify, bundleName, test) {
+function bundle(browserify, bundleName) {
     if (watch) {
         browserify = watchify(browserify);
     }
-    function doBundle() {
+    function doBundle(lint) {
+        // for some reason, when using browserify, other watches seem to fail
+        if (lint) {
+//            gulp.start('lint');
+        }
         var bundle = browserify.bundle();
         bundle.on('error', function(err) {
             util.log(util.colors.red('Error:'), err.message);
@@ -56,89 +48,16 @@ function bundle(browserify, bundleName, test) {
         });
         var bundleStream = bundle
             .pipe(source(bundleName))
-            .pipe(gulp.dest('dist'))
-            .pipe(connect.reload());
+            .pipe(gulp.dest('dist'));
         bundleStream.on('end', function() {
             util.log("bundled", util.colors.cyan(bundleName));
-            if (watch && test) {
-                runTests(function(failed) {
-                    notify(failed > 0 ? failed + ' failures' : 'passing!');
-                });
-            }
         });
         return bundleStream;
     }
-    browserify.on('update', doBundle);
-    return doBundle();
-}
-
-function timeBundle(test) {
-    return bundle(browserify({
-        entries: ['./lib/time/controls.js'],
-        standalone: 'timeControls'
-    }), 'time-controls.js', test);
-}
-
-function styleBundle() {
-    var stream = gulp.src(styleSources)
-        .pipe(concat(styleBundleDest))
-        .pipe(gulp.dest('dist'))
-        .pipe(connect.reload());
-    stream.on('end', function() {
-        util.log("bundled", util.colors.cyan(styleBundleDest));
+    browserify.on('update', function() {
+        doBundle(true); // see above - want to lint when watching
     });
-}
-
-function styleLess() {
-    gulp.src('lib/style/style.less')
-        .pipe(less({
-            paths: ['bower_components/bootstrap/less']
-        }))
-        .pipe(rename(styleCSS))
-        .pipe(gulp.dest('dist'))
-        .pipe(connect.reload());
-}
-
-function tests() {
-    return bundle(browserify('./test/tests.js'), 'tests.js', true);
-}
-
-function runTests(done) {
-    return karma.start({
-        configFile: __dirname + '/karma.conf.js',
-        singleRun: true
-    }, done);
-}
-
-function runAndWatch(sources, func) {
-    func();
-    gulp.watch(sources, func);
-}
-
-function tdd() {
-    watch = true;
-    runAndWatch(sources, lint);
-    runAndWatch(styleSources, styleBundle);
-    runAndWatch(styleTemplates, templates);
-    runAndWatch('lib/style/style.less', styleLess);
-    timeBundle(false);
-    tests();
-}
-
-function templates() {
-    return gulp.src(styleTemplates)
-        .pipe(templateCache(styleTemplatesBundle, {
-            standalone: true,
-            module: 'mapstory.styleEditor.templates'
-        })).pipe(gulp.dest('dist')).pipe(connect.reload());
-}
-
-function minify() {
-    function doMinify(src) {
-        gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
-    }
-    doMinify('dist/time-controls.js');
-    // @todo test+verify w/ minified
+    return doBundle(false);
 }
 
 gulp.task('connect', function() {
@@ -174,37 +93,91 @@ gulp.task('connect', function() {
     });
 });
 
-gulp.task('watch-examples', function() {
-    gulp.watch('examples/*', function() {
-        gulp.src('examples/*').pipe(connect.reload());
-    });
-});
-
 gulp.task('clean', function() {
     gulp.src('dist/*', {read: false})
         .pipe(clean());
 });
 
-gulp.task('minify', ['scripts'], minify);
+gulp.task('minify', ['scripts'], function() {
+    function doMinify(src) {
+        gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
+    }
+    doMinify('dist/time-controls.js');
+});
 
-gulp.task('lint', lint);
+gulp.task('lint', function() {
+    var lintStream = gulp.src(sources)
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(jshint.reporter('fail'));
+    lintStream.on('error', function() {
+        notify('linting failed');
+    });
+    return lintStream;
+});
 
-gulp.task('timeBundle', timeBundle);
+gulp.task('templates', function() {
+    return gulp.src(styleTemplates)
+        .pipe(templateCache(styleTemplatesBundle, {
+            standalone: true,
+            module: 'mapstory.styleEditor.templates'
+        })).pipe(gulp.dest('dist'));
+});
 
-gulp.task('templates', templates);
+gulp.task('styleBundle', function() {
+    var stream = gulp.src(styleSources)
+        .pipe(concat(styleBundleDest))
+        .pipe(gulp.dest('dist'));
+    stream.on('end', function() {
+        util.log("bundled", util.colors.cyan(styleBundleDest));
+    });
+});
 
-gulp.task('styleBundle', styleBundle);
+gulp.task('timeBundle', function() {
+    return bundle(browserify({
+        entries: ['./lib/time/controls.js'],
+        standalone: 'timeControls'
+    }), 'time-controls.js');
+});
 
-gulp.task('styleLess', styleLess);
+gulp.task('styleLess', function() {
+    gulp.src('lib/style/style.less')
+        .pipe(less({
+            paths: ['bower_components/bootstrap/less']
+        }))
+        .pipe(rename(styleCSS))
+        .pipe(gulp.dest('dist'));
+});
 
-gulp.task('scripts', ['tests', 'timeBundle', 'styleBundle', 'styleLess']);
+gulp.task('scripts', ['timeBundle', 'styleBundle', 'styleLess', 'templates']);
 
-gulp.task('tests', tests);
+gulp.task('tests', function() {
+    return bundle(browserify('./test/tests.js'), 'tests.js');
+});
 
-gulp.task('test', ['clean', 'tests'], runTests);
+gulp.task('karma', ['tests'], function() {
+    return karma.start({
+        configFile: __dirname + '/karma.conf.js',
+        singleRun: true
+    }, function(failed) {
+        notify(failed > 0 ? failed + ' failures' : 'passing!');
+    });
+});
 
-gulp.task('default', ['clean', 'lint', 'test', 'scripts'], minify);
+gulp.task('test', ['clean', 'karma']);
 
-gulp.task('develop', ['connect', 'tdd', 'watch-examples']);
+gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 
-gulp.task('tdd', tdd);
+gulp.task('develop', ['connect', 'watch']);
+
+gulp.task('watch', ['lint', 'styleBundle', 'styleLess', 'templates'], function() {
+    watch = true;
+    gulp.start('timeBundle');
+    gulp.watch(sources, ['lint']);
+    gulp.watch(styleSources, ['styleBundle', 'karma']);
+    gulp.watch(styleTemplates, ['templates']);
+    gulp.watch('lib/style/style.less', ['styleLess']);
+    gulp.watch(['dist/*', 'examples/*']).on('change', function(f) {
+        gulp.src(f.path).pipe(connect.reload());
+    });
+});
