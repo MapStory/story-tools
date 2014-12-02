@@ -2,7 +2,7 @@
     <div class="title">Symbol</div>
     <div class="controls">
         <div data-dropdown ng-if="showGraphic">
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Symbol" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 <span>{{ getSymbolizerText(model) }}</span>
                 <span class="caret"></span>
             </button>
@@ -14,7 +14,7 @@
         </div>
 
         <div ng-if="showGraphic" data-dropdown>
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Symbol size" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 {{model.size||'number'}} <span class="caret"></span>
             </button>
             <div class="dropdown-menu" role="menu">
@@ -22,10 +22,10 @@
             </div>
         </div>
 
-        <color-editor ng-model="model" property="fillColor" popover-text="Fill Color"></color-editor>
+        <color-editor ng-model="model" property="fillColor" ></color-editor>
 
         <div data-dropdown>
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Fill transparency" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 {{model.fillOpacity||'0-100'}} <span class="caret"></span>
             </button>
             <div class="dropdown-menu" role="menu">

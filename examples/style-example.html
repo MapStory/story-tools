@@ -53,8 +53,8 @@
                 <tabset>
                     <tab heading="Accordion" ng-controller="layerController">
                         <accordion close-others="true">
-                            <accordion-group heading="{{layer._layer.get('id')}}" ng-repeat="layer in layers" is-open="$first">
-                                <style-editor layer="layer" on-change="styleChanged"></style-editor>
+                            <accordion-group heading="{{layer._layer.get('id')}}" ng-repeat="layer in layers" is-open="accordianOpen" ng-init="accordianOpen = $first">
+                                <style-editor class="minheight" ng-if="accordianOpen" layer="layer" on-change="styleChanged"></style-editor>
                             </accordion-group>
                         </accordion>
                     </tab>

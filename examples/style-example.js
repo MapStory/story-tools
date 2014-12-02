@@ -61,6 +61,33 @@
         window.map = map;
 
         makeLayers();
+
+
+        (function() {
+            var root = angular.element(document.getElementsByTagName('body'));
+            var last;
+            var watchers = 0;
+
+            var f = function(element) {
+                if (element.data().hasOwnProperty('$scope')) {
+                    watchers += (element.data().$scope.$$watchers || []).length;
+                }
+
+                angular.forEach(element.children(), function(childElement) {
+                    f(angular.element(childElement));
+                });
+            };
+
+            window.setInterval(function() {
+                watchers = 0;
+                f(root);
+                if (watchers != last) {
+                   console.log(watchers);
+                }
+                last = watchers;
+            }, 1000);
+
+        })();
     });
 
     // inject some high-contrast defaults

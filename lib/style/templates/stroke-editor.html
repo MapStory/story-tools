@@ -2,7 +2,7 @@
     <div class="title">Stroke</div>
     <div class="controls">
         <div data-dropdown>
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Stroke pattern" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 {{model.strokeStyle}} <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
@@ -10,16 +10,16 @@
             </ul>
         </div>
         <div data-dropdown>
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Stroke weight" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 {{model.strokeWidth||'number'}} <span class="caret"></span>
             </button>
             <div class="dropdown-menu" role="menu">
                 <input no-close size="3" type="number" min="0" max="30" step="1" value="10" name="strokeWidth" ng-model="model.strokeWidth"/>
             </div>
         </div>
-        <color-editor ng-model="model" property="strokeColor" popover-text="Stroke Color"></color-editor>
+        <color-editor ng-model="model" property="strokeColor" ></color-editor>
         <div data-dropdown>
-            <button type="button" class="dropdown-toggle" data-popover-placement="top" data-popover="Stroke transparency" data-popover-trigger="mouseenter">
+            <button type="button" class="dropdown-toggle"   >
                 {{model.strokeOpacity}} <span class="caret"></span>
             </button>
             <div class="dropdown-menu" role="menu">
