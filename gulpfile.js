@@ -195,8 +195,6 @@ gulp.task('templates', templates);
 
 gulp.task('styleBundle', styleBundle);
 
-gulp.task('timeBundle', timeBundle);
-
 gulp.task('styleLess', styleLess);
 
 gulp.task('scripts', ['tests', 'timeBundle', 'styleBundle', 'styleLess']);
