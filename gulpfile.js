@@ -35,11 +35,7 @@ function bundle(browserify, bundleName) {
     if (watch) {
         browserify = watchify(browserify);
     }
-    function doBundle(lint) {
-        // for some reason, when using browserify, other watches seem to fail
-        if (lint) {
-//            gulp.start('lint');
-        }
+    function doBundle() {
         var bundle = browserify.bundle();
         bundle.on('error', function(err) {
             util.log(util.colors.red('Error:'), err.message);
@@ -55,9 +51,9 @@ function bundle(browserify, bundleName) {
         return bundleStream;
     }
     browserify.on('update', function() {
-        doBundle(true); // see above - want to lint when watching
+        doBundle();
     });
-    return doBundle(false);
+    return doBundle();
 }
 
 gulp.task('connect', function() {
