@@ -31,11 +31,11 @@ function notify(msg) {
     }
 }
 
-function bundle(browserify, bundleName) {
+function bundle(browserify, bundleName, tasks) {
     if (watch) {
         browserify = watchify(browserify);
     }
-    function doBundle() {
+    function doBundle(tasks) {
         var bundle = browserify.bundle();
         bundle.on('error', function(err) {
             util.log(util.colors.red('Error:'), err.message);
@@ -47,11 +47,16 @@ function bundle(browserify, bundleName) {
             .pipe(gulp.dest('dist'));
         bundleStream.on('end', function() {
             util.log("bundled", util.colors.cyan(bundleName));
+            if (tasks) {
+                gulp.start(tasks);
+            }
         });
+        browserify.close();
         return bundleStream;
     }
     browserify.on('update', function() {
-        doBundle();
+        // if in watch mode, run the follow-up tasks when updated
+        doBundle(tasks);
     });
     return doBundle();
 }
@@ -133,7 +138,7 @@ gulp.task('timeBundle', function() {
     return bundle(browserify({
         entries: ['./lib/time/controls.js'],
         standalone: 'timeControls'
-    }), 'time-controls.js');
+    }), 'time-controls.js', ['lint', 'karma']);
 });
 
 gulp.task('styleLess', function() {
@@ -148,7 +153,7 @@ gulp.task('styleLess', function() {
 gulp.task('scripts', ['timeBundle', 'styleBundle', 'styleLess', 'templates']);
 
 gulp.task('tests', function() {
-    return bundle(browserify('./test/tests.js'), 'tests.js');
+    return bundle(browserify('./test/tests.js'), 'tests.js', ['karma']);
 });
 
 gulp.task('karma', ['tests'], function() {
@@ -167,13 +172,16 @@ gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 gulp.task('develop', ['connect', 'watch']);
 
 gulp.task('watch', ['lint', 'styleBundle', 'styleLess', 'templates'], function() {
+    // enable watch mode and start watchify tasks
     watch = true;
     gulp.start('timeBundle');
-    gulp.watch(sources, ['lint']);
-    gulp.watch(styleSources, ['styleBundle', 'karma']);
+    gulp.start('tests');
+    // and style related tasks
+    gulp.watch(styleSources, ['lint', 'karma', 'styleBundle']);
     gulp.watch(styleTemplates, ['templates']);
     gulp.watch('lib/style/style.less', ['styleLess']);
+    // reload on changes to bundles but ignore tests bundle
     gulp.watch(['dist/*', 'examples/*']).on('change', function(f) {
-        gulp.src(f.path).pipe(connect.reload());
+        gulp.src([f.path,'!**/tests.js']).pipe(connect.reload());
     });
 });
