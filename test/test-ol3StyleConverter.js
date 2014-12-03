@@ -133,4 +133,36 @@ describe('ol3StyleConverter', function() {
         expect(text.getFill().getColor()).toBe('#0000ff');
     }));
 
+    it('should convert unique classification', inject(function(ol3StyleConverter) {
+        var styleConfig = {
+            "stroke": {
+                "strokeColor": "#ffff00"
+            },
+            "geomType": "point",
+            "classify": {
+                "attribute": "foo"
+            },
+            "rules": [{
+                "value": "bar",
+                "style": {
+                    "symbol": {
+                        "fillColor": "#ff9900"
+                    }
+                }
+            }, {
+                "value": "baz",
+                "style": {
+                    "symbol": {
+                        "fillColor": "#b36b00"
+                    }
+                }
+            }]    
+        };
+        var style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'bar'}));
+        expect(style[0].getImage().getFill().getColor()).toBe('#ff9900');
+        expect(style[0].getImage().getStroke().getColor()).toBe('rgba(255,255,0,1)');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'baz'}));
+        expect(style[0].getImage().getFill().getColor()).toBe('#b36b00'); 
+    }));
+
 });
