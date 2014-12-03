@@ -98,7 +98,39 @@ describe('ol3StyleConverter', function() {
         expect(shapeConfig.points).toBe(4);
         expect(shapeConfig.radius).toBe(10);
         expect(shapeConfig.radius2).toBe(0);
-        expect(shapeConfig.angle).toBe( Math.PI / 4);
+        expect(shapeConfig.angle).toBe(Math.PI / 4);
+    }));
+
+    it('should convert labels', inject(function(ol3StyleConverter) {
+        var style = ol3StyleConverter.generateStyle({
+            "symbol": {
+                "size": 10,
+                "shape": "circle",
+                "graphic": null,
+                "graphicType": null,
+                "fillColor": "#ff0000",
+                "fillOpacity": 80
+            },
+            "stroke": {
+                "strokeColor": "#ffff00",
+                "strokeWidth": 3,
+                "strokeStyle": "solid",
+                "strokeOpacity": 90
+            },
+            "label": {
+                "attribute": "foo",
+                "fontWeight": "bold",
+                "fontSize": 12,
+                "fontFamily": "Serif",
+                "fillColor": "#0000ff"
+            }
+        }, new ol.Feature({'foo': 'bar'}));
+        expect(style.length).toBe(1);
+        var text = style[0].getText();
+        expect(text instanceof ol.style.Text).toBeTruthy();
+        expect(text.getText()).toBe('bar');
+        expect(text.getFont()).toBe('bold 12px Serif');
+        expect(text.getFill().getColor()).toBe('#0000ff');
     }));
 
 });
