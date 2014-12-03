@@ -19,21 +19,21 @@ describe('ol3StyleConverter', function() {
                 "graphic": null,
                 "graphicType": null,
                 "fillColor": "#ff0000",
-                "fillOpacity": 100
+                "fillOpacity": 80
             },
             "stroke": {
                 "strokeColor": "#ffff00",
                 "strokeWidth": 3,
                 "strokeStyle": "solid",
-                "strokeOpacity": 100
+                "strokeOpacity": 90
             }
         });
         expect(style.length).toBe(1);
         expect(style[0] instanceof ol.style.Style).toBeTruthy();
         var image = style[0].getImage();
         expect(image.getRadius()).toBe(10);
-        expect(image.getFill().getColor()).toBe('#ff0000');
-        expect(image.getStroke().getColor()).toBe('#ffff00');
+        expect(image.getFill().getColor()).toBe('rgba(255,0,0,0.8)');
+        expect(image.getStroke().getColor()).toBe('rgba(255,255,0,0.9)');
         expect(image.getStroke().getWidth()).toBe(3);
     }));
 
