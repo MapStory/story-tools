@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: old-master-8879-gc30233d
+// Version: old-master-8881-g6255d8b
 
 var CLOSURE_NO_DEPS = true;
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
@@ -104363,15 +104363,6 @@ ol.style.RegularShape.prototype.getAnchor = function() {
 
 
 /**
- * @return {number} Shape's rotation in radians.
- * @api
- */
-ol.style.RegularShape.prototype.getAngle = function() {
-  return this.angle_;
-};
-
-
-/**
  * @return {ol.style.Fill} Fill style.
  * @api
  */
@@ -104411,15 +104402,6 @@ ol.style.RegularShape.prototype.getImageState = function() {
  */
 ol.style.RegularShape.prototype.getOrigin = function() {
   return this.origin_;
-};
-
-
-/**
- * @return {number} Number of points for stars and regular polygons.
- * @api
- */
-ol.style.RegularShape.prototype.getPoints = function() {
-  return this.points_;
 };
 
 
@@ -105927,11 +105909,6 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.style.RegularShape.prototype,
-    'getAngle',
-    ol.style.RegularShape.prototype.getAngle);
-
-goog.exportProperty(
-    ol.style.RegularShape.prototype,
     'getFill',
     ol.style.RegularShape.prototype.getFill);
 
@@ -105944,11 +105921,6 @@ goog.exportProperty(
     ol.style.RegularShape.prototype,
     'getOrigin',
     ol.style.RegularShape.prototype.getOrigin);
-
-goog.exportProperty(
-    ol.style.RegularShape.prototype,
-    'getPoints',
-    ol.style.RegularShape.prototype.getPoints);
 
 goog.exportProperty(
     ol.style.RegularShape.prototype,
