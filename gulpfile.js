@@ -51,7 +51,6 @@ function bundle(browserify, bundleName, tasks) {
                 gulp.start(tasks);
             }
         });
-        browserify.close();
         return bundleStream;
     }
     browserify.on('update', function() {
