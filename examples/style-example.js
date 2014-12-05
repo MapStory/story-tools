@@ -78,22 +78,46 @@
         };
     });
 
-    module.controller('exampleController', function($scope, ol3StyleConverter) {
+    module.controller('exampleController', function($scope, $http, ol3StyleConverter) {
         $scope.styleChanged = function(layer) {
             $scope.styleJSON = angular.toJson(layer.style, true);
             layer._layer.setStyle(function(feature, resolution) {
                 return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
             });
+            $scope.loaddata = function(geojson) {
+                $http.get(geojson).success(function(data) {
+                    var layer = new ol.layer.Vector({
+                        source: new ol.source.GeoJSON({
+                            object: data,
+                            projection: 'EPSG:3857'
+                        })
+                    });
+                    layer._layerInfo = {
+                        geomType: data.features[0].geometry.type.toLowerCase(),
+                        attributes: Object.keys(data.features[0].properties)
+                    };
+                    layer.set('id', geojson);
+                    map.addLayer(layer);
+                    map.getView().fitExtent(layer.getSource().getExtent(), map.getSize());
+                });
+            };
         };
     });
 
     module.controller('layerController', function($scope) {
-        $scope.layers = map.getLayers().getArray().slice(1).map(function(l) {
-            return {
-                _layer: l,
-                info : l._layerInfo
-            };
+        $scope.layers = [];
+        function update() {
+            $scope.layers = map.getLayers().getArray().slice(1).map(function(l) {
+                return {
+                    _layer: l,
+                    info: l._layerInfo
+                };
+            });
+        }
+        map.getLayers().on('add', function() {
+           update();
         });
+        update();
     });
 
     // this is a dummy
@@ -130,7 +154,9 @@
                 restrict: "E",
                 templateUrl: "layer-selector-template",
                 link: function(scope, elem) {
+                    scope.selectedLayer = null;
                     scope.setLayer = function(layer) {
+                        if (!layer) return;
                         var old = scope.selectedLayer;
                         if (old) {
                             old._selected = false;
