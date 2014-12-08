@@ -126,14 +126,22 @@
             classify: function(layer, attribute, method, numClasses) {
                 var defer = $q.defer();
                 var classes = numClasses || (Math.random() * 10) + 1;
-                var classBreak = (Math.random() * 10).toFixed(2) + 1;
-                var results = [];
+                var values = [], i, ii;
                 var unique = method == 'unique';
                 if (unique) {
-                    classBreak = Math.floor(classBreak);
+                    var features = layer.getSource().getFeatures();
+                    for (i=0, ii=features.length; i<ii; ++i) {
+                        var val = features[i].get(attribute);
+                        if (values.indexOf(val) === -1) {
+                            values.push(val);
+                        }
+                    }
+                    classes = Math.min(classes, values.length);
                 }
-                for (var i = 0; i < classes; i++) {
-                    var value =  unique ? classBreak * i : {
+                var classBreak = (Math.random() * 10).toFixed(2) + 1;
+                var results = [];
+                for (i = 0; i < classes; i++) {
+                    var value = unique ? values[i] : {
                         min : classBreak * i,
                         max: classBreak * (i + 1)
                     };
