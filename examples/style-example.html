@@ -36,6 +36,9 @@
             input.ng-invalid {
                 background: red;
             }
+            accordion .panel-body {
+                overflow: auto; // prevent drop-down clipping in accordion
+            }
         </style>
         <script type="text/ng-template" id="layer-selector-template">
             <h4>LAYERS</h4>
