@@ -19,8 +19,8 @@
                         <td>{{ rule.name}}</td>
                         <td>
                             <!-- @todo this is not ideal, just getting something working -->
-                            <color-editor ng-model="rule.style.symbol" property="fillColor" ng-if="rule.style.symbol.fillColor"></color-editor>
-                            <color-editor ng-model="rule.style.stroke" property="strokeColor" ng-if="rule.style.stroke.strokeColor"></color-editor>
+                            <color-editor st-model="rule.style.symbol" property="fillColor" ng-if="rule.style.symbol.fillColor"></color-editor>
+                            <color-editor st-model="rule.style.stroke" property="strokeColor" ng-if="rule.style.stroke.strokeColor"></color-editor>
                         </td>
                         <td>
                             <button>&times;</button>
