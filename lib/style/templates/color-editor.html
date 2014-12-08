@@ -3,8 +3,8 @@
         <i ng-style="{'backgroundColor': ngModel[property]}" class="color-picker">&nbsp; &nbsp; &nbsp;</i>
         <span class="caret"></span>
     </button>
-    <ul no-close class="dropdown-menu color-select" role="menu" style="padding:5px;width:150px">
-        <input ng-model="ngModel[property]">
+    <ul no-close class="dropdown-menu color-select" role="menu">
+        <input color-field ng-model="ngModel[property]">
         <div no-close colorpicker colorpicker-parent="true" colorpicker-position="bottom" type="button" ng-model="ngModel[property]"></div>
     </ul>
 </div>
