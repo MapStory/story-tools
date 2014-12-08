@@ -106,6 +106,7 @@
     });
 
     module.controller('exampleController', function($scope, $http, ol3StyleConverter) {
+        $scope.styleFormInvalid = false;
         $scope.styleChanged = function(layer) {
             $scope.styleJSON = angular.toJson(layer.style, true);
             layer._layer.setStyle(function(feature, resolution) {
@@ -128,6 +129,9 @@
                     map.getView().fitExtent(layer.getSource().getExtent(), map.getSize());
                 });
             };
+        };
+        $scope.formChanged = function(form) {
+            $scope.styleFormInvalid = form.$invalid;
         };
     });
 

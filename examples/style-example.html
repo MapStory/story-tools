@@ -62,7 +62,8 @@
                         <!-- using same layer controls but in a separate editor -->
                         <div ng-controller="layerController">
                             <layer-selector></layer-selector>
-                            <style-editor layer="selectedLayer" on-change="styleChanged"></style-editor>
+                            <button ng-click="styleChanged(selectedLayer)" ng-disabled="styleFormInvalid">Apply Style</button>
+                            <style-editor layer="selectedLayer" form-changed="formChanged"></style-editor>
                         </div>
                     </tab>
                 </tabset>
