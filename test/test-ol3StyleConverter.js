@@ -122,6 +122,7 @@ describe('ol3StyleConverter', function() {
             },
             "label": {
                 "attribute": "foo",
+                "fontStyle": "italic",
                 "fontWeight": "bold",
                 "fontSize": 12,
                 "fontFamily": "Serif",
@@ -132,7 +133,7 @@ describe('ol3StyleConverter', function() {
         var text = style[0].getText();
         expect(text instanceof ol.style.Text).toBeTruthy();
         expect(text.getText()).toBe('bar');
-        expect(text.getFont()).toBe('bold 12px Serif');
+        expect(text.getFont()).toBe('italic bold 12px Serif');
         expect(text.getFill().getColor()).toBe('#0000ff');
     }));
 
