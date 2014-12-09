@@ -11,23 +11,6 @@
     </div>
     <div>
         <style-type-editor ng-if="layer"></style-type-editor>
-        <div class="style-editor-item" ng-if="activeStyle.rules">
-            <div class="title">Rules</div>
-            <table>
-                <tbody>
-                    <tr ng-repeat="rule in activeStyle.rules" class="style-rule">
-                        <td>{{ rule.name}}</td>
-                        <td>
-                            <!-- @todo this is not ideal, just getting something working -->
-                            <color-editor st-model="rule.style.symbol" property="fillColor" ng-if="rule.style.symbol.fillColor"></color-editor>
-                            <color-editor st-model="rule.style.stroke" property="strokeColor" ng-if="rule.style.stroke.strokeColor"></color-editor>
-                        </td>
-                        <td>
-                            <button>&times;</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <rules-editor ng-if="activeStyle.rules"></rules-editor>
     </div>
 </form>

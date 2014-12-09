@@ -15,12 +15,16 @@
     padding-bottom: .5em;
 }
 
-.style-editor-item .controls > div {
+.style-editor-item .controls > * {
     &:extend(.btn-group);
 }
 
 .style-editor-item .controls input {
     &:extend(.btn-xs);
+}
+
+.style-editor-item .btn.active {
+    color: orange;
 }
 
 .color-select {

@@ -10,17 +10,10 @@
                 <li ng-repeat="attribute in layer.info.attributes" ng-click="model.attribute=attribute">{{attribute}}</li>
             </ul>
         </div>
-        <div data-dropdown>
-            <button type="button" class="dropdown-toggle">
-                {{model.fontSize}} <span class="caret"></span>
-            </button>
-            <div class="dropdown-menu" role="menu">
-                <input no-close size="3" type="number" min="0" max="30" step="1" value="10" ng-model="model.fontSize"/>
-            </div>
-        </div>
+        <number-editor st-model="model" property="fontSize"></number-editor>
     </div>
     <div class="controls">
-        <div dropdown ng-model="layer.style.fontFamily">
+        <div dropdown>
             <button type="button" class="dropdown-toggle"   >
                 {{model.fontFamily}} <span class="caret"></span>
             </button>
@@ -30,11 +23,11 @@
         </div>
         <color-editor st-model="model" property="fillColor" ></color-editor>
         <div class="btn-group">
-            <button class="btn" ng-model="checkModel.bold"><strong>B</strong></button>
-            <button class="btn" ng-model="checkModel.underline"><u>U</u></button>
-            <button class="btn" ng-model="checkModel.italic"><i>I</i></button>
-            <button class="btn" ng-model="checkModel.halo">H</button>
-            <button class="btn" ng-model="checkModel.shadow">S</button>
+            <button class="btn" ng-model="styleModel.bold" btn-checkbox ng-change="styleModelChange()"><strong>B</strong></button>
+            <button class="btn" ng-model="styleModel.underline" ng-change="styleModelChange()"><u>U</u></button>
+            <button class="btn" ng-model="styleModel.italic" btn-checkbox ng-change="styleModelChange()"><i>I</i></button>
+            <button class="btn" ng-model="styleModel.halo" ng-change="styleModelChange()">H</button>
+            <button class="btn" ng-model="styleModel.shadow" ng-change="styleModelChange()">S</button>
         </div>
     </div>
 </div>
