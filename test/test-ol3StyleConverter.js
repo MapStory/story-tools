@@ -168,6 +168,43 @@ describe('ol3StyleConverter', function() {
         expect(style[0].getImage().getFill().getColor()).toBe('#b36b00'); 
     }));
 
+    it('should convert ranges of a classification', inject(function(ol3StyleConverter) {
+        var styleConfig = {
+            "stroke": {
+                "strokeColor": "#ffff00"
+            },
+            "geomType": "point",
+            "classify": {
+                "attribute": "foo"
+            },
+            "rules": [{
+                "range": {
+                    "min": 0,
+                    "max": 10
+                },
+                "style": {
+                    "symbol": {
+                        "fillColor": "#ff9900"
+                    }
+                }
+            }, {
+                "range": {
+                    "min": 10,
+                    "max": 20
+                },
+                "style": {
+                    "symbol": {
+                        "fillColor": "#b36b00"
+                    }
+                }
+            }]
+        };
+        var style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 5}));
+        expect(style[0].getImage().getFill().getColor()).toBe('#ff9900');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
+        expect(style[0].getImage().getFill().getColor()).toBe('#b36b00');
+    }));
+
     it('should convert unique classification with label', inject(function(ol3StyleConverter) {
         var styleConfig = {
             "stroke": {
