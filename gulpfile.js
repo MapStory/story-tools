@@ -32,33 +32,34 @@ function notify(msg) {
     }
 }
 
+function doBundle(browserify, bundleName, tasks) {
+    var bundle = browserify.bundle();
+    bundle.on('error', function(err) {
+        util.log(util.colors.red('Error:'), err.message);
+        notify('browserify error ' + err.toString());
+        this.end();
+    });
+    var bundleStream = bundle
+        .pipe(source(bundleName))
+        .pipe(gulp.dest('dist'));
+    bundleStream.on('end', function() {
+        util.log("bundled", util.colors.cyan(bundleName));
+        if (tasks) {
+            gulp.start(tasks);
+        }
+    });
+    return bundleStream;
+}
+
 function bundle(browserify, bundleName, tasks) {
     if (watch) {
         browserify = watchify(browserify);
     }
-    function doBundle(tasks) {
-        var bundle = browserify.bundle();
-        bundle.on('error', function(err) {
-            util.log(util.colors.red('Error:'), err.message);
-            notify('browserify error ' + err.toString());
-            this.end();
-        });
-        var bundleStream = bundle
-            .pipe(source(bundleName))
-            .pipe(gulp.dest('dist'));
-        bundleStream.on('end', function() {
-            util.log("bundled", util.colors.cyan(bundleName));
-            if (tasks) {
-                gulp.start(tasks);
-            }
-        });
-        return bundleStream;
-    }
     browserify.on('update', function() {
         // if in watch mode, run the follow-up tasks when updated
-        doBundle(tasks);
+        doBundle(browserify, bundleName, tasks);
     });
-    return doBundle();
+    return doBundle(browserify, bundleName);
 }
 
 gulp.task('connect', function() {
@@ -123,11 +124,11 @@ gulp.task('styleLess', function() {
 
 gulp.task('scripts', ['timeBundle', 'styleBundle', 'styleLess', 'templates']);
 
-gulp.task('tests', function() {
-    return bundle(browserify('./test/tests.js'), 'tests.js', ['karma']);
+gulp.task('testsBundle', function() {
+    return doBundle(browserify('./test/tests.js'), 'tests.js', ['karma']);
 });
 
-gulp.task('karma', ['tests'], function() {
+gulp.task('karma', ['testsBundle'], function() {
     return karma.start({
         configFile: __dirname + '/karma.conf.js',
         singleRun: true
@@ -146,7 +147,7 @@ gulp.task('watch', ['lint', 'styleBundle', 'styleLess', 'templates'], function()
     // enable watch mode and start watchify tasks
     watch = true;
     gulp.start('timeBundle');
-    gulp.start('tests');
+    gulp.start('testsBundle');
     // and style related tasks
     gulp.watch(styleSources, ['lint', 'karma', 'styleBundle']);
     gulp.watch(styleTemplates, ['templates']);
