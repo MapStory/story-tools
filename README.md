@@ -10,4 +10,4 @@ run
 
 ## Accessing the examples
 
-Examples will be available on: http://localhost:8001/examples/
+Example index will be available at: http://localhost:8001

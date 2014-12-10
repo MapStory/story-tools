@@ -13,6 +13,7 @@ var karma = require('karma').server;
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
 var templateCache = require('gulp-angular-templatecache');
+var devServer = require('./dev-server.js');
 
 var watch = false;
 var styleSources = 'lib/style/**/*.js';
@@ -61,36 +62,7 @@ function bundle(browserify, bundleName, tasks) {
 }
 
 gulp.task('connect', function() {
-    var url = require('url');
-    var proxy = require('proxy-middleware');
-    connect.server({
-        root: '.',
-        port: 8001,
-        livereload: true,
-        middleware: function(connect, o) {
-            var fixedProxy = (function() {
-                var options = url.parse('http://mapstory.org/geoserver');
-                options.route = '/geoserver';
-                return proxy(options);
-            })();
-            var fixedProxyMaps = (function() {
-                var options = url.parse('http://mapstory.org/maps');
-                options.route = '/maps';
-                return proxy(options);
-            })();
-            var dynamicProxy = function(req, res, next) {
-                var parts = url.parse(req.url);
-                if (parts.pathname === '/proxy') {
-                    var target = parts.search.replace('?url=', '');
-                    var options = url.parse(target);
-                    req.url = options.path;
-                    return proxy(options)(req, res, next);
-                }
-                return next();
-            };
-            return [fixedProxy, fixedProxyMaps, dynamicProxy];
-        }
-    });
+    devServer.run();
 });
 
 gulp.task('clean', function() {
