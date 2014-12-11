@@ -33,7 +33,7 @@ describe('ol3StyleConverter', function() {
         expect(style[0] instanceof ol.style.Style).toBeTruthy();
         var image = style[0].getImage();
         expect(image instanceof ol.style.Circle).toBeTruthy();
-        expect(image.getRadius()).toBe(10);
+        expect(image.getRadius()).toBe(10/2);
         expect(image.getFill().getColor()).toBe('rgba(255,0,0,0.8)');
         expect(image.getStroke().getColor()).toBe('rgba(255,255,0,0.9)');
         expect(image.getStroke().getWidth()).toBe(3);
@@ -49,7 +49,7 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(shapeConfig.points).toBe(4);
-        expect(shapeConfig.radius).toBe(10);
+        expect(shapeConfig.radius).toBe(10/2);
         expect(shapeConfig.angle).toBe(Math.PI / 4);
     }));
 
@@ -61,7 +61,7 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(shapeConfig.points).toBe(3);
-        expect(shapeConfig.radius).toBe(10);
+        expect(shapeConfig.radius).toBe(10/2);
         expect(shapeConfig.angle).toBe(0);
     }));
 
@@ -73,8 +73,8 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(shapeConfig.points).toBe(5);
-        expect(shapeConfig.radius).toBe(10);
-        expect(shapeConfig.radius2).toBe(10/2);
+        expect(shapeConfig.radius).toBe(10/2);
+        expect(shapeConfig.radius2).toBe(10/4);
         expect(shapeConfig.angle).toBe(0);
     }));
 
@@ -86,7 +86,7 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(shapeConfig.points).toBe(4);
-        expect(shapeConfig.radius).toBe(10);
+        expect(shapeConfig.radius).toBe(10/2);
         expect(shapeConfig.radius2).toBe(0);
         expect(shapeConfig.angle).toBe(0);
     }));
@@ -99,7 +99,7 @@ describe('ol3StyleConverter', function() {
             }
         });
         expect(shapeConfig.points).toBe(4);
-        expect(shapeConfig.radius).toBe(10);
+        expect(shapeConfig.radius).toBe(10/2);
         expect(shapeConfig.radius2).toBe(0);
         expect(shapeConfig.angle).toBe(Math.PI / 4);
     }));

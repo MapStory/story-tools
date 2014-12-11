@@ -96,7 +96,8 @@
         var values = {
             fillColor: '#ff0000',
             strokeColor: '#ffff00',
-            strokeWidth: 3
+            strokeWidth: 3,
+            size: 24
         };
         return {
             $get: function() {

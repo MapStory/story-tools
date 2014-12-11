@@ -1,18 +1,7 @@
 <div ng-form="symbol" class="style-editor-item">
     <div class="title">Symbol</div>
     <div class="controls">
-        <div data-dropdown ng-if="showGraphic">
-            <button type="button" class="dropdown-toggle"   >
-                <span>{{ getSymbolizerText(model) }}</span>
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-                <li ng-repeat="name in styleChoices.symbolizers" ng-click="model.shape=name">
-                    {{ name }}
-                </li>
-            </ul>
-        </div>
-
+        <graphic-editor ng-if="showGraphic" symbol="model"></graphic-editor>
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
         <color-editor st-model="model" property="fillColor" ></color-editor>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
