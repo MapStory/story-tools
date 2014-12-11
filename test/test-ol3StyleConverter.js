@@ -1,10 +1,12 @@
 require('../lib/style/services/ol3StyleConverter.js');
+require('../lib/style/services/svgIcon.js');
 
 describe('ol3StyleConverter', function() {
 
     beforeEach(function() {
         // window.angular.mock.module is work around browserify conflict
         window.angular.mock.module('mapstory.styleEditor.ol3StyleConverter');
+        window.angular.mock.module('mapstory.styleEditor.svgIcon');
 
         inject(function(ol3StyleConverter) {
             this.ol3StyleConverter = ol3StyleConverter;

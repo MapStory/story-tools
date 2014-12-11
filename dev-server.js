@@ -8,14 +8,19 @@ exports.run = function() {
         port: 8001,
         livereload: true,
         middleware: function(connect, o) {
-            var fixedProxy = (function() {
+            var gsProxy = (function() {
                 var options = url.parse('http://mapstory.org/geoserver');
                 options.route = '/geoserver';
                 return proxy(options);
             })();
-            var fixedProxyMaps = (function() {
+            var mapsProxy = (function() {
                 var options = url.parse('http://mapstory.org/maps');
                 options.route = '/maps';
+                return proxy(options);
+            })();
+            var assetsProxy = (function() {
+                var options = url.parse('http://mapstory.dev.opengeo.org/mapstory-assets');
+                options.route = '/assets';
                 return proxy(options);
             })();
             var dynamicProxy = function(req, res, next) {
@@ -28,7 +33,7 @@ exports.run = function() {
                 }
                 return next();
             };
-            return [fixedProxy, fixedProxyMaps, dynamicProxy];
+            return [gsProxy, mapsProxy, assetsProxy, dynamicProxy];
         }
     });
 };
