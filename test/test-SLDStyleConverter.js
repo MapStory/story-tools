@@ -40,13 +40,13 @@ describe('SLDStyleConverter', function() {
             "stroke": {
                 "strokeColor": "#ffff00",
                 "strokeWidth": 3,
-                "strokeStyle": "solid",
+                "strokeStyle": "dashed",
                 "strokeOpacity": 90
             },
             "geomType": "line"
         };
         var style = SLDStyleConverter.generateStyle(styleConfig);
-        expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:Name>simple line</p0:Name><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p0:LineSymbolizer><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width">3</p0:CssParameter><p0:CssParameter name="stroke-opacity">0.9</p0:CssParameter></p0:Stroke></p0:LineSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
+        expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:Name>simple line</p0:Name><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p0:LineSymbolizer><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width">3</p0:CssParameter><p0:CssParameter name="stroke-opacity">0.9</p0:CssParameter><p0:CssParameter name="stroke-dasharray">5 5</p0:CssParameter></p0:Stroke></p0:LineSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
     }));
 
     it('should convert labels', inject(function(SLDStyleConverter) {
@@ -79,6 +79,36 @@ describe('SLDStyleConverter', function() {
         var style = SLDStyleConverter.generateStyle(styleConfig);
         // TODO adapt the result for PropertyName when https://github.com/highsource/ogc-schemas/pull/32 gets resolved
         expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:Name>simple</p0:Name><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#ff0000</p0:CssParameter><p0:CssParameter name="fill-opacity">0.8</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width">3</p0:CssParameter><p0:CssParameter name="stroke-opacity">0.9</p0:CssParameter></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer><p0:TextSymbolizer><p0:Label><p1:PropertyName xmlns:p1="http://www.opengis.net/ogc"/></p0:Label><p0:Font><p0:CssParameter name="font-family">Serif</p0:CssParameter><p0:CssParameter name="font-size">10</p0:CssParameter><p0:CssParameter name="font-style">normal</p0:CssParameter><p0:CssParameter name="font-weight">normal</p0:CssParameter></p0:Font><p0:Fill><p0:CssParameter name="fill">#000000</p0:CssParameter></p0:Fill></p0:TextSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
+    }));
+
+    it('should convert unique classification', inject(function(SLDStyleConverter) {
+        var styleConfig = {
+            "stroke": {
+                "strokeColor": "#ffff00"
+            },
+            "geomType": "point",
+            "classify": {
+                "attribute": "foo"
+            },
+            "rules": [{
+                "value": "bar",
+                "style": {
+                    "symbol": {
+                        "fillColor": "#ff9900"
+                    }
+                }
+            }, {
+                "value": "baz",
+                "style": {
+                    "symbol": {
+                        "fillColor": "#b36b00"
+                    }
+                }
+            }]
+        };
+        var style = SLDStyleConverter.generateStyle(styleConfig);
+        // TODO adapt the result for PropertyName when https://github.com/highsource/ogc-schemas/pull/32 gets resolved
+        expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p1:Filter xmlns:p1="http://www.opengis.net/ogc"><p1:PropertyIsEqualTo><p1:PropertyName/><p1:Literal>bar</p1:Literal></p1:PropertyIsEqualTo></p1:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#ff9900</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule><p0:Rule><p2:Filter xmlns:p2="http://www.opengis.net/ogc"><p2:PropertyIsEqualTo><p2:PropertyName/><p2:Literal>baz</p2:Literal></p2:PropertyIsEqualTo></p2:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#b36b00</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
     }));
 
 });
