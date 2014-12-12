@@ -111,4 +111,40 @@ describe('SLDStyleConverter', function() {
         expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p1:Filter xmlns:p1="http://www.opengis.net/ogc"><p1:PropertyIsEqualTo><p1:PropertyName/><p1:Literal>bar</p1:Literal></p1:PropertyIsEqualTo></p1:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#ff9900</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule><p0:Rule><p2:Filter xmlns:p2="http://www.opengis.net/ogc"><p2:PropertyIsEqualTo><p2:PropertyName/><p2:Literal>baz</p2:Literal></p2:PropertyIsEqualTo></p2:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#b36b00</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
     }));
 
+    it('should convert ranges of a classification', inject(function(SLDStyleConverter) {
+        var styleConfig = {
+            "stroke": {
+                "strokeColor": "#ffff00"
+            },  
+            "geomType": "point",
+            "classify": {
+                "attribute": "foo"
+            },      
+            "rules": [{
+                "range": {
+                    "min": 0,
+                    "max": 10
+                },  
+                "style": {
+                    "symbol": {
+                        "fillColor": "#ff9900"
+                    }   
+                }   
+            }, {
+                "range": {
+                    "min": 10,
+                    "max": 20
+                },
+                "style": {
+                    "symbol": {
+                        "fillColor": "#b36b00"
+                    }
+                }
+            }]
+        };  
+        var style = SLDStyleConverter.generateStyle(styleConfig);
+        // TODO adapt the result for PropertyName when https://github.com/highsource/ogc-schemas/pull/32 gets resolved
+        expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p1:Filter xmlns:p1="http://www.opengis.net/ogc"><p1:PropertyIsBetween><p1:PropertyName/><p1:LowerBoundary><p1:Literal>0</p1:Literal></p1:LowerBoundary><p1:UpperBoundary><p1:Literal>10</p1:Literal></p1:UpperBoundary></p1:PropertyIsBetween></p1:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#ff9900</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule><p0:Rule><p2:Filter xmlns:p2="http://www.opengis.net/ogc"><p2:PropertyIsBetween><p2:PropertyName/><p2:LowerBoundary><p2:Literal>10</p2:Literal></p2:LowerBoundary><p2:UpperBoundary><p2:Literal>20</p2:Literal></p2:UpperBoundary></p2:PropertyIsBetween></p2:Filter><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#b36b00</p0:CssParameter><p0:CssParameter name="fill-opacity">1</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width"/><p0:CssParameter name="stroke-opacity"/></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
+    }));
+
 });
