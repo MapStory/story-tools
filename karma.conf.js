@@ -6,6 +6,7 @@ module.exports = function(config) {
     browsers: ['PhantomJS'],
     files: [
         'examples/ol.js',
+        'bower_components/jquery/dist/jquery.js',
         'bower_components/jsonix/dist/Jsonix-all.js',
         'examples/mappings/XLink_1_0.js',
         'examples/mappings/Filter_1_0_0.js',
@@ -21,7 +22,17 @@ module.exports = function(config) {
         'examples/mappings/WFS_1_1_0.js',
         'bower_components/angular/angular.js',
         'bower_components/angular-mocks/angular-mocks.js',
-        'dist/tests.js'
-    ]
+        'dist/tests.js',
+        /* must be included to have ng-html2js pick them up */
+        'lib/style/templates/**/*.html'
+    ],
+    preprocessors : {
+        'lib/style/templates/**/*.html': ['ng-html2js']
+    },
+    /* this pulls in our templates and modularizes them */
+    ngHtml2JsPreprocessor : {
+        moduleName: 'mapstory.styleEditor.templates',
+        stripPrefix: 'lib/style/templates/'
+    }
   });
 };

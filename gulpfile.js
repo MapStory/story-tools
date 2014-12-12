@@ -125,7 +125,7 @@ gulp.task('styleLess', function() {
 gulp.task('scripts', ['timeBundle', 'styleBundle', 'styleLess', 'templates']);
 
 gulp.task('testsBundle', function() {
-    return doBundle(browserify('./test/tests.js'), 'tests.js', ['karma']);
+    return doBundle(browserify({entries:'./test/tests.js', debug:true}), 'tests.js', ['karma']);
 });
 
 gulp.task('karma', ['testsBundle'], function() {
@@ -135,6 +135,11 @@ gulp.task('karma', ['testsBundle'], function() {
     }, function(failed) {
         notify(failed > 0 ? failed + ' failures' : 'passing!');
     });
+});
+
+gulp.task('tdd', ['test'], function() {
+    watch = true;
+    gulp.watch('test/*', ['karma']);
 });
 
 gulp.task('test', ['clean', 'karma']);
