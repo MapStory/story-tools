@@ -174,8 +174,8 @@
                 var results = [];
                 for (i = 0; i < classes; i++) {
                     var value = unique ? values[i] : {
-                        min : classBreak * i,
-                        max: classBreak * (i + 1)
+                        min : (classBreak * i).toFixed(2),
+                        max: (classBreak * (i + 1)).toFixed(2)
                     };
                     var rule = {
                         name: unique ? value : value.min + '-' + value.max

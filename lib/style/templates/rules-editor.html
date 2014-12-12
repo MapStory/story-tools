@@ -1,12 +1,13 @@
 <div class="style-editor-item">
     <div class="title">Rules</div>
-    <table>
+    <table class="controls">
         <tbody>
             <tr ng-repeat="rule in activeStyle.rules" class="style-rule">
                 <td>{{ rule.name}}</td>
                 <td>
-                    <color-editor st-model="rule.style.symbol" property="fillColor"></color-editor>
-                    <color-editor st-model="rule.style.stroke" property="strokeColor"></color-editor>
+                    <color-editor st-model="rule.style.symbol" property="fillColor" ng-if="rule.style.symbol.fillColor"></color-editor>
+                    <color-editor st-model="rule.style.stroke" property="strokeColor" ng-if="rule.style.stroke.strokeColor"></color-editor>
+                    <number-editor st-model="rule.style.symbol" property="size" ng-if="rule.style.symbol.size != null"></number-editor>
                 </td>
                 <td>
                     <button>&times;</button>
