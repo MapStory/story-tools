@@ -53,7 +53,6 @@ describe('SLDStyleConverter', function() {
         };
         style = SLDStyleConverter.generateStyle(styleConfig);
         expect(style).toBe('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:Name>simple</sld:Name><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><sld:PointSymbolizer><sld:Graphic><sld:ExternalGraphic><sld:OnlineResource xlink:href="icon.svg"/><sld:Format>image/svg+xml</sld:Format></sld:ExternalGraphic></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
-        // TODO add expect call when https://github.com/highsource/ogc-schemas/issues/34 gets resolved
     }));
 
     it('should convert simple types (line)', inject(function(SLDStyleConverter) {
