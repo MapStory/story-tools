@@ -32,6 +32,27 @@ describe('SLDStyleConverter', function() {
         };
         var style = SLDStyleConverter.generateStyle(styleConfig);
         expect(style).toBe('<p0:StyledLayerDescriptor xmlns:p0="http://www.opengis.net/sld" version="1.0.0"><p0:NamedLayer><p0:Name>simple</p0:Name><p0:UserStyle><p0:FeatureTypeStyle><p0:Rule><p0:PointSymbolizer><p0:Graphic><p0:Mark><p0:WellKnownName>circle</p0:WellKnownName><p0:Fill><p0:CssParameter name="fill">#ff0000</p0:CssParameter><p0:CssParameter name="fill-opacity">0.8</p0:CssParameter></p0:Fill><p0:Stroke><p0:CssParameter name="stroke">#ffff00</p0:CssParameter><p0:CssParameter name="stroke-width">3</p0:CssParameter><p0:CssParameter name="stroke-opacity">0.9</p0:CssParameter></p0:Stroke></p0:Mark></p0:Graphic></p0:PointSymbolizer></p0:Rule></p0:FeatureTypeStyle></p0:UserStyle></p0:NamedLayer></p0:StyledLayerDescriptor>');
+        // svg symbol (graphic)
+        styleConfig = {
+            "typeName": "simple",
+            "symbol": {
+                "size": 10,
+                "shape": null,
+                "graphic": "icon.svg",
+                "graphicType": null,
+                "fillColor": "#ff0000",
+                "fillOpacity": 80
+            },
+            "stroke": {
+                "strokeColor": "#ffff00",
+                "strokeWidth": 3,
+                "strokeStyle": "solid",
+                "strokeOpacity": 90
+            },
+            "geomType": "point"
+        };
+        style = SLDStyleConverter.generateStyle(styleConfig);
+        // TODO add expect call when https://github.com/highsource/ogc-schemas/issues/34 gets resolved
     }));
 
     it('should convert simple types (line)', inject(function(SLDStyleConverter) {
