@@ -47,7 +47,7 @@
         ], ['l1','l2','l3']);
     }
 
-    module.run(function() {
+    module.run(function(iconCommons) {
         map = new ol.Map({
             layers: [new ol.layer.Tile({
                     source: new ol.source.MapQuest({layer: 'sat'})
@@ -186,6 +186,25 @@
                 defer.resolve(results);
                 return defer.promise;
             }
+        };
+    });
+
+    module.factory('iconCommonsImpl', function() {
+        return {
+            defaults: ["golf-18.svg",
+                "cafe-18.svg",
+                "restaurant-18.svg",
+                "car-18.svg",
+                "harbor-18.svg",
+                "hospital-18.svg",
+                "farm-18.svg",
+                "zoo-18.svg",
+                "water-18.svg",
+                "heart-18.svg",
+                "town-hall-18.svg",
+                "industrial-18.svg"].map(function(n) {
+                return '/assets/style_editor/icons/' + n;
+            })
         };
     });
 
