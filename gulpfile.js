@@ -15,13 +15,24 @@ var uglify = require('gulp-uglify');
 var templateCache = require('gulp-angular-templatecache');
 var devServer = require('./dev-server.js');
 
+// internal
 var watch = false;
-var styleSources = 'lib/style/**/*.js';
-var styleBundleDest = 'mapstory-style-editor.js';
-var styleTemplates = 'lib/style/templates/**/*.html';
-var styleTemplatesBundle = 'mapstory-style-editor-tpls.js';
-var styleCSS = 'mapstory-style-editor.css';
-var sources = ['lib/time/*.js', styleSources];
+
+// outputs
+var coreLibsBundle = 'story-tools-core.js';
+var editLibsBundle = 'story-tools-edit.js';
+var editCoreBundle = 'story-tools-core-ng.js';
+var editNgBundle = 'story-tools-edit-ng.js';
+var coreNgBundle = 'story-tools-core-ng.js';
+var editTemplatesBundle = 'story-tools-edit-tpls.js';
+var editLess = 'lib/ng/edit/style.less';
+
+// inputs
+var coreNg = 'lib/ng/core/**/*.js';
+var editNg = 'lib/ng/edit/**/*.js';
+var editTemplates = 'lib/ng/templates/**/*.html';
+
+var sources = ['lib/**/*.js'];
 
 function notify(msg) {
     if (watch) {
@@ -75,7 +86,7 @@ gulp.task('minify', ['scripts'], function() {
     function doMinify(src) {
         gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
     }
-    doMinify('dist/time-controls.js');
+    doMinify('dist/' + coreLibsBundle);
 });
 
 gulp.task('lint', function() {
@@ -89,43 +100,91 @@ gulp.task('lint', function() {
     return lintStream;
 });
 
-gulp.task('templates', function() {
-    return gulp.src(styleTemplates)
-        .pipe(templateCache(styleTemplatesBundle, {
+gulp.task('bundleEditTemplates', function() {
+    return gulp.src(editTemplates)
+        .pipe(templateCache(editTemplatesBundle, {
             standalone: true,
             module: 'mapstory.styleEditor.templates'
         })).pipe(gulp.dest('dist'));
 });
 
-gulp.task('styleBundle', function() {
-    var stream = gulp.src(styleSources)
-        .pipe(concat(styleBundleDest))
+/** 
+ * bundle all core libraries exposing core exports on the global object
+ * storytools.core
+ */
+gulp.task('bundleCoreLibs', function() {
+    return bundle(browserify({
+        entries: ['./lib/core/index.js'],
+        standalone: 'storytools.core'
+    }), coreLibsBundle, ['lint', 'karma']);
+});
+
+/** 
+ * bundle all edit libraries exposing edit exports on the global object
+ * storytools.edit
+ */
+gulp.task('bundleEditLibs', function() {
+    return bundle(browserify({
+        entries: ['./lib/edit/index.js'],
+        standalone: 'storytools.edit'
+    }), editLibsBundle, ['lint', 'karma']);
+});
+
+/**
+ * concat edit angular
+ */
+gulp.task('bundleEditNg', function() {
+    var stream = gulp.src(editNg)
+        .pipe(concat(editNgBundle))
         .pipe(gulp.dest('dist'));
     stream.on('end', function() {
-        util.log("bundled", util.colors.cyan(styleBundleDest));
+        util.log("bundled", util.colors.cyan(editNgBundle));
     });
 });
 
-gulp.task('timeBundle', function() {
-    return bundle(browserify({
-        entries: ['./lib/time/controls.js'],
-        standalone: 'timeControls'
-    }), 'time-controls.js', ['lint', 'karma']);
+/**
+ * concat core angular
+ */
+gulp.task('bundleCoreNg', function() {
+    var stream = gulp.src(coreNg)
+        .pipe(concat(coreNgBundle))
+        .pipe(gulp.dest('dist'));
+    stream.on('end', function() {
+        util.log("bundled", util.colors.cyan(coreNgBundle));
+    });
 });
 
-gulp.task('styleLess', function() {
-    gulp.src('lib/style/style.less')
+/**
+ * combined bundle of all core
+ */
+gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
+    // @todo concat both bundles
+});
+
+/**
+ * combined bundle of all edit
+ */
+gulp.task('bundleEdit', ['bundleEditLibs', 'bundleEditNg'], function() {
+    // @todo concat both bundles
+});
+
+
+
+
+
+gulp.task('lessEdit', function() {
+    gulp.src(editLess)
         .pipe(less({
             paths: ['bower_components/bootstrap/less']
         }))
-        .pipe(rename(styleCSS))
+        .pipe(rename('story-tools-edit.css'))
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['timeBundle', 'styleBundle', 'styleLess', 'templates']);
+gulp.task('scripts', ['bundleEdit', 'bundleCore', 'lessEdit', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
-    return doBundle(browserify({entries:'./test/tests.js', debug:true}), 'tests.js', ['karma']);
+    return doBundle(browserify({entries:'./test/tests.js', debug:true, paths: ['../lib/']}), 'tests.js', ['karma']);
 });
 
 gulp.task('karma', ['testsBundle'], function() {
@@ -148,15 +207,16 @@ gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 
 gulp.task('develop', ['connect', 'watch']);
 
-gulp.task('watch', ['lint', 'styleBundle', 'styleLess', 'templates'], function() {
+gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], function() {
     // enable watch mode and start watchify tasks
     watch = true;
-    gulp.start('timeBundle');
+    gulp.start('bundleCore');
+    gulp.start('bundleEdit');
     gulp.start('testsBundle');
-    // and style related tasks
-    gulp.watch(styleSources, ['lint', 'karma', 'styleBundle']);
-    gulp.watch(styleTemplates, ['templates']);
-    gulp.watch('lib/style/style.less', ['styleLess']);
+    // and ng related tasks
+    gulp.watch(editNg, ['lint', 'karma', 'bundleEditNg']);
+    gulp.watch(editTemplates, ['bundleEditTemplates']);
+    gulp.watch(editLess, ['lessEdit']);
     // reload on changes to bundles but ignore tests bundle
     gulp.watch(['dist/*', 'examples/*']).on('change', function(f) {
         gulp.src([f.path,'!**/tests.js']).pipe(connect.reload());

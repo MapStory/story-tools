@@ -1,5 +1,5 @@
-var boxes = require('../lib/time/boxes.js');
-var utils = require('../lib/time/utils.js');
+var boxes = require('../lib/core/time/boxes.js');
+var utils = require('../lib/core/time/utils.js');
 var Box = boxes.Box;
 var BoxModel = boxes.BoxModel;
 

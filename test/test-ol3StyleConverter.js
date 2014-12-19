@@ -1,5 +1,5 @@
-require('../lib/style/services/ol3StyleConverter.js');
-require('../lib/style/services/svgIcon.js');
+require('../lib/ng/core/style/ol3StyleConverter.js');
+require('../lib/ng/core/style/svgIcon.js');
 
 describe('ol3StyleConverter', function() {
 

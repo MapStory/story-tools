@@ -70,7 +70,7 @@
             function parseCapabilities(response) {
                 var parser = new ol.format.WMSCapabilities();
                 var caps = parser.read(response);
-                var found = timeControls.maps.readCapabilitiesTimeDimensions(caps);
+                var found = storytools.core.time.maps.readCapabilitiesTimeDimensions(caps);
                 var name = layer.get('name');
                 if (name in found) {
                     layer._times = found[name];
@@ -168,7 +168,7 @@
         }
 
         function createControls(data) {
-            _timeControls = timeControls.create({
+            _timeControls = storytools.core.time.create({
                 annotations: [],
                 map: map,
                 data: data || map.getLayers().item(1)._times,
