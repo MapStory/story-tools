@@ -1,4 +1,4 @@
-var maps = require('../lib/time/maps.js');
+var maps = require('../lib/core/time/maps.js');
 var fs = require('fs');
 
 describe("test maps", function() {

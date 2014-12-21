@@ -1,7 +1,7 @@
-require('../lib/style/directives/directives.js');
-require('../lib/style/services/styleChoices.js');
-require('../lib/style/services/ol3StyleConverter.js');
-require('../lib/style/services/svgIcon.js');
+require('../lib/ng/edit/style/directives/directives.js');
+require('../lib/ng/edit/style/services/styleChoices.js');
+require('../lib/ng/core/style/ol3StyleConverter.js');
+require('../lib/ng/core/style/svgIcon.js');
 $ = require('../bower_components/jquery/dist/jquery.js');
 
 function setInputValue(el, val) {
@@ -32,7 +32,7 @@ describe('test directives', function() {
     beforeEach(function() {
         // window.angular.mock.module is work around browserify conflict
         window.angular.mock.module('mapstory.styleEditor.directives');
-        window.angular.mock.module('mapstory.styleEditor.templates');
+        window.angular.mock.module('mapstory.allTemplates');
         window.angular.mock.module('mapstory.styleEditor.styleChoices');
         window.angular.mock.module('mapstory.styleEditor.ol3StyleConverter');
         window.angular.mock.module('mapstory.styleEditor.svgIcon');

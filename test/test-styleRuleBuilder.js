@@ -1,6 +1,6 @@
-require('../lib/style/services/styleRuleBuilder.js');
-require('../lib/style/services/styleChoices.js');
-require('../lib/style/services/styleTypes.js');
+require('../lib/ng/edit/style/services/styleRuleBuilder.js');
+require('../lib/ng/edit/style/services/styleChoices.js');
+require('../lib/ng/edit/style/services/styleTypes.js');
 
 describe('styleRuleBuilder', function() {
 

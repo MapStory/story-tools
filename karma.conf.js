@@ -24,15 +24,15 @@ module.exports = function(config) {
         'bower_components/angular-mocks/angular-mocks.js',
         'dist/tests.js',
         /* must be included to have ng-html2js pick them up */
-        'lib/style/templates/**/*.html'
+        'lib/ng/templates/**/*.html'
     ],
     preprocessors : {
-        'lib/style/templates/**/*.html': ['ng-html2js']
+        'lib/ng/templates/**/*.html': ['ng-html2js']
     },
     /* this pulls in our templates and modularizes them */
     ngHtml2JsPreprocessor : {
-        moduleName: 'mapstory.styleEditor.templates',
-        stripPrefix: 'lib/style/templates/'
+        moduleName: 'mapstory.allTemplates',
+        stripPrefix: 'lib/ng/templates/'
     }
   });
 };

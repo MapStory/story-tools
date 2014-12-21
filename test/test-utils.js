@@ -1,4 +1,4 @@
-var utils = require('../lib/time/utils.js');
+var utils = require('../lib/core/time/utils.js');
 var moment = require('vis/node_modules/moment');
 
 describe("test utils", function() {
