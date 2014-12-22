@@ -1,3 +1,4 @@
+var ngAnnotate = require('gulp-ng-annotate');
 var gulp = require('gulp');
 var util = require('gulp-util');
 var concat = require('gulp-concat');
@@ -73,6 +74,16 @@ function bundle(browserify, bundleName, tasks) {
     return doBundle(browserify, bundleName);
 }
 
+function ngBundle(src, dest) {
+    var stream = gulp.src(src)
+        .pipe(concat(dest))
+        .pipe(ngAnnotate())
+        .pipe(gulp.dest('dist'));
+    stream.on('end', function() {
+        util.log("bundled", util.colors.cyan(src));
+    });
+}
+
 gulp.task('connect', function() {
     devServer.run();
 });
@@ -87,6 +98,9 @@ gulp.task('minify', ['scripts'], function() {
         gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
     }
     doMinify('dist/' + coreLibsBundle);
+    doMinify('dist/' + editLibsBundle);
+    doMinify('dist/' + coreNgBundle);
+    doMinify('dist/' + editNgBundle);
 });
 
 gulp.task('lint', function() {
@@ -134,24 +148,14 @@ gulp.task('bundleEditLibs', function() {
  * concat edit angular
  */
 gulp.task('bundleEditNg', function() {
-    var stream = gulp.src(editNg)
-        .pipe(concat(editNgBundle))
-        .pipe(gulp.dest('dist'));
-    stream.on('end', function() {
-        util.log("bundled", util.colors.cyan(editNgBundle));
-    });
+    ngBundle(editNg, editNgBundle);
 });
 
 /**
  * concat core angular
  */
 gulp.task('bundleCoreNg', function() {
-    var stream = gulp.src(coreNg)
-        .pipe(concat(coreNgBundle))
-        .pipe(gulp.dest('dist'));
-    stream.on('end', function() {
-        util.log("bundled", util.colors.cyan(coreNgBundle));
-    });
+    ngBundle(coreNg, coreNgBundle);
 });
 
 /**
