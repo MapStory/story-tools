@@ -168,10 +168,6 @@ gulp.task('bundleEdit', ['bundleEditLibs', 'bundleEditNg'], function() {
     // @todo concat both bundles
 });
 
-
-
-
-
 gulp.task('lessEdit', function() {
     gulp.src(editLess)
         .pipe(less({
@@ -188,10 +184,12 @@ gulp.task('testsBundle', function() {
 });
 
 gulp.task('karma', ['testsBundle'], function() {
-    return karma.start({
+    var server = util.env['server'] ? true : false;
+    var conf = {
         configFile: __dirname + '/karma.conf.js',
-        singleRun: true
-    }, function(failed) {
+        singleRun: !server
+    };
+    return karma.start(conf, function(failed) {
         notify(failed > 0 ? failed + ' failures' : 'passing!');
     });
 });
