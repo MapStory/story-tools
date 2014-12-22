@@ -5,10 +5,10 @@ describe("test maps", function() {
     it("parseISODuration should throw sometimes", function() {
         expect(function() {
             maps.parseISODuration('TP1M');
-        }).toThrow('expected P as starting duration : TP1M');
+        }).toThrowError('expected P as starting duration : TP1M');
         expect(function() {
             maps.parseISODuration('P1X');
-        }).toThrow('unknown duration specifier : X');
+        }).toThrowError('unknown duration specifier : X');
     });
     it("parseISODuration should parse correctly", function() {
         expect(maps.parseISODuration('PT1S')).toBe(1000);

@@ -27,7 +27,8 @@ module.exports = function(config) {
         'lib/ng/templates/**/*.html'
     ],
     preprocessors : {
-        'lib/ng/templates/**/*.html': ['ng-html2js']
+        'lib/ng/templates/**/*.html': ['ng-html2js'],
+        'dist/tests.js': ['sourcemap']
     },
     /* this pulls in our templates and modularizes them */
     ngHtml2JsPreprocessor : {

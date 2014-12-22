@@ -189,6 +189,9 @@ gulp.task('karma', ['testsBundle'], function() {
         configFile: __dirname + '/karma.conf.js',
         singleRun: !server
     };
+    if (server) {
+        conf.reporters = ['html'];
+    }
     return karma.start(conf, function(failed) {
         notify(failed > 0 ? failed + ' failures' : 'passing!');
     });
