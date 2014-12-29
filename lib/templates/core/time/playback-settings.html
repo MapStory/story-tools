@@ -1,0 +1,24 @@
+<div class="radio">
+    <label>
+        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="instant">
+        Instant
+    </label>
+</div>
+<div class="radio">
+    <label>
+        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="range">
+        Range
+    </label>
+</div>
+<div class="radio">
+    <label>
+        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="cumulative">
+        Cumulative
+    </label>
+</div>
+<div class="checkbox">
+    <label>
+        <input type="checkbox" ng-model="playbackOptions.fixed"  ng-change="optionsChanged()">
+        Fixed Range
+    </label>
+</div>

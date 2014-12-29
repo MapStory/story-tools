@@ -13,6 +13,7 @@ var less = require('gulp-less');
 var karma = require('karma').server;
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
+var minifyHtml = require('gulp-minify-html');
 var templateCache = require('gulp-angular-templatecache');
 var devServer = require('./dev-server.js');
 
@@ -25,13 +26,15 @@ var editLibsBundle = 'story-tools-edit.js';
 var editCoreBundle = 'story-tools-core-ng.js';
 var editNgBundle = 'story-tools-edit-ng.js';
 var coreNgBundle = 'story-tools-core-ng.js';
+var coreTemplatesBundle = 'story-tools-core-tpls.js';
 var editTemplatesBundle = 'story-tools-edit-tpls.js';
 var editLess = 'lib/ng/edit/style.less';
 
 // inputs
 var coreNg = 'lib/ng/core/**/*.js';
 var editNg = 'lib/ng/edit/**/*.js';
-var editTemplates = 'lib/ng/templates/**/*.html';
+var coreTemplates = 'lib/templates/core/**/*.html';
+var editTemplates = 'lib/templates/edit/**/*.html';
 
 var sources = ['lib/**/*.js'];
 
@@ -80,8 +83,22 @@ function ngBundle(src, dest) {
         .pipe(ngAnnotate())
         .pipe(gulp.dest('dist'));
     stream.on('end', function() {
-        util.log("bundled", util.colors.cyan(src));
+        util.log("bundled", util.colors.cyan(dest));
     });
+    return stream;
+}
+
+function templateBundle(src, dest, module) {
+    var stream = gulp.src(src)
+        .pipe(minifyHtml())
+        .pipe(templateCache(dest, {
+            standalone: true,
+            module: module
+        })).pipe(gulp.dest('dist'));
+    stream.on('end', function() {
+        util.log("bundled", util.colors.cyan(dest));
+    });
+    return stream;
 }
 
 gulp.task('connect', function() {
@@ -114,12 +131,12 @@ gulp.task('lint', function() {
     return lintStream;
 });
 
+gulp.task('bundleCoreTemplates', function() {
+    return templateBundle(coreTemplates, coreTemplatesBundle, 'storytools.core.templates');
+});
+
 gulp.task('bundleEditTemplates', function() {
-    return gulp.src(editTemplates)
-        .pipe(templateCache(editTemplatesBundle, {
-            standalone: true,
-            module: 'mapstory.styleEditor.templates'
-        })).pipe(gulp.dest('dist'));
+    return templateBundle(editTemplates, editTemplatesBundle, 'storytools.edit.templates');
 });
 
 /** 
@@ -181,7 +198,7 @@ gulp.task('lessEdit', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleEdit', 'bundleCore', 'lessEdit', 'bundleEditTemplates']);
+gulp.task('scripts', ['bundleCore', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries:'./test/tests.js', debug:true, paths: ['../lib/']}), 'tests.js', ['karma']);
@@ -219,9 +236,13 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     gulp.start('bundleEdit');
     gulp.start('testsBundle');
     // and ng related tasks
+    gulp.start('bundleCoreTemplates');
+    gulp.start('bundleEditTemplates');
+    gulp.watch(coreNg, ['lint', 'karma', 'bundleCoreNg']);
     gulp.watch(editNg, ['lint', 'karma', 'bundleEditNg']);
+    gulp.watch(coreTemplates, ['bundleCoreTemplates']);
     gulp.watch(editTemplates, ['bundleEditTemplates']);
-    gulp.watch(editLess, ['lessEdit']);
+    gulp.watch('lib/ng/**/*.less', ['lessEdit']);
     // reload on changes to bundles but ignore tests bundle
     gulp.watch(['dist/*', 'examples/*']).on('change', function(f) {
         gulp.src([f.path,'!**/tests.js']).pipe(connect.reload());

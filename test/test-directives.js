@@ -31,11 +31,11 @@ describe('test directives', function() {
 
     beforeEach(function() {
         // window.angular.mock.module is work around browserify conflict
-        window.angular.mock.module('mapstory.styleEditor.directives');
-        window.angular.mock.module('mapstory.allTemplates');
-        window.angular.mock.module('mapstory.styleEditor.styleChoices');
-        window.angular.mock.module('mapstory.styleEditor.ol3StyleConverter');
-        window.angular.mock.module('mapstory.styleEditor.svgIcon');
+        window.angular.mock.module('storytools.edit.style.directives');
+        window.angular.mock.module('storytools.allTemplates');
+        window.angular.mock.module('storytools.edit.style.styleChoices');
+        window.angular.mock.module('storytools.core.style.ol3StyleConverter');
+        window.angular.mock.module('storytools.core.style.svgIcon');
 
         inject(inject(function(_$compile_, _$rootScope_, $sniffer) {
             $compile = _$compile_;

@@ -24,16 +24,17 @@ module.exports = function(config) {
         'bower_components/angular-mocks/angular-mocks.js',
         'dist/tests.js',
         /* must be included to have ng-html2js pick them up */
-        'lib/ng/templates/**/*.html'
+        'lib/templates/**/*.html'
     ],
     preprocessors : {
-        'lib/ng/templates/**/*.html': ['ng-html2js'],
+        'lib/templates/**/*.html': ['ng-html2js'],
         'dist/tests.js': ['sourcemap']
     },
-    /* this pulls in our templates and modularizes them */
+    /* this pulls in all templates and modularizes them */
     ngHtml2JsPreprocessor : {
-        moduleName: 'mapstory.allTemplates',
-        stripPrefix: 'lib/ng/templates/'
+        moduleName: 'storytools.allTemplates',
+        /* template paths are stripped of core/edit */
+        stripPrefix: 'lib/templates/[^/]+/'
     }
   });
 };

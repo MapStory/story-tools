@@ -6,9 +6,9 @@ describe('styleRuleBuilder', function() {
 
     beforeEach(function() {
         // window.angular.mock.module is work around browserify conflict
-        window.angular.mock.module('mapstory.styleEditor.styleRuleBuilder');
-        window.angular.mock.module('mapstory.styleEditor.styleChoices');
-        window.angular.mock.module('mapstory.styleEditor.styleTypes');
+        window.angular.mock.module('storytools.edit.style.styleRuleBuilder');
+        window.angular.mock.module('storytools.edit.style.styleChoices');
+        window.angular.mock.module('storytools.edit.style.styleTypes');
 
         inject(function(stStyleRuleBuilder) {
             this.stStyleRuleBuilder = stStyleRuleBuilder;

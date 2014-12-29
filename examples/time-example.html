@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="timeControls" ng-controller="timeControlsController">
+<html ng-app="timeControls" ng-controller="timeExample as ex">
     <head>
         <title>time-controls example</title>
         <meta charset="UTF-8">
@@ -11,40 +11,8 @@
         <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css">
 
         <script type="text/ng-template" id="time-controls-template">
-            <button class="btn btn-primary" ng-click="play()">{{ playText }}</button>
-            <button class="btn" ng-click="prev()">&lt;&lt;</button>
-            <button class="btn" ng-click="next()">&gt;&gt;</button>
-            <button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }">{{ loopText }}</button>
             <span>Dates:</span><span id="dates">{{ currentRange.toString() }}</span>
             <span>Tiles [remaining] : {{ tilesRemaining }}
-        </script>
-
-        <script type="text/ng-template" id="playback-settings-template">
-            <h5>Playback Options</h5>
-            <div class="radio">
-                <label>
-                    <input type="radio" ng-model="playbackOptions.mode" ng-change="options()" value="instant">
-                    Instant
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" ng-model="playbackOptions.mode" ng-change="options()" value="range">
-                    Range
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" ng-model="playbackOptions.mode" ng-change="options()" value="cumulative">
-                    Cumulative
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" ng-model="playbackOptions.fixed"  ng-change="options()">
-                    Fixed Range
-                </label>
-            </div>
         </script>
 
         <script src="../bower_components/angular/angular.min.js" type="text/javascript"></script>
@@ -52,8 +20,11 @@
         <script type="text/javascript" src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="../bower_components/nouislider/distribute/jquery.nouislider.min.js" type="text/javascript"></script>
         <script src="../dist/story-tools-core.js" type="text/javascript"></script>
+        <script src="../dist/story-tools-core-ng.js" type="text/javascript"></script>
+        <script src="../dist/story-tools-core-tpls.js" type="text/javascript"></script>
         <script src="../dist/story-tools-edit.js" type="text/javascript"></script>
         <script src="ol.js" type="text/javascript"></script>
+        <script src="common.js" type="text/javascript"></script>
         <script src="time-example.js" type="text/javascript"></script>
         <script src="http://localhost:35729/livereload.js"></script>
 
@@ -85,9 +56,9 @@
         </style>
     </head>
     <body>
-        <div id="panel" ng-show="timeControls">
+        <div id="panel" ng-show="ex.timeControls" class="ng-hide">
             <div id="slider"></div>
-            <div playback-controls></div>
+            <st-playback-controls time-controls="ex.timeControls"></st-playback-controls>
             <div id="timeline"></div>
         </div>
         <div class="panel-group col-lg-3" id="panel2">
@@ -102,16 +73,16 @@
                 </div>
                 <div id="addlayers" class="panel-collapse collapse">
                     <div class="panel-body">
-                        <form role="form" ng-submit="addLayer()">
+                        <form role="form" ng-submit="ex.addLayer()">
                             <div class="form-group">
                                 <label for="typename">Layer Name</label>
-                                <input ng-model="layerName" type="text" class="form-control" id="typename" placeholder="Layer in mapstory">
+                                <input ng-model="ex.layerName" type="text" class="form-control" id="typename" placeholder="Layer in mapstory">
                             </div>
                             <div class="checkbox">
-                                <label for="vector"><input ng-model="asVector" type="checkbox" id="vector">As vector</label>
+                                <label for="vector"><input ng-model="ex.asVector" type="checkbox" id="vector">As vector</label>
                             </div>
                             <button type="submit" class="btn btn-primary">Add</button>
-                            <span ng-if="loading">Loading...</span>
+                            <span ng-if="ex.loading">Loading...</span>
                         </form>
                     </div>
                 </div>
@@ -128,7 +99,8 @@
                 <div id="settings" class="panel-collapse collapse">
                     <div class="panel-body">
                         <form class="form-horizontal">
-                            <div playback-settings></div>
+                            <h5>Playback Options</h5>
+                            <st-playback-settings playback-options="ex.playbackOptions" time-controls="ex.timeControls"></st-playback-settings>
                         </form>
                     </div>
                 </div>

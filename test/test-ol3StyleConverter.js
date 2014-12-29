@@ -5,8 +5,8 @@ describe('ol3StyleConverter', function() {
 
     beforeEach(function() {
         // window.angular.mock.module is work around browserify conflict
-        window.angular.mock.module('mapstory.styleEditor.ol3StyleConverter');
-        window.angular.mock.module('mapstory.styleEditor.svgIcon');
+        window.angular.mock.module('storytools.core.style.ol3StyleConverter');
+        window.angular.mock.module('storytools.core.style.svgIcon');
 
         inject(function(ol3StyleConverter) {
             this.ol3StyleConverter = ol3StyleConverter;
