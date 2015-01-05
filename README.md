@@ -28,3 +28,11 @@ Within these categories, the specific functionality includes (not all physically
 * pins - spatial story-telling annotations
 * boxes - spatial story-telling chapters
 * layout - layout of viewing mode
+
+## Running tests in the browser
+
+run
+
+    gulp karma --server
+
+Karma will be available at: http://localhost:9876/debug.html
