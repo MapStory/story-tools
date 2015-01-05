@@ -5,6 +5,7 @@ module.exports = function(config) {
     frameworks: ['jasmine'],
     browsers: ['PhantomJS'],
     files: [
+        'test/custom_matcher.js',
         'examples/ol.js',
         'bower_components/jquery/dist/jquery.js',
         'bower_components/jsonix/dist/Jsonix-all.js',
