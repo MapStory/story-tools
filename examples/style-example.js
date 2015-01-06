@@ -80,12 +80,39 @@
     });
 
     module.controller('exampleController', function($scope, $http, ol3StyleConverter) {
+        var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
         $scope.styleFormInvalid = false;
         $scope.styleChanged = function(layer) {
             $scope.styleJSON = angular.toJson(layer.style, true);
-            layer._layer.setStyle(function(feature, resolution) {
-                return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
-            });
+            if (layer._layer instanceof ol.layer.Vector) {
+                layer._layer.setStyle(function(feature, resolution) {
+                    return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
+                });
+            } else {
+                var xml = sld.generateStyle(layer.style, layer._layer.getSource().getParams().LAYERS, true);
+                layer._layer.getSource().updateParams({SLD_BODY: xml});
+            }
+            $scope.loadwms = function(wmslayer) {
+                var layer = new ol.layer.Tile({
+                    source: new ol.source.TileWMS({
+                        url: 'http://localhost:8080/geoserver/wms',
+                        params: {
+                            'LAYERS': wmslayer,
+                            'VERSION': '1.1.0',
+                            'TILED': true
+                        },
+                        serverType: 'geoserver'
+                    })
+                });
+                // TODO assume GeoNode will provide layerInfo
+                // So we won't bother with doing WFS DescribeFeatureType at this point
+                layer._layerInfo = {
+                    geomType: 'point',
+                    attributes: ['STATE_NAME', 'STATE_FIPS', 'SUB_REGION', 'STATE_ABBR', 'LAND_KM', 'WATER_KM']
+                };
+                layer.set('id', wmslayer);
+                map.addLayer(layer);
+            };
             $scope.loaddata = function(geojson) {
                 $http.get(geojson).success(function(data) {
                     var layer = new ol.layer.Vector({

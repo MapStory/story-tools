@@ -75,6 +75,7 @@
 
             <div class="col-lg-4" >
                 <input ng-init="geojson='/data/bike_racks/bike_racks.geojson'" ng-model="geojson" placeholder="geojson file name"><button ng-click="loaddata(geojson)">Load</button>
+                <input ng-init="wmslayer='topp:states'" ng-model="wmslayer" placeholder="local WMS layer"><button ng-click="loadwms(wmslayer)">Load WMS</button>
                 <div id="map" style="height:300px"></div>
             </div>
 
