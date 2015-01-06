@@ -21,7 +21,8 @@
     "watch-dev": "gulp watch --bundle"
   },
   "dependencies": {
-    "vis": "3.5.0"
+    "vis": "3.5.0",
+    "amdefine": ">=0.1.0"
   },
   "devDependencies": {
     "gulp": "^3.8.5",
