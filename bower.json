@@ -25,7 +25,8 @@
     "angular-bootstrap": "0.11.2",
     "angular-bootstrap-colorpicker": "~3.0.8",
     "jsonix": "highsource/jsonix#e285e82fb15fa3d62665a35eb728022936df1f4b",
-    "ogc-schemas": "highsource/ogc-schemas#master"
+    "ogc-schemas": "highsource/ogc-schemas#master",
+    "w3c-schemas": "highsource/w3c-schemas#master"
   },
   "devDependencies": {
     "bootstrap": "3.0.0",
