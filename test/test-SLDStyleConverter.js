@@ -48,7 +48,7 @@ describe('SLDStyleConverter', function() {
             "geomType": "point"
         };
         style = instance.generateStyle(styleConfig, 'simple');
-        expect(style).toBeXML('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:Name>simple</sld:Name><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><sld:PointSymbolizer><sld:Graphic><sld:ExternalGraphic><sld:OnlineResource xlink:href="icon.svg"/><sld:Format>image/svg+xml</sld:Format></sld:ExternalGraphic></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
+        expect(style).toBeXML('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:Name>simple</sld:Name><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><sld:PointSymbolizer><sld:Graphic><sld:ExternalGraphic><sld:OnlineResource xlink:href="http://localhost:9876/icon.svg"/><sld:Format>image/svg+xml</sld:Format></sld:ExternalGraphic></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
     });
 
     it('should convert simple types (line)', function() {
