@@ -108,7 +108,7 @@
                 // So we won't bother with doing WFS DescribeFeatureType at this point
                 layer._layerInfo = {
                     geomType: 'point',
-                    attributes: ['STATE_NAME', 'STATE_FIPS', 'SUB_REGION', 'STATE_ABBR', 'LAND_KM', 'WATER_KM']
+                    attributes: ['STATE_NAME', 'P_MALE', 'P_FEMALE', 'STATE_FIPS', 'SUB_REGION', 'STATE_ABBR', 'LAND_KM', 'WATER_KM']
                 };
                 layer.set('id', wmslayer);
                 map.addLayer(layer);
@@ -153,38 +153,26 @@
     });
 
     // this is a dummy
-    module.factory('stLayerClassificationService', function($q) {
+    module.factory('stLayerClassificationService', function($http) {
         return {
             classify: function(layer, attribute, method, numClasses) {
-                var defer = $q.defer();
-                var classes = numClasses || (Math.random() * 10) + 1;
-                var values = [], i, ii;
-                var unique = method == 'unique';
-                if (unique) {
-                    var features = layer.getSource().getFeatures();
-                    for (i=0, ii=features.length; i<ii; ++i) {
-                        var val = features[i].get(attribute);
-                        if (values.indexOf(val) === -1) {
-                            values.push(val);
-                        }
-                    }
-                    classes = Math.min(classes, values.length);
-                }
-                var classBreak = (Math.random() * 10).toFixed(2) + 1;
-                var results = [];
-                for (i = 0; i < classes; i++) {
-                    var value = unique ? values[i] : {
-                        min : (classBreak * i).toFixed(2),
-                        max: (classBreak * (i + 1)).toFixed(2)
-                    };
-                    var rule = {
-                        name: unique ? value : value.min + '-' + value.max
-                    };
-                    rule[unique ? 'value' : 'range'] = value;
-                    results.push(rule);
-                }
-                defer.resolve(results);
-                return defer.promise;
+                var wps = new storytools.edit.WPSClassify.WPSClassify();
+                var xml = wps.classifyVector({
+                    featureNS: 'http://www.openplans.org/topp',
+                    typeName: 'topp:states',
+                    featurePrefix: 'topp',
+                    attribute: attribute,
+                    numClasses: numClasses,
+                    method: 'EQUAL_INTERVAL' /* TODO */
+                }, true);
+                return $http({
+                    url: '/gslocal/wps',
+                    method: "POST",
+                    data: xml,
+                    headers: {'Content-Type': 'application/xml'}
+                }).then(function(result) {
+                    return wps.parseResult(result.data);
+                });
             }
         };
     });

@@ -13,6 +13,11 @@ exports.run = function() {
                 options.route = '/geoserver';
                 return proxy(options);
             })();
+            var gsProxyLocal = (function() {
+                var options = url.parse('http://localhost:8080/geoserver');
+                options.route = '/gslocal';
+                return proxy(options);
+            })();
             var mapsProxy = (function() {
                 var options = url.parse('http://mapstory.org/maps');
                 options.route = '/maps';
@@ -33,7 +38,7 @@ exports.run = function() {
                 }
                 return next();
             };
-            return [gsProxy, mapsProxy, assetsProxy, dynamicProxy];
+            return [gsProxy, gsProxyLocal, mapsProxy, assetsProxy, dynamicProxy];
         }
     });
 };
