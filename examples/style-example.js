@@ -90,12 +90,20 @@
                 });
             } else {
                 var xml = sld.generateStyle(layer.style, layer._layer.getSource().getParams().LAYERS, true);
-                layer._layer.getSource().updateParams({SLD_BODY: xml});
+                // TODO do not hardcode
+                $http({
+                    url: '/gslocal/rest/styles/population.xml',
+                    method: "PUT",
+                    data: xml,
+                    headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                }).then(function(result) {
+                    layer._layer.getSource().updateParams({"_olSalt": Math.random()});
+                });
             }
             $scope.loadwms = function(wmslayer) {
                 var layer = new ol.layer.Tile({
                     source: new ol.source.TileWMS({
-                        url: 'http://localhost:8080/geoserver/wms',
+                        url: '/gslocal/wms',
                         params: {
                             'LAYERS': wmslayer,
                             'VERSION': '1.1.0',
