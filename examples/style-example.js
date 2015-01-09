@@ -160,31 +160,6 @@
         update();
     });
 
-    // this is a dummy
-    module.factory('stLayerClassificationService', function($http) {
-        return {
-            classify: function(layer, attribute, method, numClasses) {
-                var wps = new storytools.edit.WPSClassify.WPSClassify();
-                var xml = wps.classifyVector({
-                    featureNS: 'http://www.openplans.org/topp',
-                    typeName: 'topp:states',
-                    featurePrefix: 'topp',
-                    attribute: attribute,
-                    numClasses: numClasses,
-                    method: 'EQUAL_INTERVAL' /* TODO */
-                }, true);
-                return $http({
-                    url: '/gslocal/wps',
-                    method: "POST",
-                    data: xml,
-                    headers: {'Content-Type': 'application/xml'}
-                }).then(function(result) {
-                    return wps.parseResult(result.data);
-                });
-            }
-        };
-    });
-
     module.factory('iconCommonsImpl', function() {
         return {
             defaults: ["golf-18.svg",
