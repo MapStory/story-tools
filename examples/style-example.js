@@ -112,14 +112,24 @@
                         serverType: 'geoserver'
                     })
                 });
-                // TODO assume GeoNode will provide layerInfo
-                // So we won't bother with doing WFS DescribeFeatureType at this point
-                layer._layerInfo = {
-                    geomType: 'point',
-                    attributes: ['STATE_NAME', 'P_MALE', 'P_FEMALE', 'STATE_FIPS', 'SUB_REGION', 'STATE_ABBR', 'LAND_KM', 'WATER_KM']
-                };
-                layer.set('id', wmslayer);
-                map.addLayer(layer);
+                $http({
+                    method: 'GET',
+                    url: '/gslocal/wfs',
+                    params: {
+                        'SERVICE': 'WFS',
+                        'VERSION': '1.0.0',
+                        'REQUEST': 'DescribeFeatureType',
+                        'TYPENAME': wmslayer
+                    }
+                }).then(function(result) {
+                    var wfs = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
+                    layer._layerInfo = wfs.parseResult(result.data);
+                    var parts = wmslayer.split(':');
+                    layer._layerInfo.typeName = wmslayer;
+                    layer._layerInfo.featurePrefix = parts[0];
+                    layer.set('id', wmslayer);
+                    map.addLayer(layer);
+                });
             };
             $scope.loaddata = function(geojson) {
                 $http.get(geojson).success(function(data) {
