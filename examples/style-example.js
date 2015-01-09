@@ -161,26 +161,40 @@
     });
 
     // this is a dummy
-    module.factory('stLayerClassificationService', function($http) {
+    module.factory('stLayerClassificationService', function($q, $http) {
         return {
             classify: function(layer, attribute, method, numClasses) {
-                var wps = new storytools.edit.WPSClassify.WPSClassify();
-                var xml = wps.classifyVector({
-                    featureNS: 'http://www.openplans.org/topp',
-                    typeName: 'topp:states',
-                    featurePrefix: 'topp',
-                    attribute: attribute,
-                    numClasses: numClasses,
-                    method: 'EQUAL_INTERVAL' /* TODO */
-                }, true);
-                return $http({
-                    url: '/gslocal/wps',
-                    method: "POST",
-                    data: xml,
-                    headers: {'Content-Type': 'application/xml'}
-                }).then(function(result) {
-                    return wps.parseResult(result.data);
-                });
+                var wpsMethod;
+                if (method === 'Natural Breaks') {
+                    wpsMethod = 'NATURAL_BREAKS';
+                } else if (method === 'Equal Interval') {
+                    wpsMethod = 'EQUAL_INTERVAL';
+                } else if (method === 'Quantile') {
+                    wpsMethod = 'QUANTILE';
+                }
+                if (wpsMethod !== undefined && attribute !== null) {
+                    var wps = new storytools.edit.WPSClassify.WPSClassify();
+                    var xml = wps.classifyVector({
+                        featureNS: 'http://www.openplans.org/topp',
+                        typeName: 'topp:states',
+                        featurePrefix: 'topp',
+                        attribute: attribute,
+                        numClasses: numClasses,
+                        method: wpsMethod
+                    }, true);
+                    return $http({
+                        url: '/gslocal/wps',
+                        method: "POST",
+                        data: xml,
+                        headers: {'Content-Type': 'application/xml'}
+                    }).then(function(result) {
+                        return wps.parseResult(result.data);
+                    });
+                } else {
+                    var defer = $q.defer();
+                    defer.reject('Not enough info to perform WPS request.');
+                    return defer.promise;
+                }
             }
         };
     });
