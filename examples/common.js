@@ -64,6 +64,8 @@
                     name: name,
                     /* always configure array or style function here */
                     origStyle: [new ol.style.Style({
+                            fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+                            stroke: new ol.style.Stroke({color: 'red', width: 1}),
                             image: new ol.style.Circle({
                                 radius: 10,
                                 fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
@@ -119,22 +121,17 @@
                         layer.setSource(new ol.source.ServerVector({
                             format: new ol.format.GeoJSON(),
                             loader: function(bbox, resolution, projection) {
-                                // TODO https://github.com/openlayers/ol3/issues/2972
-                                if (ol.extent.intersects(extent, bbox)) {
-                                    var wfsUrl = url;
-                                    wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
-                                        name + '&outputFormat=application/json&' +
-                                        '&srsName=' + projection.getCode() + '&bbox=' + bbox.join(',') + ',' + projection.getCode();
-                                    $.ajax({
-                                        url: wfsUrl
-                                    }).done(function(response) {
-                                        layer.getSource().addFeatures(layer.getSource().readFeatures(response));
-                                    });
-                                }
+                                var wfsUrl = url;
+                                wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
+                                    name + '&outputFormat=application/json&' +
+                                    '&srsName=' + projection.getCode();
+                                $.ajax({
+                                    url: wfsUrl
+                                }).done(function(response) {
+                                    layer.getSource().addFeatures(layer.getSource().readFeatures(response));
+                                });
                             },
-                            strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
-                                maxZoom: 19
-                            })),
+                            strategy: ol.loadingstrategy.all,
                             projection: self.map.getView().getProjection()
                         }));
                     }
