@@ -90,9 +90,8 @@
                 });
             } else {
                 var xml = sld.generateStyle(layer.style, layer._layer.getSource().getParams().LAYERS, true);
-                // TODO do not hardcode
                 $http({
-                    url: '/gslocal/rest/styles/population.xml',
+                    url: '/gslocal/rest/styles/' + layer._layer._layerInfo.styleName + '.xml',
                     method: "PUT",
                     data: xml,
                     headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
@@ -127,8 +126,15 @@
                     var parts = wmslayer.split(':');
                     layer._layerInfo.typeName = wmslayer;
                     layer._layerInfo.featurePrefix = parts[0];
-                    layer.set('id', wmslayer);
-                    map.addLayer(layer);
+                    // get the style name
+                    $http({
+                        method: 'GET',
+                        url: '/gslocal/rest/layers/' + wmslayer + '.json'
+                    }).then(function(result) {
+                        layer._layerInfo.styleName = result.data.layer.defaultStyle.name;
+                        layer.set('id', wmslayer);
+                        map.addLayer(layer);
+                    });
                 });
             };
             $scope.loaddata = function(geojson) {
