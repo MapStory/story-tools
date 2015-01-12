@@ -57,21 +57,17 @@
             var url = '/geoserver/' + workspace + '/' + name + '/wms';
             var layer;
             if (asVector === true) {
-                // origStyle will contain the style / classification to be used
-                // it will be called by the time-based filtering
-                // TODO cache styles
                 layer = new ol.layer.Vector({
                     name: name,
-                    /* always configure array or style function here */
-                    origStyle: [new ol.style.Style({
+                    style: [new ol.style.Style({
+                        fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+                        stroke: new ol.style.Stroke({color: 'red', width: 1}),
+                        image: new ol.style.Circle({
+                            radius: 10,
                             fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                            stroke: new ol.style.Stroke({color: 'red', width: 1}),
-                            image: new ol.style.Circle({
-                                radius: 10,
-                                fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                                stroke: new ol.style.Stroke({color: 'red', width: 1})
-                            })
-                        })]
+                            stroke: new ol.style.Stroke({color: 'red', width: 1})
+                        })
+                    })]
                 });
             } else {
                 layer = new ol.layer.Tile({name: name});
@@ -111,16 +107,12 @@
                             serverType: 'geoserver'
                         }));
                     } else if (layer instanceof ol.layer.Vector) {
-                        var origStyle = layer.get('origStyle');
-                        layer.setStyle(function(feature, resolution) {
-                            var startDate = layer._times.start || layer._times[0];
-                            if (Date.parse(feature.get(layer._timeAttribute)) === startDate) {
-                                return typeof origStyle === 'function' ? origStyle.call(this, feature, resolution) : origStyle;
-                            }
-                        });
                         layer.setSource(new ol.source.ServerVector({
                             format: new ol.format.GeoJSON(),
                             loader: function(bbox, resolution, projection) {
+                                if (layer._features) {
+                                    return;
+                                }
                                 var wfsUrl = url;
                                 wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
                                     name + '&outputFormat=application/json&' +
@@ -128,7 +120,7 @@
                                 $.ajax({
                                     url: wfsUrl
                                 }).done(function(response) {
-                                    layer.getSource().addFeatures(layer.getSource().readFeatures(response));
+                                    layer._features = layer.getSource().readFeatures(response);
                                 });
                             },
                             strategy: ol.loadingstrategy.all,
