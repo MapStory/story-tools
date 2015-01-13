@@ -94,12 +94,13 @@
                         self.map.getView().getProjection()
                         );
                     layer.setExtent(extent);
+                    var start = layer._times.start || layer._times[0];
                     // @todo use urls for subdomain loading
                     if (layer instanceof ol.layer.Tile) {
                         layer.setSource(new ol.source.TileWMS({
                             url: url,
                             params: {
-                                'TIME': isoDate(layer._times.start || layer._times[0]),
+                                'TIME': isoDate(start),
                                 'LAYERS': name,
                                 'VERSION': '1.1.0',
                                 'TILED': true
@@ -121,6 +122,7 @@
                                     url: wfsUrl
                                 }).done(function(response) {
                                     layer._features = layer.getSource().readFeatures(response);
+                                    storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
                                 });
                             },
                             strategy: ol.loadingstrategy.all,
