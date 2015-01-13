@@ -13,8 +13,11 @@
                 for (var i=0, ii=atts.length; i<ii; ++i) {
                     d[atts[i]] = parseInt(Math.random()*10);
                 }
+                // add a dummy rotation field
+                d['rotation'] = Math.PI / parseInt(Math.max(1, Math.random()*4));
                 return new ol.Feature(d);
             });
+            atts.push('rotation');
             var vector = new ol.layer.Vector({
                 source: new ol.source.Vector({
                     features: f
