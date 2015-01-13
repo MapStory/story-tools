@@ -63117,6 +63117,7 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   var canvasHeight = tilePixelSize * tileRange.getHeight();
 
   var canvas, context;
+  var zoomLevelChange = false;
   if (goog.isNull(this.canvas_)) {
     goog.asserts.assert(goog.isNull(this.canvasSize_));
     goog.asserts.assert(goog.isNull(this.context_));
@@ -63147,6 +63148,9 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
     } else {
       canvasWidth = this.canvasSize_[0];
       canvasHeight = this.canvasSize_[1];
+      if (z != this.renderedCanvasZ_) {
+        zoomLevelChange = true;
+      }
       if (z != this.renderedCanvasZ_ ||
           !this.renderedCanvasTileRange_.containsTileRange(tileRange)) {
         this.renderedCanvasTileRange_ = null;
@@ -63224,12 +63228,14 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   }
 
   var i, ii;
-  /*for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
-    tile = tilesToClear[i];
-    x = tilePixelSize * (tile.tileCoord[1] - canvasTileRange.minX);
-    y = tilePixelSize * (canvasTileRange.maxY - tile.tileCoord[2]);
-    context.clearRect(x, y, tilePixelSize, tilePixelSize);
-  }*/
+  if (zoomLevelChange) {
+    for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
+      tile = tilesToClear[i];
+      x = tilePixelSize * (tile.tileCoord[1] - canvasTileRange.minX);
+      y = tilePixelSize * (canvasTileRange.maxY - tile.tileCoord[2]);
+      context.clearRect(x, y, tilePixelSize, tilePixelSize);
+    }
+  }
 
   /** @type {Array.<number>} */
   var zs = goog.array.map(goog.object.getKeys(tilesToDrawByZ), Number);
