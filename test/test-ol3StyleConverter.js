@@ -145,7 +145,8 @@ describe('ol3StyleConverter', function() {
                 "size": 10,
                 "shape": "triangle",
                 "fillColor": "#ff0000",
-                "rotationAttribute": 'rotation'
+                "rotationAttribute": 'rotation',
+                "rotationUnits": 'radians'
             }
         }, new ol.Feature({'rotation': Math.PI/4}));
         expect(style[0].getImage().getRotation()).toBe(Math.PI/4);
@@ -154,7 +155,8 @@ describe('ol3StyleConverter', function() {
                 "size": 10,
                 "shape": "triangle",
                 "fillColor": "#ff0000",
-                "rotationAttribute": 'rotation'
+                "rotationAttribute": 'rotation',
+                "rotationUnits": 'radians'
             }
         }, new ol.Feature({'rotation': Math.PI/4}));
         // taken from style cache
