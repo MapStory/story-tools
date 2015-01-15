@@ -5,5 +5,22 @@
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
         <color-editor st-model="model" property="fillColor" ></color-editor>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
+        <div data-dropdown>
+            <button type="button" class="dropdown-toggle"   >
+                {{model.rotationAttribute||'Select Rotation'}}<span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li ng-click="model.rotationAttribute=null">[ None ]</li>
+                <li ng-repeat="attribute in layer.info.attributes" ng-click="model.rotationAttribute=attribute">{{attribute}}</li>
+            </ul>
+        </div>
+        <div dropdown>
+            <button type="button" class="dropdown-toggle"   >
+                {{model.rotationUnits}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li ng-repeat="rotationUnit in styleChoices.rotationUnits" ng-click="model.rotationUnits=rotationUnit">{{rotationUnit}}</li>
+            </ul>
+        </div>
     </div>
 </div>

@@ -161,4 +161,34 @@ describe('SLDStyleConverter', function() {
         expect(style).toBeXML('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><ogc:Filter><ogc:PropertyIsBetween><ogc:PropertyName>foo</ogc:PropertyName><ogc:LowerBoundary><ogc:Literal>0</ogc:Literal></ogc:LowerBoundary><ogc:UpperBoundary><ogc:Literal>10</ogc:Literal></ogc:UpperBoundary></ogc:PropertyIsBetween></ogc:Filter><sld:PointSymbolizer><sld:Graphic><sld:Mark><sld:WellKnownName>circle</sld:WellKnownName><sld:Fill><sld:CssParameter name="fill">#ff9900</sld:CssParameter><sld:CssParameter name="fill-opacity">1</sld:CssParameter></sld:Fill><sld:Stroke><sld:CssParameter name="stroke">#ffff00</sld:CssParameter><sld:CssParameter name="stroke-width"/><sld:CssParameter name="stroke-opacity"/><sld:CssParameter name="stroke-dasharray"/></sld:Stroke></sld:Mark><sld:Size>10</sld:Size></sld:Graphic></sld:PointSymbolizer></sld:Rule><sld:Rule><ogc:Filter><ogc:PropertyIsBetween><ogc:PropertyName>foo</ogc:PropertyName><ogc:LowerBoundary><ogc:Literal>10</ogc:Literal></ogc:LowerBoundary><ogc:UpperBoundary><ogc:Literal>20</ogc:Literal></ogc:UpperBoundary></ogc:PropertyIsBetween></ogc:Filter><sld:PointSymbolizer><sld:Graphic><sld:Mark><sld:WellKnownName>circle</sld:WellKnownName><sld:Fill><sld:CssParameter name="fill">#b36b00</sld:CssParameter><sld:CssParameter name="fill-opacity">1</sld:CssParameter></sld:Fill><sld:Stroke><sld:CssParameter name="stroke">#ffff00</sld:CssParameter><sld:CssParameter name="stroke-width"/><sld:CssParameter name="stroke-opacity"/><sld:CssParameter name="stroke-dasharray"/></sld:Stroke></sld:Mark><sld:Size>10</sld:Size></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
     });
 
+    it('should convert rotation', function() {
+        var styleConfig = {
+            "typeName": "simple",
+            "symbol": {
+                "size": 10,
+                "shape": "triangle",
+                "graphic": null,
+                "graphicType": null,
+                "fillColor": "#ff0000",
+                "fillOpacity": 80,
+                "rotationAttribute": "rotation",
+                "rotationUnits": "degrees"
+            },
+            "stroke": {
+                "strokeColor": "#ffff00",
+                "strokeWidth": 3,
+                "strokeStyle": "dotted",
+                "strokeOpacity": 90
+            },
+            "geomType": "point"
+        };
+        var style = instance.generateStyle(styleConfig);
+        expect(style).toBeXML('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><sld:PointSymbolizer><sld:Graphic><sld:Mark><sld:WellKnownName>triangle</sld:WellKnownName><sld:Fill><sld:CssParameter name="fill">#ff0000</sld:CssParameter><sld:CssParameter name="fill-opacity">0.8</sld:CssParameter></sld:Fill><sld:Stroke><sld:CssParameter name="stroke">#ffff00</sld:CssParameter><sld:CssParameter name="stroke-width">3</sld:CssParameter><sld:CssParameter name="stroke-opacity">0.9</sld:CssParameter><sld:CssParameter name="stroke-dasharray">1 2</sld:CssParameter></sld:Stroke></sld:Mark><sld:Size>10</sld:Size><sld:Rotation><ogc:PropertyName>rotation</ogc:PropertyName></sld:Rotation></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
+
+         // now use radians
+         styleConfig.symbol.rotationUnits = "radians";
+         style = instance.generateStyle(styleConfig);
+         expect(style).toBeXML('<sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0"><sld:NamedLayer><sld:UserStyle><sld:FeatureTypeStyle><sld:Rule><sld:PointSymbolizer><sld:Graphic><sld:Mark><sld:WellKnownName>triangle</sld:WellKnownName><sld:Fill><sld:CssParameter name="fill">#ff0000</sld:CssParameter><sld:CssParameter name="fill-opacity">0.8</sld:CssParameter></sld:Fill><sld:Stroke><sld:CssParameter name="stroke">#ffff00</sld:CssParameter><sld:CssParameter name="stroke-width">3</sld:CssParameter><sld:CssParameter name="stroke-opacity">0.9</sld:CssParameter><sld:CssParameter name="stroke-dasharray">1 2</sld:CssParameter></sld:Stroke></sld:Mark><sld:Size>10</sld:Size><sld:Rotation><ogc:Div><ogc:PropertyName>rotation</ogc:PropertyName><ogc:Div><ogc:Function name="pi"/><ogc:Literal>360</ogc:Literal></ogc:Div></ogc:Div></sld:Rotation></sld:Graphic></sld:PointSymbolizer></sld:Rule></sld:FeatureTypeStyle></sld:UserStyle></sld:NamedLayer></sld:StyledLayerDescriptor>');
+    });
+
 });

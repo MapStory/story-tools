@@ -139,6 +139,40 @@ describe('ol3StyleConverter', function() {
         expect(text.getFill().getColor()).toBe('#0000ff');
     }));
 
+    it('should take rotation into account', inject(function(ol3StyleConverter) {
+        var style = ol3StyleConverter.generateStyle({
+            "symbol": {
+                "size": 10,
+                "shape": "triangle",
+                "fillColor": "#ff0000",
+                "rotationAttribute": 'rotation',
+                "rotationUnits": 'radians'
+            }
+        }, new ol.Feature({'rotation': Math.PI/4}));
+        expect(style[0].getImage().getRotation()).toBe(Math.PI/4);
+        var newStyle = ol3StyleConverter.generateStyle({
+            "symbol": {
+                "size": 10,
+                "shape": "triangle",
+                "fillColor": "#ff0000",
+                "rotationAttribute": 'rotation',
+                "rotationUnits": 'radians'
+            }
+        }, new ol.Feature({'rotation': Math.PI/4}));
+        // taken from style cache
+        expect(newStyle === style).toBeTruthy();
+        style = ol3StyleConverter.generateStyle({
+            "symbol": {
+                "size": 10,
+                "shape": "triangle",
+                "fillColor": "#ff0000",
+                "rotationAttribute": 'rotation',
+                "rotationUnits": 'degrees'
+            }
+        }, new ol.Feature({'rotation': 180}));
+        expect(style[0].getImage().getRotation()).toBe(Math.PI/2);
+    }));
+
     it('should convert unique classification', inject(function(ol3StyleConverter) {
         var styleConfig = {
             "stroke": {
