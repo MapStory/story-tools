@@ -94,14 +94,16 @@
                 });
             } else {
                 var xml = sld.generateStyle(layer.style, layer._layer.getSource().getParams().LAYERS, true);
-                $http({
-                    url: '/gslocal/rest/styles/' + layer._layer._layerInfo.styleName + '.xml',
-                    method: "PUT",
-                    data: xml,
-                    headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
-                }).then(function(result) {
-                    layer._layer.getSource().updateParams({"_olSalt": Math.random()});
-                });
+                if (xml !== null) {
+                    $http({
+                        url: '/gslocal/rest/styles/' + layer._layer._layerInfo.styleName + '.xml',
+                        method: "PUT",
+                        data: xml,
+                        headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                    }).then(function(result) {
+                        layer._layer.getSource().updateParams({"_olSalt": Math.random()});
+                    });
+                }
             }
             $scope.loadwms = function(wmslayer) {
                 var layer = new ol.layer.Tile({
