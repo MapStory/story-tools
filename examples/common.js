@@ -35,7 +35,33 @@
         return new Date(v).toISOString();
     }
 
-    function Map($http) {
+    var servers = [
+        {
+            name: 'mapstory',
+            path: '/geoserver/',
+            canStyleWMS: false,
+            timeEndpoint: function(layer) {
+                return '/maps/time_info.json?layer=' + layer.get('name');
+            }
+        },
+        {
+            name: 'local',
+            path: '/gslocal/',
+            canStyleWMS: true
+        }
+    ];
+
+    var defaultStyle = [new ol.style.Style({
+            fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+            stroke: new ol.style.Stroke({color: 'red', width: 1}),
+            image: new ol.style.Circle({
+                radius: 10,
+                fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+                stroke: new ol.style.Stroke({color: 'red', width: 1})
+            })
+        })];
+
+    function Map($http, $q, $log) {
         var self = this;
         this.map = new ol.Map({
             layers: [new ol.layer.Tile({
@@ -47,106 +73,205 @@
                 zoom: 3
             })
         });
-        this.addLayer = function(name, asVector) {
+        this.getNamedLayers = function() {
+            return this.map.getLayers().getArray().filter(function(lyr) {
+                return angular.isString(lyr.get('name'));
+            });
+        };
+        this.addLayer = function(name, asVector, server) {
             var workspace = 'geonode';
             var parts = name.split(':');
             if (parts.length > 1) {
                 workspace = parts[0];
                 name = parts[1];
             }
-            var url = '/geoserver/' + workspace + '/' + name + '/wms';
+            var url = server.path + workspace + '/' + name + '/wms';
+            var id = workspace + ":" + name;
             var layer;
+            var options = {
+                id: id,
+                name: name,
+                server: server,
+                url: url,
+                layerInfo: {}
+            };
             if (asVector === true) {
-                layer = new ol.layer.Vector({
-                    name: name,
-                    style: [new ol.style.Style({
-                        fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                        stroke: new ol.style.Stroke({color: 'red', width: 1}),
-                        image: new ol.style.Circle({
-                            radius: 10,
-                            fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                            stroke: new ol.style.Stroke({color: 'red', width: 1})
-                        })
-                    })]
-                });
+                options.style = defaultStyle;
+                layer = new ol.layer.Vector(options);
             } else {
-                layer = new ol.layer.Tile({name: name});
+                layer = new ol.layer.Tile(options);
             }
-            return loadCapabilities(layer, url).then(function() {
+            return load(layer).then(function() {
                 self.map.addLayer(layer);
                 self.map.getView().fitExtent(layer.getExtent(), self.map.getSize());
             });
         };
-        function loadCapabilities(layer, url) {
-            function parseTime(response) {
-                layer._timeAttribute = response.attribute;
-            }
-            function parseCapabilities(response) {
-                var parser = new ol.format.WMSCapabilities();
-                var caps = parser.read(response);
-                var found = storytools.core.time.maps.readCapabilitiesTimeDimensions(caps);
-                var name = layer.get('name');
-                if (name in found) {
-                    layer._times = found[name];
-                    var extent = ol.proj.transformExtent(
-                        caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox,
-                        'EPSG:4326',
-                        self.map.getView().getProjection()
-                        );
-                    layer.setExtent(extent);
-                    var start = layer._times.start || layer._times[0];
-                    // @todo use urls for subdomain loading
-                    if (layer instanceof ol.layer.Tile) {
-                        layer.setSource(new ol.source.TileWMS({
-                            url: url,
-                            params: {
-                                'TIME': isoDate(start),
-                                'LAYERS': name,
-                                'VERSION': '1.1.0',
-                                'TILED': true
-                            },
-                            serverType: 'geoserver'
-                        }));
-                    } else if (layer instanceof ol.layer.Vector) {
-                        layer.setSource(new ol.source.ServerVector({
-                            format: new ol.format.GeoJSON(),
-                            loader: function(bbox, resolution, projection) {
-                                if (layer._features) {
-                                    return;
-                                }
-                                var wfsUrl = url;
-                                wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
-                                    name + '&outputFormat=application/json&' +
-                                    '&srsName=' + projection.getCode();
-                                $.ajax({
-                                    url: wfsUrl
-                                }).done(function(response) {
-                                    layer._features = layer.getSource().readFeatures(response);
-                                    storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
-                                });
-                            },
-                            strategy: ol.loadingstrategy.all,
-                            projection: self.map.getView().getProjection()
-                        }));
-                    }
+        function describeFeatureType(layer) {
+            var id = layer.get('id');
+            return $http({
+                method: 'GET',
+                url: layer.get('server').path + 'wfs',
+                params: {
+                    'SERVICE': 'WFS',
+                    'VERSION': '1.0.0',
+                    'REQUEST': 'DescribeFeatureType',
+                    'TYPENAME': id
                 }
-            }
-            var getcaps = url + '?request=GetCapabilities';
-            if (layer instanceof ol.layer.Vector) {
-                return $http.get('/maps/time_info.json?layer=' + layer.get('name')).success(parseTime).then(function() {
-                    return $http.get(getcaps).success(parseCapabilities);
+            }).success(function(data) {
+                var wfs = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
+                var layerInfo = wfs.parseResult(data);
+                var parts = id.split(':');
+                layerInfo.typeName = id;
+                layerInfo.featurePrefix = parts[0];
+                layer.get('layerInfo', angular.extend(layer.get('layerInfo'), layerInfo));
+            });
+        }
+        function getStyleName(layer) {
+            var promise;
+            if (layer.get('server').canStyleWMS) {
+                // get the style name if editable
+                promise = $http({
+                    method: 'GET',
+                    url: layer.get('server').path + 'rest/layers/' + layer.get('id') + '.json'
+                }).success(function(response) {
+                    layer.get('layerInfo').styleName = response.layer.defaultStyle.name;
                 });
             } else {
-                return $http.get(getcaps).success(parseCapabilities);
+                promise = $q.when('');
             }
+            return promise;
+        }
+        function parseCapabilities(layer, response) {
+            var parser = new ol.format.WMSCapabilities();
+            var caps = parser.read(response);
+            var found = storytools.core.time.maps.readCapabilitiesTimeDimensions(caps);
+            var name = layer.get('name');
+            var url = layer.get('url');
+            var start;
+            var extent = ol.proj.transformExtent(
+                caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox,
+                'EPSG:4326',
+                self.map.getView().getProjection()
+                );
+            layer.setExtent(extent);
+            if (name in found) {
+                layer._times = found[name];
+                start = layer._times.start || layer._times[0];
+            }
+            if (layer instanceof ol.layer.Tile) {
+                var params = {
+                    'LAYERS': name,
+                    'VERSION': '1.1.0',
+                    'TILED': true
+                };
+                if (start) {
+                    params.TIME = isoDate(start);
+                }
+                // @todo use urls for subdomain loading
+                layer.setSource(new ol.source.TileWMS({
+                    url: url,
+                    params: params,
+                    serverType: 'geoserver'
+                }));
+            } else if (layer instanceof ol.layer.Vector) {
+                layer.setSource(new ol.source.ServerVector({
+                    format: new ol.format.GeoJSON(),
+                    loader: function(bbox, resolution, projection) {
+                        if (layer._features) {
+                            return;
+                        }
+                        var wfsUrl = url;
+                        wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
+                            name + '&outputFormat=application/json' +
+                            '&srsName=' + projection.getCode();
+                        $http.get(wfsUrl).success(function(response) {
+                            var features = layer.getSource().readFeatures(response);
+                            if (start) {
+                                layer._features = features;
+                                storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
+                            } else {
+                                layer.getSource().addFeatures(features);
+                            }
+                        });
+                    },
+                    strategy: ol.loadingstrategy.all,
+                    projection: self.map.getView().getProjection()
+                }));
+            }
+        }
+        function loadCapabilities(layer) {
+            var getcaps = layer.get('url') + '?request=GetCapabilities';
+            return $http.get(getcaps).success(function(response) {
+                parseCapabilities(layer, response);
+            });
+        }
+        function getTimeAttribute(layer) {
+            var promise;
+            if (layer.get('server').timeEndpoint) {
+                var url = layer.get('server').timeEndpoint(layer);
+                $http.get(url).success(function(data) {
+                    layer._timeAttribute = data.attribute;
+                });
+            } else {
+                // @todo make sure we have time attribute _somehow_
+                $log.warn('layer does not have timeEndpoint - time playback not enabled!');
+                promise = $q.when('');
+            }
+            return promise;
+        }
+        function load(layer) {
+            return $q.all(loadCapabilities(layer), describeFeatureType(layer), getStyleName(layer), getTimeAttribute(layer));
         }
     }
 
-    module.service('mapFactory', function($http) {
+    module.service('mapFactory', function($http, $q, $log) {
         return {
             create: function() {
-                return new Map($http);
+                return new Map($http, $q, $log);
             }
         };
     });
+
+    module.directive('addLayers', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                map: "="
+            },
+            templateUrl: 'templates/add-layers.html',
+            link: function(scope, el, atts) {
+                scope.server = {
+                    active: servers[0]
+                };
+                scope.servers = servers;
+                scope.addLayer = function() {
+                    scope.loading = true;
+                    scope.map.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
+                        // pass
+                    }, function(problem) {
+                        alert(problem.data);
+                    }).finally(function() {
+                        scope.loading = false;
+                    });
+                    scope.layerName = null;
+                };
+            }
+        };
+    });
+
+    module.directive('layerList', function() {
+        return {
+            restrict: 'E',
+            scope: {
+                map: "="
+            },
+            templateUrl: 'templates/layer-list.html',
+            link: function(scope, el, atts) {
+                scope.map.map.getLayers().on('change:length', function() {
+                    scope.layers = scope.map.getNamedLayers();
+                });
+            }
+        };
+    });
+
 })();
