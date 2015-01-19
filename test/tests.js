@@ -6,3 +6,4 @@ require('./test-ol3StyleConverter');
 require('./test-SLDStyleConverter');
 require('./test-WPSClassify');
 require('./test-directives.js');
+require('./test-styleChoices.js');
