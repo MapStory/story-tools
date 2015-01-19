@@ -220,6 +220,7 @@ gulp.task('karma', ['testsBundle'], function() {
 
 gulp.task('tdd', ['test'], function() {
     watch = true;
+    gulp.watch(sources, ['karma']);
     gulp.watch('test/*', ['karma']);
 });
 
