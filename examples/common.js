@@ -123,7 +123,7 @@
                 var parts = id.split(':');
                 layerInfo.typeName = id;
                 layerInfo.featurePrefix = parts[0];
-                layer.get('layerInfo', angular.extend(layer.get('layerInfo'), layerInfo));
+                angular.extend(layer.get('layerInfo'), layerInfo);
             });
         }
         function getStyleName(layer) {

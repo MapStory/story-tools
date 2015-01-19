@@ -11,7 +11,7 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 <li ng-click="model.rotationAttribute=null">[ None ]</li>
-                <li ng-repeat="attribute in layer.info.attributes" ng-click="model.rotationAttribute=attribute">{{attribute}}</li>
+                <li ng-repeat="attribute in layer.get('layerInfo').attributes" ng-click="model.rotationAttribute=attribute">{{attribute}}</li>
             </ul>
         </div>
         <div dropdown>
