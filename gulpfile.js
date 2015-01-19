@@ -245,7 +245,7 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     gulp.watch(editTemplates, ['bundleEditTemplates']);
     gulp.watch('lib/ng/**/*.less', ['lessEdit']);
     // reload on changes to bundles but ignore tests bundle
-    gulp.watch(['dist/*', 'examples/*']).on('change', function(f) {
+    gulp.watch(['dist/*', 'examples/**/*']).on('change', function(f) {
         gulp.src([f.path,'!**/tests.js']).pipe(connect.reload());
     });
 });

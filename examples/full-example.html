@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html ng-app="fullExample">
+    <head>
+        <title>full example</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="ol.css" type="text/css">
+        <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css"/>
+        <link rel="stylesheet" href="../bower_components/nouislider/distribute/jquery.nouislider.min.css" type="text/css">
+        <link rel="stylesheet" href="../dist/story-tools-edit.css" type="text/css">
+        <link rel="stylesheet" href="../bower_components/angular-bootstrap-colorpicker/css/colorpicker.css" type="text/css">
+
+        <script src="../bower_components/angular/angular.min.js" ></script>
+        <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="../bower_components/nouislider/distribute/jquery.nouislider.min.js" type="text/javascript"></script>
+        <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+        <script src="../bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js"></script>
+        <script src="ol.js" ></script>
+        <script src="../dist/story-tools-core-tpls.js"></script>
+        <script src="../dist/story-tools-edit-tpls.js"></script>
+        <script src="../dist/story-tools-core.js"></script>
+        <script src="../dist/story-tools-edit.js"></script>
+        <script src="../dist/story-tools-core-ng.js"></script>
+        <script src="../dist/story-tools-edit-ng.js"></script>
+        <script  src="common.js"></script>
+        <script  src="full-example.js"></script>
+        <script src="http://localhost:35729/livereload.js"></script>
+        <style type="text/css">
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #container {
+                display: table;
+                height: 100%;
+                width: 100%;
+            }
+
+            #main {
+                display: table-row;
+                width:100%;
+                height: 100%;
+            }
+
+            #header, #footer {
+                display: table-row;
+            }
+            #content {
+                display: table;
+                width:100%;
+                height: 100%;
+                overflow: auto;
+                position: relative;
+            }
+            #middle{
+                display: table-cell;
+            }
+            .floating {
+                left: 0;
+                position: absolute;
+                top: 0;
+                z-index: 500;
+                padding: 1em;
+            }
+            #map {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+            }
+            .ol-zoom {
+                right: .5em;
+                left: auto;
+            }
+            .ol-attribution {
+                top: 4.5em;
+                bottom: auto;
+            }
+            #time-controls-panel, #time-controls-panel > div {
+                padding: 0;
+                width: 100%;
+                bottom: 0;
+            }
+            .todo {
+                color: white;
+                background: red;
+            }
+            .todo p {
+                margin: 1em;
+                background: white;
+                color: black;
+            }
+        </style>
+    </head>
+    <body ng-controller="exampleController as example">
+        <div id="container" ng-init="selected = {layers:true}">
+            <div id="header">
+                <ul class="nav nav-pills" id="tl-nav">
+                    <li ng-class="selected.layers && 'active'"><a ng-click="selected = {layers:true}">Layers</a></li>
+                    <li ng-class="selected.style && 'active'"><a ng-click="selected = {style:true}">Style</a></li>
+                    <li ng-class="selected.boxes && 'active'"><a ng-click="selected = {boxes:true}">Boxes</a></li>
+                    <li ng-class="selected.pins && 'active'"><a ng-click="selected = {pins:true}">Pins</a></li>
+                    <li ng-class="selected.preview && 'active'"><a ng-click="selected = {preview:true}">Preview</a></li>
+                </ul>
+            </div>
+            <div id="main">
+                <div id="content">
+                    <div id="middle">
+                        <div id="map"></div>
+                    </div>
+                    <div ng-show="selected.layers" class="floating col-lg-4">
+                        <div class="panel" id="add-layers">
+                            <div class="panel-heading">Add Layers</div>
+                            <div class="panel-body">
+                                <add-layers map="map"></add-layers>
+                            </div>
+                        </div>
+                        <div class="panel" id="layer-list">
+                            <div class="panel-heading">Layers</div>
+                            <div class="panel-body">
+                                <layer-list map="map"></layer-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="selected.style" class="floating col-lg-4">
+                        <accordion close-others="true">
+                            <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in map.getNamedLayers()" is-open="accordianOpen" ng-init="accordianOpen = $first">
+                                <!-- to reduce watchers, add ng-if=accordianOpen -->
+                                <style-editor class="minheight" layer="layer" on-change="styleChanged"></style-editor>
+                            </accordion-group>
+                        </accordion>
+                    </div>
+                    <div ng-if="selected.boxes" class="floating">
+                        <boxes-editor></boxes-editor>
+                    </div>
+                    <div ng-if="selected.pins" class="floating">
+                        <pins-editor></pins-editor>
+                    </div>
+                    <div id="time-controls-panel" ng-show="selected.preview" class="floating ng-hide">
+                        <div style="position:absolute; bottom:0; background:white">
+                            <div id="slider"></div>
+                            <st-playback-controls ng-show="timeControls" time-controls="timeControls"></st-playback-controls>
+                            <div id="timeline"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer">
+            </div>
+        </div>
+    </body>
+</html>
