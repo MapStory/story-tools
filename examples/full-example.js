@@ -12,7 +12,7 @@
         'ui.bootstrap'
     ]);
 
-    module.controller('exampleController', function($scope, mapFactory, stTimeControlsFactory) {
+    module.controller('exampleController', function($scope, mapFactory, stTimeControlsFactory, styleUpdater) {
         $scope.map = mapFactory.create();
         $scope.timeControls = null;
 
@@ -30,5 +30,8 @@
                 }
             }
         });
+        $scope.styleChanged = function(layer) {
+            styleUpdater.updateStyle(layer);
+        };
     });
 })();

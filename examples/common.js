@@ -37,6 +37,10 @@
 
     var servers = [
         {
+            name: 'memory',
+            canStyleWMS: false
+        },
+        {
             name: 'mapstory',
             path: '/geoserver/',
             canStyleWMS: false,
@@ -50,18 +54,33 @@
             canStyleWMS: true
         }
     ];
+    var memoryServer = servers[0];
+    var userServerChoices = angular.copy(servers).splice(1);
+    function getServer(name) {
+        var server = null;
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].name === name) {
+                server = servers[i];
+                break;
+            }
+        }
+        if (server == null) {
+            throw new Error('no server named : ' + name);
+        }
+        return server;
+    }
 
     var defaultStyle = [new ol.style.Style({
+        fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
+        stroke: new ol.style.Stroke({color: 'red', width: 1}),
+        image: new ol.style.Circle({
+        radius: 10,
             fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-            stroke: new ol.style.Stroke({color: 'red', width: 1}),
-            image: new ol.style.Circle({
-                radius: 10,
-                fill: new ol.style.Fill({color: 'rgba(255, 0, 0, 0.1)'}),
-                stroke: new ol.style.Stroke({color: 'red', width: 1})
-            })
-        })];
+            stroke: new ol.style.Stroke({color: 'red', width: 1})
+        })
+    })];
 
-    function Map($http, $q, $log) {
+    function MapManager($http, $q, $log) {
         var self = this;
         this.map = new ol.Map({
             layers: [new ol.layer.Tile({
@@ -78,7 +97,47 @@
                 return angular.isString(lyr.get('name'));
             });
         };
+        this.addMemoryLayer = function(options) {
+            // url to geojson
+            if (options.url) {
+                $http.get(options.url).success(function(data) {
+                    var layer = new ol.layer.Vector({
+                        id: options.url,
+                        name: options.url,
+                        server: memoryServer,
+                        source: new ol.source.GeoJSON({
+                            object: data,
+                            projection: 'EPSG:3857'
+                        }),
+                        layerInfo: {
+                            geomType: data.features[0].geometry.type.toLowerCase(),
+                            attributes: Object.keys(data.features[0].properties)
+                        }
+                    });
+                    this.map.addLayer(layer);
+                    this.map.getView().fitExtent(layer.getSource().getExtent(), map.getSize());
+                });
+            } else {
+                // generated vector layer
+                var layer = new ol.layer.Vector({
+                    id: options.id,
+                    name: options.id,
+                    server: memoryServer,
+                    source: new ol.source.Vector({
+                        features: options.features
+                    }),
+                    layerInfo: {
+                        geomType: options.geomType,
+                        attributes: options.attributes
+                    }
+                });
+                this.map.addLayer(layer);
+            }
+        };
         this.addLayer = function(name, asVector, server) {
+            if (angular.isString(server)) {
+                server = getServer(server);
+            }
             var workspace = 'geonode';
             var parts = name.split(':');
             if (parts.length > 1) {
@@ -224,10 +283,34 @@
         }
     }
 
+    module.service('styleUpdater', function($http, ol3StyleConverter) {
+        return {
+            updateStyle: function(layer) {
+                if (layer instanceof ol.layer.Vector) {
+                    layer.setStyle(function(feature, resolution) {
+                        return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
+                    });
+                } else {
+                    var layerInfo = layer.get('layerInfo');
+                    var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
+                    var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
+                    $http({
+                        url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
+                        method: "PUT",
+                        data: xml,
+                        headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                    }).then(function(result) {
+                        layer.getSource().updateParams({"_olSalt": Math.random()});
+                    });
+                }
+            }
+        };
+    });
+
     module.service('mapFactory', function($http, $q, $log) {
         return {
             create: function() {
-                return new Map($http, $q, $log);
+                return new MapManager($http, $q, $log);
             }
         };
     });
@@ -241,9 +324,9 @@
             templateUrl: 'templates/add-layers.html',
             link: function(scope, el, atts) {
                 scope.server = {
-                    active: servers[0]
+                    active: userServerChoices[0]
                 };
-                scope.servers = servers;
+                scope.servers = userServerChoices;
                 scope.addLayer = function() {
                     scope.loading = true;
                     scope.map.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {

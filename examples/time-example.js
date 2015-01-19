@@ -24,7 +24,7 @@
         });
         this.addLayer = function () {
             this.loading = true;
-            map.addLayer(this.layerName, this.asVector).then(function () {
+            map.addLayer(this.layerName, this.asVector, 'mapstory').then(function () {
                 if (self.timeControls === null) {
                     self.timeControls = stTimeControlsFactory.create({
                         map: map.map,
