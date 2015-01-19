@@ -181,7 +181,11 @@ describe('test directives', function() {
             };
             var el = compile("<label-editor st-model='thing'></graphic-editor>", {
                 thing: {label: label},
-                layer: {info: {attributes: ['a', 'b']}}
+                layer: {
+                    get: function() {
+                        return {attributes: ['a', 'b']};
+                    }
+                }
             });
             expect(el.find('.dropdown-toggle').eq(0).text().trim()).toBe('Select Attribute');
             click(el.find('.dropdown-menu').eq(0).find('li').eq(1));
@@ -202,7 +206,11 @@ describe('test directives', function() {
                 }
             };
             el = compile("<classify-editor show-max-classes=true show-fixed-classes></classify-editor>", {
-                layer: {info: {attributes: ['a', 'b']}},
+                layer: {
+                    get: function() {
+                        return {attributes: ['a', 'b']};
+                    }
+                },
                 activeStyle: {classify: classify},
                 changeClassifyProperty: function(prop, val) {
                     classify[prop] = val;
