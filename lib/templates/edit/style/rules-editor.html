@@ -10,7 +10,7 @@
                     <number-editor st-model="rule.style.symbol" property="size" ng-if="rule.style.symbol.size != null"></number-editor>
                 </td>
                 <td>
-                    <button>&times;</button>
+                    <button ng-click="deleteRule(rule)">&times;</button>
                 </td>
             </tr>
         </tbody>
