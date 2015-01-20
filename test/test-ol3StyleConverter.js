@@ -187,6 +187,9 @@ describe('ol3StyleConverter', function() {
                 "style": {
                     "symbol": {
                         "fillColor": "#ff9900"
+                    },
+                    "stroke": {
+                        "strokeColor": "#ff9900"
                     }
                 }
             }, {
@@ -194,6 +197,9 @@ describe('ol3StyleConverter', function() {
                 "style": {
                     "symbol": {
                         "fillColor": "#b36b00"
+                    },
+                    "stroke": {
+                        "strokeColor": "#b36b00"
                     }
                 }
             }]    
@@ -203,6 +209,18 @@ describe('ol3StyleConverter', function() {
         expect(style[0].getImage().getStroke().getColor()).toBe('rgba(255,255,0,1)');
         style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'baz'}));
         expect(style[0].getImage().getFill().getColor()).toBe('#b36b00'); 
+
+        styleConfig.geomType = "line";
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'bar'}));
+        expect(style[0].getStroke().getColor()).toBe('#ff9900');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'baz'}));
+        expect(style[0].getStroke().getColor()).toBe('#b36b00');
+
+        styleConfig.geomType = "polygon";
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'bar'}));
+        expect(style[0].getFill().getColor()).toBe('#ff9900');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 'baz'}));
+        expect(style[0].getFill().getColor()).toBe('#b36b00');
     }));
 
     it('should convert ranges of a classification', inject(function(ol3StyleConverter) {
@@ -222,6 +240,9 @@ describe('ol3StyleConverter', function() {
                 "style": {
                     "symbol": {
                         "fillColor": "#ff9900"
+                    },
+                    "stroke": {
+                        "strokeColor": "#ff9900"
                     }
                 }
             }, {
@@ -232,6 +253,9 @@ describe('ol3StyleConverter', function() {
                 "style": {
                     "symbol": {
                         "fillColor": "#b36b00"
+                    },
+                    "stroke": {
+                        "strokeColor": "#b36b00"
                     }
                 }
             }]
@@ -240,6 +264,19 @@ describe('ol3StyleConverter', function() {
         expect(style[0].getImage().getFill().getColor()).toBe('#ff9900');
         style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
         expect(style[0].getImage().getFill().getColor()).toBe('#b36b00');
+
+        styleConfig.geomType = "line";
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 5}));
+        expect(style[0].getStroke().getColor()).toBe('#ff9900');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
+        expect(style[0].getStroke().getColor()).toBe('#b36b00');
+
+        styleConfig.geomType = "polygon";
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 5}));
+        expect(style[0].getFill().getColor()).toBe('#ff9900');
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
+        expect(style[0].getFill().getColor()).toBe('#b36b00');
+
     }));
 
     it('should convert unique classification with label', inject(function(ol3StyleConverter) {
