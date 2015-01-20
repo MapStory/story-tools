@@ -87,6 +87,7 @@
         //var mapId = null;
         if (mapId !== null) {
             $http.get('/maps/' + mapId + '/data/').success(function(data) {
+                window.console.log(data);
                 self.map.setView(new ol.View({
                     center: data.map.center,
                     zoom: data.map.zoom,
@@ -115,6 +116,9 @@
                                 self.map.addLayer(lyr);
                             }
                         }
+                    } else if (layer.group === undefined && layer.visibility === true) {
+                         // TODO handle layer.styles!
+                         self.addLayer(layer.name, false, servers[1]);
                     }
                 }
             });
@@ -324,16 +328,19 @@
                     });
                 } else {
                     var layerInfo = layer.get('layerInfo');
-                    var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
-                    var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
-                    $http({
-                        url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
-                        method: "PUT",
-                        data: xml,
-                        headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
-                    }).then(function(result) {
-                        layer.getSource().updateParams({"_olSalt": Math.random()});
-                    });
+                    // this case will happen if canStyleWMS is false for the server
+                    if (layerInfo.styleName) {
+                        var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
+                        var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
+                        $http({
+                            url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
+                            method: "PUT",
+                            data: xml,
+                            headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                        }).then(function(result) {
+                            layer.getSource().updateParams({"_olSalt": Math.random()});
+                        });
+                    }
                 }
             }
         };
