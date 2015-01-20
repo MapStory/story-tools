@@ -124,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-                    <div ng-if="selected.style" class="floating col-lg-4">
+                    <div ng-show="selected.style" class="floating col-lg-4 ng-hide">
                         <accordion close-others="true">
                             <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in map.getNamedLayers()" is-open="accordianOpen" ng-init="accordianOpen = $first">
                                 <!-- to reduce watchers, add ng-if=accordianOpen -->
