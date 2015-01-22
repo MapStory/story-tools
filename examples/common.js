@@ -234,10 +234,10 @@
                 angular.extend(layer.get('layerInfo'), layerInfo);
             });
         }
-        function getStyleName(layer) {
+        function getStyleName(layer, styleName) {
             var promise;
-            if (layer.get('server').canStyleWMS) {
-                // get the style name if editable
+            if (layer.get('server').canStyleWMS && styleName === undefined) {
+                // get the style name if editable and not already known
                 promise = $http({
                     method: 'GET',
                     url: layer.get('server').path + 'rest/layers/' + layer.get('id') + '.json'
@@ -329,7 +329,7 @@
             return promise;
         }
         function load(layer, styleName) {
-            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer), getTimeAttribute(layer));
+            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer, styleName), getTimeAttribute(layer));
         }
     }
 
