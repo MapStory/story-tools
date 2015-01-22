@@ -64,7 +64,7 @@
                 break;
             }
         }
-        if (server == null) {
+        if (server === null) {
             throw new Error('no server named : ' + name);
         }
         return server;
@@ -82,16 +82,53 @@
 
     function MapManager($http, $q, $log) {
         var self = this;
-        this.map = new ol.Map({
-            layers: [new ol.layer.Tile({
-                    source: new ol.source.MapQuest({layer: 'sat'})
-                })],
-            target: 'map',
-            view: new ol.View({
-                center: [0, 0],
-                zoom: 3
-            })
-        });
+        this.map = new ol.Map({target: 'map'});
+        var mapId = null;
+        if (window.location.hash !== "") {
+            mapId = window.location.hash.replace('#', '');
+        }
+        if (mapId !== null) {
+            $http.get('/maps/' + mapId + '/data/').success(function(data) {
+                self.map.setView(new ol.View({
+                    center: data.map.center,
+                    zoom: data.map.zoom,
+                    projection: data.map.projection
+                }));
+                for (var i=0, ii=data.map.layers.length; i<ii; ++i) {
+                    var layer = data.map.layers[i];
+                    if (layer.group === 'background' && layer.visibility === true) {
+                        var source = data.sources[layer.source];
+                        if (source.ptype === "gx_olsource") {
+                            if (layer.tiled !== false) {
+                                var lyr = new ol.layer.Tile();
+                                var params = layer.args[2];
+                                for (var key in params) {
+                                    if (angular.isArray(params[key])) {
+                                        params[key] = params[key].join(',');
+                                    }
+                                }
+                                params.VERSION = '1.1.1';
+                                if (layer.type === "OpenLayers.Layer.WMS") {
+                                    lyr.setSource(new ol.source.TileWMS({
+                                        url: layer.args[1],
+                                        params: params
+                                    }));
+                                }
+                                self.map.addLayer(lyr);
+                            }
+                        }
+                    } else if (layer.group === undefined && layer.visibility === true) {
+                         // TODO handle layer.styles!
+                         self.addLayer(layer.name, false, servers[1]);
+                    }
+                }
+            });
+        } else {
+            this.map.setView(new ol.View({center: [0,0], zoom: 3}));
+            this.map.addLayer(new ol.layer.Tile({
+                source: new ol.source.MapQuest({layer: 'sat'})
+            }));
+        }
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
                 return angular.isString(lyr.get('name'));
@@ -292,16 +329,19 @@
                     });
                 } else {
                     var layerInfo = layer.get('layerInfo');
-                    var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
-                    var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
-                    $http({
-                        url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
-                        method: "PUT",
-                        data: xml,
-                        headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
-                    }).then(function(result) {
-                        layer.getSource().updateParams({"_olSalt": Math.random()});
-                    });
+                    // this case will happen if canStyleWMS is false for the server
+                    if (layerInfo.styleName) {
+                        var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
+                        var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
+                        $http({
+                            url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
+                            method: "PUT",
+                            data: xml,
+                            headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                        }).then(function(result) {
+                            layer.getSource().updateParams({"_olSalt": Math.random()});
+                        });
+                    }
                 }
             }
         };
