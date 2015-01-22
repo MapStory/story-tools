@@ -118,17 +118,24 @@
                             }
                         }
                     } else if (layer.group === undefined && layer.visibility === true) {
-                         // TODO handle layer.styles!
-                         self.addLayer(layer.name, false, servers[1]);
+                         self.addLayer(layer.name, false, servers[1], false, layer.styles);
                     }
+                }
+            }).error(function(data, status) {
+                if (status === 401) {
+                    window.console.warn('Not authorized to see map ' + mapId);
+                    self.defaultMap();
                 }
             });
         } else {
+            this.defaultMap();
+        }
+        this.defaultMap = function() {
             this.map.setView(new ol.View({center: [0,0], zoom: 3}));
             this.map.addLayer(new ol.layer.Tile({
                 source: new ol.source.MapQuest({layer: 'sat'})
             }));
-        }
+        };
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
                 return angular.isString(lyr.get('name'));
@@ -171,7 +178,10 @@
                 this.map.addLayer(layer);
             }
         };
-        this.addLayer = function(name, asVector, server) {
+        this.addLayer = function(name, asVector, server, fitExtent, styleName) {
+            if (fitExtent === undefined) {
+                fitExtent = true;
+            }
             if (angular.isString(server)) {
                 server = getServer(server);
             }
@@ -197,9 +207,11 @@
             } else {
                 layer = new ol.layer.Tile(options);
             }
-            return load(layer).then(function() {
+            return load(layer, styleName).then(function() {
                 self.map.addLayer(layer);
-                self.map.getView().fitExtent(layer.getExtent(), self.map.getSize());
+                if (fitExtent === true) {
+                    self.map.getView().fitExtent(layer.getExtent(), self.map.getSize());
+                }
             });
         };
         function describeFeatureType(layer) {
@@ -237,7 +249,7 @@
             }
             return promise;
         }
-        function parseCapabilities(layer, response) {
+        function parseCapabilities(layer, response, styleName) {
             var parser = new ol.format.WMSCapabilities();
             var caps = parser.read(response);
             var found = storytools.core.time.maps.readCapabilitiesTimeDimensions(caps);
@@ -257,6 +269,7 @@
             if (layer instanceof ol.layer.Tile) {
                 var params = {
                     'LAYERS': name,
+                    'STYLES': styleName,
                     'VERSION': '1.1.0',
                     'TILED': true
                 };
@@ -295,10 +308,10 @@
                 }));
             }
         }
-        function loadCapabilities(layer) {
+        function loadCapabilities(layer, styleName) {
             var getcaps = layer.get('url') + '?request=GetCapabilities';
             return $http.get(getcaps).success(function(response) {
-                parseCapabilities(layer, response);
+                parseCapabilities(layer, response, styleName);
             });
         }
         function getTimeAttribute(layer) {
@@ -315,8 +328,8 @@
             }
             return promise;
         }
-        function load(layer) {
-            return $q.all(loadCapabilities(layer), describeFeatureType(layer), getStyleName(layer), getTimeAttribute(layer));
+        function load(layer, styleName) {
+            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer), getTimeAttribute(layer));
         }
     }
 
