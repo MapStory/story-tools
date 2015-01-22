@@ -83,11 +83,12 @@
     function MapManager($http, $q, $log) {
         var self = this;
         this.map = new ol.Map({target: 'map'});
-        var mapId = '2156';
-        //var mapId = null;
+        var mapId = null;
+        if (window.location.hash !== "") {
+            mapId = window.location.hash.replace('#', '');
+        }
         if (mapId !== null) {
             $http.get('/maps/' + mapId + '/data/').success(function(data) {
-                window.console.log(data);
                 self.map.setView(new ol.View({
                     center: data.map.center,
                     zoom: data.map.zoom,
