@@ -158,8 +158,8 @@
                             attributes: Object.keys(data.features[0].properties)
                         }
                     });
-                    this.map.addLayer(layer);
-                    this.map.getView().fitExtent(layer.getSource().getExtent(), map.getSize());
+                    self.map.addLayer(layer);
+                    self.map.getView().fitExtent(layer.getSource().getExtent(), self.map.getSize());
                 });
             } else {
                 // generated vector layer
