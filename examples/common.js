@@ -83,6 +83,12 @@
     function MapManager($http, $q, $log) {
         var self = this;
         this.map = new ol.Map({target: 'map'});
+        this.defaultMap = function() {
+            this.map.setView(new ol.View({center: [0,0], zoom: 3}));
+            this.map.addLayer(new ol.layer.Tile({
+                source: new ol.source.MapQuest({layer: 'sat'})
+            }));
+        };
         var mapId = null;
         if (window.location.hash !== "") {
             mapId = window.location.hash.replace('#', '');
@@ -130,12 +136,6 @@
         } else {
             this.defaultMap();
         }
-        this.defaultMap = function() {
-            this.map.setView(new ol.View({center: [0,0], zoom: 3}));
-            this.map.addLayer(new ol.layer.Tile({
-                source: new ol.source.MapQuest({layer: 'sat'})
-            }));
-        };
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
                 return angular.isString(lyr.get('name'));
@@ -158,8 +158,8 @@
                             attributes: Object.keys(data.features[0].properties)
                         }
                     });
-                    this.map.addLayer(layer);
-                    this.map.getView().fitExtent(layer.getSource().getExtent(), map.getSize());
+                    self.map.addLayer(layer);
+                    self.map.getView().fitExtent(layer.getSource().getExtent(), self.map.getSize());
                 });
             } else {
                 // generated vector layer
