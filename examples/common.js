@@ -140,7 +140,7 @@
                             }
                         }
                     } else if (layer.group === undefined && layer.visibility === true) {
-                         self.addLayer(layer.name, false, servers[1], false, layer.styles);
+                         self.addLayer(layer.name, false, servers[1], false, layer.styles, layer.title);
                     }
                 }
             }).error(function(data, status) {
@@ -194,7 +194,7 @@
                 this.map.addLayer(layer);
             }
         };
-        this.addLayer = function(name, asVector, server, fitExtent, styleName) {
+        this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
             if (fitExtent === undefined) {
                 fitExtent = true;
             }
@@ -213,6 +213,7 @@
             var options = {
                 id: id,
                 name: name,
+                title: title,
                 server: server,
                 url: url,
                 layerInfo: {}
