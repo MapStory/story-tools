@@ -26,7 +26,7 @@
                     hasTime |= angular.isDefined(l._times);
                 });
                 if (hasTime) {
-                    $scope.timeControls = stTimeControlsFactory.create({map: $scope.map.map});
+                    $scope.timeControls = stTimeControlsFactory.create({mode: $scope.map.mode, map: $scope.map.map});
                 }
             }
         });

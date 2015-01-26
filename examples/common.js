@@ -95,36 +95,52 @@
         }
         if (mapId !== null) {
             $http.get('/maps/' + mapId + '/data/').success(function(data) {
+                // look for playback mode
+                var i, ii, mode;
+                for (i=0, ii=data.tools.length; i<ii; ++i) {
+                    var tool = data.tools[i];
+                    if (tool.ptype === "gxp_playback" && tool.outputConfig) {
+                        if (tool.outputConfig.playbackMode === 'cumulative') {
+                            self.mode = 'cumulative';
+                        }
+                        // TODO other modes
+                    }
+                }
                 self.map.setView(new ol.View({
                     center: data.map.center,
                     zoom: data.map.zoom,
                     projection: data.map.projection
                 }));
-                for (var i=0, ii=data.map.layers.length; i<ii; ++i) {
+                for (i=0, ii=data.map.layers.length; i<ii; ++i) {
                     var layer = data.map.layers[i];
                     if (layer.group === 'background' && layer.visibility === true) {
                         var source = data.sources[layer.source];
                         if (source.ptype === "gx_olsource") {
                             if (layer.tiled !== false) {
                                 var lyr = new ol.layer.Tile();
-                                var params = layer.args[2];
-                                for (var key in params) {
-                                    if (angular.isArray(params[key])) {
-                                        params[key] = params[key].join(',');
+                                if (layer.type === "OpenLayers.Layer.OSM") {
+                                    lyr.setSource(new ol.source.OSM());
+                                    self.map.addLayer(lyr);
+                                } else {
+                                    var params = layer.args[2] || {};
+                                    for (var key in params) {
+                                        if (angular.isArray(params[key])) {
+                                            params[key] = params[key].join(',');
+                                        }
                                     }
+                                    params.VERSION = '1.1.1';
+                                    if (layer.type === "OpenLayers.Layer.WMS") {
+                                        lyr.setSource(new ol.source.TileWMS({
+                                            url: layer.args[1],
+                                            params: params
+                                        }));
+                                    }
+                                    self.map.addLayer(lyr);
                                 }
-                                params.VERSION = '1.1.1';
-                                if (layer.type === "OpenLayers.Layer.WMS") {
-                                    lyr.setSource(new ol.source.TileWMS({
-                                        url: layer.args[1],
-                                        params: params
-                                    }));
-                                }
-                                self.map.addLayer(lyr);
                             }
                         }
                     } else if (layer.group === undefined && layer.visibility === true) {
-                         self.addLayer(layer.name, false, servers[1], false, layer.styles);
+                         self.addLayer(layer.name, false, servers[1], false, layer.styles, layer.title);
                     }
                 }
             }).error(function(data, status) {
@@ -178,7 +194,7 @@
                 this.map.addLayer(layer);
             }
         };
-        this.addLayer = function(name, asVector, server, fitExtent, styleName) {
+        this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
             if (fitExtent === undefined) {
                 fitExtent = true;
             }
@@ -197,6 +213,7 @@
             var options = {
                 id: id,
                 name: name,
+                title: title,
                 server: server,
                 url: url,
                 layerInfo: {}
