@@ -95,12 +95,23 @@
         }
         if (mapId !== null) {
             $http.get('/maps/' + mapId + '/data/').success(function(data) {
+                // look for playback mode
+                var i, ii, mode;
+                for (i=0, ii=data.tools.length; i<ii; ++i) {
+                    var tool = data.tools[i];
+                    if (tool.ptype === "gxp_playback" && tool.outputConfig) {
+                        if (tool.outputConfig.playbackMode === 'cumulative') {
+                            self.mode = 'cumulative';
+                        }
+                        // TODO other modes
+                    }
+                }
                 self.map.setView(new ol.View({
                     center: data.map.center,
                     zoom: data.map.zoom,
                     projection: data.map.projection
                 }));
-                for (var i=0, ii=data.map.layers.length; i<ii; ++i) {
+                for (i=0, ii=data.map.layers.length; i<ii; ++i) {
                     var layer = data.map.layers[i];
                     if (layer.group === 'background' && layer.visibility === true) {
                         var source = data.sources[layer.source];
