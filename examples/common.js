@@ -107,20 +107,25 @@
                         if (source.ptype === "gx_olsource") {
                             if (layer.tiled !== false) {
                                 var lyr = new ol.layer.Tile();
-                                var params = layer.args[2];
-                                for (var key in params) {
-                                    if (angular.isArray(params[key])) {
-                                        params[key] = params[key].join(',');
+                                if (layer.type === "OpenLayers.Layer.OSM") {
+                                    lyr.setSource(new ol.source.OSM());
+                                    self.map.addLayer(lyr);
+                                } else {
+                                    var params = layer.args[2] || {};
+                                    for (var key in params) {
+                                        if (angular.isArray(params[key])) {
+                                            params[key] = params[key].join(',');
+                                        }
                                     }
+                                    params.VERSION = '1.1.1';
+                                    if (layer.type === "OpenLayers.Layer.WMS") {
+                                        lyr.setSource(new ol.source.TileWMS({
+                                            url: layer.args[1],
+                                            params: params
+                                        }));
+                                    }
+                                    self.map.addLayer(lyr);
                                 }
-                                params.VERSION = '1.1.1';
-                                if (layer.type === "OpenLayers.Layer.WMS") {
-                                    lyr.setSource(new ol.source.TileWMS({
-                                        url: layer.args[1],
-                                        params: params
-                                    }));
-                                }
-                                self.map.addLayer(lyr);
                             }
                         }
                     } else if (layer.group === undefined && layer.visibility === true) {
