@@ -1,4 +1,14 @@
-<div class="todo">
-    MAKE WORK
-    <p>this selects a storypin to edit</p>
+<div>
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>Title</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="pin in storyPins">
+                <td>{{ pin.title }}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>

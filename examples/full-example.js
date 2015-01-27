@@ -33,5 +33,16 @@
         $scope.styleChanged = function(layer) {
             styleUpdater.updateStyle(layer);
         };
+
+        $scope.newStoryPin = {};
+        $scope.storyPins =  [];
+        $scope.newPinFormInvalid = true;
+        $scope.newStoryPinChanged = function(valid) {
+            $scope.newPinFormInvalid = !valid;
+        };
+        $scope.addStoryPin = function() {
+            $scope.storyPins.push(angular.copy($scope.newStoryPin));
+            $scope.newStoryPin = {};
+        };
     });
 })();

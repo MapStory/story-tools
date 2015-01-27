@@ -1,4 +1,56 @@
-<div class="todo">
-    MAKE WORK
-    <p>this edits a selected storypin</p>
-</div>
+<form name="pinForm">
+    <div class="form-group">
+        <label for="storyPinTitle">StoryPin Title</label>
+        <input name="title" ng-required="true"  ng-model="storyPin.title" class="form-control" type="text" id="storyPinTitle" placeholder="Title">
+    </div>
+    <div class="form-group">
+        <label for="storyPinAbstract">Content</label>
+        <textarea ng-model="storyPin.content" id="storyPinAbstract" class="form-control" rows="2" placeholder="Content"></textarea>
+    </div>
+    <hr>
+
+    <div class="form-group">
+        <label>Location</label>
+
+        <button>Point</button>
+        <button>Line</button>
+        <button>Polygon</button>
+        <button class="pull-right">Edit</button>
+    </div>
+    <hr>
+
+
+    <table class="table table-bordered table-condensed table-hover" style="background-color: white">
+        <tbody>
+            <tr>
+                <td>Latitude</td>
+                <td><input class="form-control" type="text" placeholder="DD.MMSSSS"></td>
+            </tr>
+            <tr>
+                <td>Longitude</td>
+                <td><input class="form-control" type="text" placeholder="DD.MMSSSS"></td>
+            </tr>
+            <tr>
+                <td>Start Time</td>
+                <td><input class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss"></td>
+            </tr>
+            <tr>
+                <td>End Time</td>
+                <td><input class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss"></td>
+            </tr>
+        </tbody>
+    </table>
+    <hr>
+
+    <div class="form-group">
+        <label>Options</label>
+        <div class="checkbox">
+            <input id="showInTimeline" type="checkbox" value="">
+            <label for="showInTimeline">Show in Timeline</label>
+        </div>
+        <div class="checkbox">
+            <input id="showInMap" type="checkbox" value="">
+            <label for="showInMap">Show in Map</label>
+        </div>
+    </div>
+</form>
