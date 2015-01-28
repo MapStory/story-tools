@@ -23,7 +23,7 @@
                 // need some layer with time to start with
                 var hasTime = false;
                 $scope.map.map.getLayers().forEach(function(l) {
-                    hasTime |= angular.isDefined(l._times);
+                    hasTime |= angular.isDefined(l.get('times'));
                 });
                 if (hasTime) {
                     $scope.timeControls = stTimeControlsFactory.create({mode: $scope.map.mode, map: $scope.map.map});

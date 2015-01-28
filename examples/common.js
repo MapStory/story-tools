@@ -280,8 +280,8 @@
                 );
             layer.setExtent(extent);
             if (name in found) {
-                layer._times = found[name];
-                start = layer._times.start || layer._times[0];
+                layer.set('times', found[name]);
+                start = found[name].start || found[name][0];
             }
             if (layer instanceof ol.layer.Tile) {
                 var params = {
