@@ -34,6 +34,13 @@
             styleUpdater.updateStyle(layer);
         };
 
+        $scope.overlay = new ol.FeatureOverlay({
+            map: $scope.map.map
+        });
+
+        var vector = new ol.layer.Vector({source: new ol.source.Vector()});
+        $scope.map.map.addLayer(vector);
+
         $scope.newStoryPin = {};
         $scope.storyPins =  [];
         $scope.newPinFormInvalid = true;
@@ -41,7 +48,20 @@
             $scope.newPinFormInvalid = !valid;
         };
         $scope.addStoryPin = function() {
+            var feature = new ol.Feature({title: $scope.newStoryPin.title});
+            if ($scope.newStoryPin.longitude && $scope.newStoryPin.latitude) {
+                feature.setGeometry(new ol.geom.Point([
+                    parseFloat($scope.newStoryPin.longitude),
+                    parseFloat($scope.newStoryPin.latitude)
+                ]).transform('EPSG:4326', $scope.map.map.getView().getProjection()));
+            } else if ($scope.overlay.getFeatures().getLength() > 0) {
+                feature.setGeometry($scope.overlay.getFeatures().item(0).getGeometry());
+            }
+            if (feature.getGeometry()) {
+                vector.getSource().addFeature(feature);
+            }
             $scope.storyPins.push(angular.copy($scope.newStoryPin));
+            $scope.overlay.getFeatures().clear();
             $scope.newStoryPin = {};
         };
     });

@@ -147,7 +147,7 @@
                     <div ng-if="selected.pins" class="floating col-lg-4 style-editor-item">
                         <accordion close-others="true" ng-init="open={1:true,2:false}">
                             <accordion-group heading="Add StoryPin" is-open="open.1">
-                                <pin-editor story-pin="newStoryPin" on-valid-change="newStoryPinChanged"></pin-editor>
+                                <pin-editor overlay="overlay" story-pin="newStoryPin" on-valid-change="newStoryPinChanged"></pin-editor>
                                 <button ng-disabled="newPinFormInvalid" ng-click="addStoryPin()">Add Pin</button><span ng-show="storyPinAdded" class="ng-hide">Added</span>
                             </accordion-group>
                             <accordion-group heading="StoryPins" is-open="open.2">
