@@ -280,8 +280,8 @@
                 );
             layer.setExtent(extent);
             if (name in found) {
-                layer._times = found[name];
-                start = layer._times.start || layer._times[0];
+                layer.set('times', found[name]);
+                start = found[name].start || found[name][0];
             }
             if (layer instanceof ol.layer.Tile) {
                 var params = {
@@ -303,7 +303,7 @@
                 layer.setSource(new ol.source.ServerVector({
                     format: new ol.format.GeoJSON(),
                     loader: function(bbox, resolution, projection) {
-                        if (layer._features) {
+                        if (layer.get('features')) {
                             return;
                         }
                         var wfsUrl = url;
@@ -313,7 +313,7 @@
                         $http.get(wfsUrl).success(function(response) {
                             var features = layer.getSource().readFeatures(response);
                             if (start) {
-                                layer._features = features;
+                                layer.set('features', features);
                                 storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
                             } else {
                                 layer.getSource().addFeatures(features);
@@ -336,7 +336,7 @@
             if (layer.get('server').timeEndpoint) {
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
-                    layer._timeAttribute = data.attribute;
+                    layer.set('timeAttribute', data.attribute);
                 });
             } else {
                 // @todo make sure we have time attribute _somehow_
