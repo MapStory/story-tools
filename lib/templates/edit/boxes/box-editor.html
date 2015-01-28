@@ -1,4 +1,17 @@
-<div class="todo">
-    MAKE WORK
-    <p>this edits a selected storybox</p>
+<div>
+    <tabset ng-init="boxBoundsEditorSelected = false">
+        <tab heading="Contents">
+            <box-contents-editor></box-contents-editor>
+        </tab>
+        <tab heading="Bounds" select="boxBoundsEditorSelected = true" deselect="boxBoundsEditorSelected = false">
+            <box-bounds-editor selected="boxBoundsEditorSelected"></box-bounds-editor>
+        </tab>
+        <tab heading="Layers" >
+            <box-layers-editor></box-layers-editor>
+        </tab>
+        <tab heading="Layout">
+            <box-layout-editor></box-layout-editor>
+        </tab>
+    </tabset>
+    <button>Save</button>
 </div>

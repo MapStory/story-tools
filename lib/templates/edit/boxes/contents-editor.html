@@ -1,0 +1,43 @@
+<form name="boxContents">
+    <div class="col-lg-2">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input ng-required class="form-control" id="title" placeholder="Title">
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" id="description" placeholder="Description"></textarea>
+        </div>
+    </div>
+    <div class="col-lg-2">
+        <div class="form-group">
+            <label for="startTime">Start Time</label>
+            <input class="form-control" id="startTime" placeholder="Start time">
+        </div>
+        <div class="form-group">
+            <label for="endTime">End Time</label>
+            <input class="form-control" id="endTime" placeholder="End time">
+        </div>
+    </div>
+    <div class="col-lg-2">
+        <div class="form-group">
+            <label for="playbackRate">Playback Rate</label>
+            <input type="number" class="form-control" id="playbackRate">
+            <select class="form-control">
+                <option>Seconds</option>
+                <option>Minutes</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="timestep">Timestep</label>
+            <input type="number" class="form-control" id="timestep">
+            <select class="form-control">
+                <option>Minutes</option>
+                <option>Hours</option>
+                <option>Weeks</option>
+                <option>Months</option>
+                <option>Years</option>
+            </select>
+        </div>
+    </div>
+</form>

@@ -1,4 +1,22 @@
-<div class="todo">
-    MAKE WORK
-    <p>this selects a storybox to edit</p>
+<div>
+    <button ng-click='ctrl.newStoryBox()'>New StoryBox</button>
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- @todo - extract inline styles -->
+            <tr ng-class="ctrl.editingBox == box ? 'active' : ''" ng-repeat="box in ctrl.boxes">
+                <td ng-click="ctrl.editBox(box)" style="cursor: pointer;">{{ box.title }}</td>
+                <td>{{ box.start }}</td>
+                <td>{{ box.end }}</td>
+                <td><i ng-click='ctrl.deleteBox(box)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
