@@ -336,7 +336,7 @@
             if (layer.get('server').timeEndpoint) {
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
-                    layer._timeAttribute = data.attribute;
+                    layer.set('timeAttribute', data.attribute);
                 });
             } else {
                 // @todo make sure we have time attribute _somehow_
