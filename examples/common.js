@@ -303,7 +303,7 @@
                 layer.setSource(new ol.source.ServerVector({
                     format: new ol.format.GeoJSON(),
                     loader: function(bbox, resolution, projection) {
-                        if (layer._features) {
+                        if (layer.get('features')) {
                             return;
                         }
                         var wfsUrl = url;
@@ -313,7 +313,7 @@
                         $http.get(wfsUrl).success(function(response) {
                             var features = layer.getSource().readFeatures(response);
                             if (start) {
-                                layer._features = features;
+                                layer.set('features', features);
                                 storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
                             } else {
                                 layer.getSource().addFeatures(features);
