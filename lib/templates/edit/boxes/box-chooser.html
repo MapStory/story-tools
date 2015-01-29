@@ -1,5 +1,5 @@
 <div>
-    <button ng-click='ctrl.newStoryBox()'>New StoryBox</button>
+    <button ng-click='boxesCtrl.newStoryBox()'>New StoryBox</button>
     <table class="table table-condensed">
         <thead>
             <tr>
@@ -11,11 +11,11 @@
         </thead>
         <tbody>
             <!-- @todo - extract inline styles -->
-            <tr ng-class="ctrl.editingBox == box ? 'active' : ''" ng-repeat="box in ctrl.boxes">
-                <td ng-click="ctrl.editBox(box)" style="cursor: pointer;">{{ box.title }}</td>
+            <tr ng-class="boxesCtrl.editingBox == box ? 'active' : ''" ng-repeat="box in boxesCtrl.boxes">
+                <td ng-click="boxesCtrl.editBox(box)" style="cursor: pointer;">{{ box.title }}</td>
                 <td>{{ box.start }}</td>
                 <td>{{ box.end }}</td>
-                <td><i ng-click='ctrl.deleteBox(box)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>
+                <td><i ng-click='boxesCtrl.deleteBox(box)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>
             </tr>
         </tbody>
     </table>

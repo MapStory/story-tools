@@ -1,5 +1,6 @@
-<div>
-    <tabset ng-init="boxBoundsEditorSelected = false">
+<div ng-if="boxesCtrl.editingBox">
+    <!-- boxBoundsEditorSelected used to refresh ol map when it gets visible -->
+    <tabset ng-init="boxBoundsEditorSelected = false" class="clearfix">
         <tab heading="Contents">
             <box-contents-editor></box-contents-editor>
         </tab>
@@ -13,5 +14,6 @@
             <box-layout-editor></box-layout-editor>
         </tab>
     </tabset>
-    <button>Save</button>
+    <button class="btn-primary" ng-click="boxesCtrl.acceptEdit()">OK</button>
+    <button ng-click="boxesCtrl.cancelEdit()">Cancel</button>
 </div>

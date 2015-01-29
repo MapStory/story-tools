@@ -2,21 +2,21 @@
     <div class="col-lg-2">
         <div class="form-group">
             <label for="title">Title</label>
-            <input ng-required class="form-control" id="title" placeholder="Title">
+            <input ng-model="editBox.title" ng-required class="form-control" id="title" placeholder="Title">
         </div>
         <div class="form-group">
             <label for="description">Description</label>
-            <textarea class="form-control" id="description" placeholder="Description"></textarea>
+            <textarea ng-model="editBox.description" class="form-control" id="description" placeholder="Description"></textarea>
         </div>
     </div>
     <div class="col-lg-2">
         <div class="form-group">
             <label for="startTime">Start Time</label>
-            <input class="form-control" id="startTime" placeholder="Start time">
+            <input ng-model="editBox.startTime" class="form-control" id="startTime" placeholder="Start time">
         </div>
         <div class="form-group">
             <label for="endTime">End Time</label>
-            <input class="form-control" id="endTime" placeholder="End time">
+            <input ng-model="editBox.endTime" class="form-control" id="endTime" placeholder="End time">
         </div>
     </div>
     <div class="col-lg-2">
