@@ -213,7 +213,7 @@
             var options = {
                 id: id,
                 name: name,
-                title: title,
+                title: title || name,
                 server: server,
                 url: url,
                 layerInfo: {}
