@@ -1,0 +1,61 @@
+<form name="pinForm">
+    <div class="form-group">
+        <label for="storyPinTitle">StoryPin Title</label>
+        <input name="title" ng-required="true"  ng-model="storyPin.title" class="form-control" type="text" id="storyPinTitle" placeholder="Title">
+    </div>
+    <div class="form-group">
+        <label for="storyPinAbstract">Content</label>
+        <textarea ng-model="storyPin.content" id="storyPinAbstract" class="form-control" rows="2" placeholder="Content"></textarea>
+    </div>
+    <hr>
+
+    <div class="form-group">
+        <label>Location</label>
+
+        <div class="btn-group">
+            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Point'">Point</label>
+            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'LineString'">Line</label>
+            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Polygon'">Polygon</label>
+        </div>
+        <!-- @todo does nothing -->
+        <button ng-if="storyPin.$feature" class="pull-right">Edit</button>
+    </div>
+    <hr>
+
+    <div class="form-group">
+        <label>Start Time</label>
+        <input name="startTime" ng-model="storyPin.start_time" class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss">
+        <button>From current time</button>
+    </div>
+    <div class="form-group">
+        <label>End Time</label>
+        <input name="endTime" ng-model="storyPin.end_time" class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss">
+        <button>From current time</button>
+    </div>
+
+    <table ng-if="showPointCoordinates()" class="table table-bordered table-condensed table-hover" style="background-color: white">
+        <tbody>
+            <tr>
+                <td>Latitude</td>
+                <td><input ng-model="point.latitude" class="form-control" type="number" placeholder="DD.MMSSSS"></td>
+            </tr>
+            <tr>
+                <td>Longitude</td>
+                <td><input ng-model="point.longitude" class="form-control" type="number" placeholder="DD.MMSSSS"></td>
+            </tr>
+        </tbody>
+    </table>
+    <hr>
+
+    <div class="form-group">
+        <label>Options</label>
+        <div class="checkbox">
+            <input ng-model="storyPin.in_timeline" id="showInTimeline" type="checkbox">
+            <label for="showInTimeline">Show in Timeline</label>
+        </div>
+        <div class="checkbox">
+            <input ng-model="storyPin.in_map" id="showInMap" type="checkbox">
+            <label for="showInMap">Show in Map</label>
+        </div>
+    </div>
+</form>

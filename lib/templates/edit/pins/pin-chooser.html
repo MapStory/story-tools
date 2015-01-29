@@ -3,11 +3,21 @@
         <thead>
             <tr>
                 <th>Title</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Geometry</th>
+                <th>In Map</th>
+                <th>In Timeline</th>
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="pin in storyPins">
+            <tr ng-repeat="pin in pinsCtrl.storyPins">
                 <td>{{ pin.title }}</td>
+                <td>{{ pin.start_time }}</td>
+                <td>{{ pin.end_time }}</td>
+                <td>{{ pin.$feature.getGeometry().getType() }}</td>
+                <td>{{ pin.in_map }}</td>
+                <td>{{ pin.in_timeline }}</td>
             </tr>
         </tbody>
     </table>
