@@ -163,6 +163,14 @@
                             <div id="timeline"></div>
                         </div>
                     </div>
+                    <div ng-show="selected.preview" class="floating ng-hide col-lg-4">
+                        <div class="panel">
+                            <div class="panel-heading">Playback Options</div>
+                            <div class="panel-body">
+                                <st-playback-settings playback-options="playbackOptions" time-controls="timeControls"></st-playback-settings>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="footer">

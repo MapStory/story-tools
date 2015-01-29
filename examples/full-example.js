@@ -15,6 +15,10 @@
     module.controller('exampleController', function($scope, mapFactory, stTimeControlsFactory, styleUpdater) {
         $scope.map = mapFactory.create();
         $scope.timeControls = null;
+        $scope.playbackOptions = {
+            mode: 'instant',
+            fixed: false
+        };
 
         // we currently need to lazily create the timeControls, should probably extract this
         // @todo! we don't want to create the timeControls here if there is a saved configuration
