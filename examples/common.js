@@ -353,7 +353,8 @@
     module.service('styleUpdater', function($http, ol3StyleConverter) {
         return {
             updateStyle: function(layer) {
-                if (layer instanceof ol.layer.Vector) {
+                var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(layer.style);
+                if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
                         return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
                     });
@@ -361,16 +362,18 @@
                     var layerInfo = layer.get('layerInfo');
                     // this case will happen if canStyleWMS is false for the server
                     if (layerInfo.styleName) {
-                        var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
-                        var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
-                        $http({
-                            url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
-                            method: "PUT",
-                            data: xml,
-                            headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
-                        }).then(function(result) {
-                            layer.getSource().updateParams({"_olSalt": Math.random()});
-                        });
+                        if (isComplete) {
+                            var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
+                            var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
+                            $http({
+                                url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
+                                method: "PUT",
+                                data: xml,
+                                headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
+                            }).then(function(result) {
+                                layer.getSource().updateParams({"_olSalt": Math.random()});
+                            });
+                        }
                     }
                 }
             }
