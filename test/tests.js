@@ -7,3 +7,4 @@ require('./test-SLDStyleConverter');
 require('./test-WPSClassify');
 require('./test-directives.js');
 require('./test-styleChoices.js');
+require('./test-StyleComplete.js');
