@@ -3,10 +3,11 @@ var instance = new StyleComplete();
 
 describe('StyleComplete', function() {
 
-    it('unique classification needs attribute and colorPalette', function() {
+    it('unique classification needs attribute, maxClasses and colorPalette', function() {
         var style = {
             "classify": {
                 "method": "unique",
+                "maxClasses": null,
                 "attribute": null
             }
         };
@@ -14,6 +15,8 @@ describe('StyleComplete', function() {
         expect(result).toBeFalsy();
         style.classify.attribute = 'foo';
         result = instance.isComplete(style);
+        expect(result).toBeFalsy();
+        style.classify.maxClasses = 10;
         expect(result).toBeFalsy();
         style.classify.colorPalette = true;
         result = instance.isComplete(style);
