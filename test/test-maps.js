@@ -1,5 +1,4 @@
 var maps = require('../lib/core/time/maps.js');
-var fs = require('fs');
 
 describe("test maps", function() {
     it("parseISODuration should throw sometimes", function() {
@@ -56,5 +55,20 @@ describe("test maps", function() {
         r = read('2000/2001');
         expect(r.start).toBe(time('2000'));
         expect(r.end).toBe(time('2001'));
+    });
+    it("readCapabilitiesTimeDimensions works for OpenLayers 2 config", function() {
+        function makeCaps() {
+            return {
+                dimensions: {
+                    'time': {
+                        values: ["1989-01-01T00:00:00.000Z", "1990-01-01T00:00:00.000Z", "1991-01-01T00:00:00.000Z", "1992-01-01T00:00:00.000Z", "1993-01-01T00:00:00.000Z", "1994-01-01T00:00:00.000Z", "1995-01-01T00:00:00.000Z", "1996-01-01T00:00:00.000Z", "1997-01-01T00:00:00.000Z", "1998-01-01T00:00:00.000Z", "1999-01-01T00:00:00.000Z", "2000-01-01T00:00:00.000Z", "2001-01-01T00:00:00.000Z", "2002-01-01T00:00:00.000Z", "2003-01-01T00:00:00.000Z", "2004-01-01T00:00:00.000Z", "2005-01-01T00:00:00.000Z", "2006-01-01T00:00:00.000Z", "2007-01-01T00:00:00.000Z", "2008-01-01T00:00:00.000Z", "2009-01-01T00:00:00.000Z", "2010-01-01T00:00:00.000Z", "2011-01-01T00:00:00.000Z", "2012-01-01T00:00:00.000Z", "2013-01-01T00:00:00.000Z"]
+                    }
+                }
+            };
+        }
+        var data = maps.readCapabilitiesTimeDimensions(makeCaps(), true);
+        expect(data.length).toBe(25);
+        expect(data[0]).toBe(599616000000);
+        expect(data[24]).toBe(1356998400000);
     });
 });

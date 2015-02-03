@@ -22,6 +22,7 @@ var watch = false;
 
 // outputs
 var coreLibsBundle = 'story-tools-core.js';
+var mapstoryLibsBundle = 'story-tools-mapstory.js';
 var editLibsBundle = 'story-tools-edit.js';
 var editCoreBundle = 'story-tools-core-ng.js';
 var editNgBundle = 'story-tools-edit-ng.js';
@@ -115,6 +116,7 @@ gulp.task('minify', ['scripts'], function() {
         gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
     }
     doMinify('dist/' + coreLibsBundle);
+    doMinify('dist/' + mapstoryLibsBundle);
     doMinify('dist/' + editLibsBundle);
     doMinify('dist/' + coreNgBundle);
     doMinify('dist/' + editNgBundle);
@@ -148,6 +150,17 @@ gulp.task('bundleCoreLibs', function() {
         entries: ['./lib/core/index.js'],
         standalone: 'storytools.core'
     }), coreLibsBundle, ['lint', 'karma']);
+});
+
+/** 
+ * bundle all mapstory libraries exposing mapstory exports on the global object
+ * storytools.mapstory
+ */
+gulp.task('bundleMapstoryLibs', function() {
+    return bundle(browserify({
+        entries: ['./lib/mapstory/index.js'],
+        standalone: 'storytools.mapstory'
+    }), mapstoryLibsBundle, ['lint', 'karma']);
 });
 
 /** 
@@ -198,7 +211,7 @@ gulp.task('lessEdit', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleCore', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
+gulp.task('scripts', ['bundleCore', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries:'./test/tests.js', debug:true, paths: ['../lib/']}), 'tests.js', ['karma']);
@@ -234,6 +247,7 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     // enable watch mode and start watchify tasks
     watch = true;
     gulp.start('bundleCore');
+    gulp.start('bundleMapstoryLibs');
     gulp.start('bundleEdit');
     gulp.start('testsBundle');
     // and ng related tasks
