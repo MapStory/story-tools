@@ -24,13 +24,11 @@
 
     <div class="form-group">
         <label>Start Time</label>
-        <input name="startTime" ng-model="storyPin.start_time" class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss">
-        <button>From current time</button>
+        <st-date-time-field date-time="storyPin.start_time"></st-date-time-field>
     </div>
     <div class="form-group">
         <label>End Time</label>
-        <input name="endTime" ng-model="storyPin.end_time" class="form-control" type="text" placeholder="YYYY-MM-DD:HH:mm:ss">
-        <button>From current time</button>
+        <st-date-time-field date-time="storyPin.end_time"></st-date-time-field>
     </div>
 
     <table ng-if="showPointCoordinates()" class="table table-bordered table-condensed table-hover" style="background-color: white">
