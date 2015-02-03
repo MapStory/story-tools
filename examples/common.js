@@ -253,29 +253,20 @@
                     serverType: 'geoserver'
                 }));
             } else if (layer instanceof ol.layer.Vector) {
-                layer.setSource(new ol.source.ServerVector({
-                    format: new ol.format.GeoJSON(),
-                    loader: function(bbox, resolution, projection) {
-                        if (layer.get('features')) {
-                            return;
-                        }
-                        var wfsUrl = url;
-                        wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
-                            name + '&outputFormat=application/json' +
-                            '&srsName=' + projection.getCode();
-                        $http.get(wfsUrl).success(function(response) {
-                            var features = layer.getSource().readFeatures(response);
-                            if (start) {
-                                layer.set('features', features);
-                                storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
-                            } else {
-                                layer.getSource().addFeatures(features);
-                            }
-                        });
-                    },
-                    strategy: ol.loadingstrategy.all,
-                    projection: self.map.getView().getProjection()
-                }));
+                var wfsUrl = url;
+                wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
+                    name + '&outputFormat=application/json' +
+                    '&srsName=' + self.map.getView().getProjection().getCode();
+                $http.get(wfsUrl).success(function(response) {
+                    var features = new ol.format.GeoJSON().readFeatures(response);
+                    layer.setSource(new ol.source.Vector());
+                    if (start) {
+                        layer.set('features', features);
+                        storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
+                    } else {
+                        layer.getSource().addFeatures(features);
+                    }
+                });
             }
         }
         function loadCapabilities(layer, styleName) {
