@@ -107,7 +107,7 @@
         }
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
-                return angular.isString(lyr.get('name'));
+                return angular.isString(lyr.get('title'));
             });
         };
         this.addMemoryLayer = function(options) {
@@ -297,6 +297,9 @@
     module.service('styleUpdater', function($http, ol3StyleConverter) {
         return {
             updateStyle: function(layer) {
+                if (!layer.style) {
+                    return;
+                }
                 var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(layer.style);
                 if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
