@@ -31,6 +31,9 @@
                 });
                 if (hasTime) {
                     $scope.timeControls = stTimeControlsFactory.create({mode: $scope.map.mode, map: $scope.map.map});
+                    if ($scope.map.mode) {
+                        $scope.playbackOptions.mode = $scope.map.mode;
+                    }
                 }
             }
         });
