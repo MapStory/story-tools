@@ -102,6 +102,18 @@ function templateBundle(src, dest, module) {
     return stream;
 }
 
+gulp.task('docs', function() {
+    var shell = require('gulp-shell');
+    gulp.task('docs', shell.task([
+        'node_modules/angular-jsdoc/node_modules/jsdoc/jsdoc.js ' +
+            '-c node_modules/angular-jsdoc/conf.json ' + // config file
+            '-t node_modules/angular-jsdoc/template ' + // template file
+            '-d dist/docs ' + // output directory
+            './README.md ' + // to include README.md as index contents
+            '-r lib'                              // source code directory
+    ]));
+});
+
 gulp.task('connect', function() {
     devServer.run();
 });
@@ -214,7 +226,7 @@ gulp.task('lessEdit', function() {
 gulp.task('scripts', ['bundleCore', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
-    return doBundle(browserify({entries:'./test/tests.js', debug:true, paths: ['../lib/']}), 'tests.js', ['karma']);
+    return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);
 });
 
 gulp.task('karma', ['testsBundle'], function() {
@@ -260,6 +272,6 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     gulp.watch('lib/ng/**/*.less', ['lessEdit']);
     // reload on changes to bundles but ignore tests bundle
     gulp.watch(['dist/*', 'examples/**/*']).on('change', function(f) {
-        gulp.src([f.path,'!**/tests.js']).pipe(connect.reload());
+        gulp.src([f.path, '!**/tests.js']).pipe(connect.reload());
     });
 });
