@@ -145,7 +145,7 @@
                         </div>
                     </div>
                     <!-- @todo style-editor-item class used for convenience -->
-                    <div ng-if="selected.pins" class="floating col-lg-4 style-editor-item" pins-editor>
+                    <div ng-if="selected.pins" class="floating col-lg-4 style-editor-item" pins-editor pins-editor-listener="pinsEditorListener">
                         <accordion close-others="true" ng-init="open={1:true,2:false}">
                             <accordion-group heading="Add StoryPin" is-open="open.1">
                                 <div pin-editor>
