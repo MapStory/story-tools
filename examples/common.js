@@ -332,7 +332,7 @@
         };
     });
 
-    module.directive('addLayers', function() {
+    module.directive('addLayers', function($modal, $log) {
         return {
             restrict: 'E',
             scope: {
@@ -349,7 +349,15 @@
                     scope.map.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
                         // pass
                     }, function(problem) {
-                        alert(problem.data);
+                        var msg = 'Something went wrong:';
+                        if (problem.status == 404) {
+                            msg = 'Cannot find the specified layer:';
+                        }
+                        msg += problem.data;
+                        $modal.open({
+                            template: msg
+                        });
+                        $log.warn(msg);
                     }).finally(function() {
                         scope.loading = false;
                     });
