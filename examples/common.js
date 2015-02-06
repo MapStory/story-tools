@@ -202,13 +202,12 @@
                 if (layerInfo.timeAttr !== null) {
                     layer.set('timeAttribute', layerInfo.timeAttr);
                 } else {
-                    return getTimeAttribute(layer);
+                    getTimeAttribute(layer);
                 }
                 var parts = id.split(':');
                 layerInfo.typeName = id;
                 layerInfo.featurePrefix = parts[0];
                 layer.set('layerInfo', angular.extend(layer.get('layerInfo') || {}, layerInfo));
-                self.layer = layer;
             });
         };
         function getStyleName(layer, styleName) {
