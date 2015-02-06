@@ -207,7 +207,7 @@
                 var parts = id.split(':');
                 layerInfo.typeName = id;
                 layerInfo.featurePrefix = parts[0];
-                angular.extend(layer.get('layerInfo'), layerInfo);
+                layer.set('layerInfo', angular.extend(layer.get('layerInfo') || {}, layerInfo));
                 self.layer = layer;
             });
         };
