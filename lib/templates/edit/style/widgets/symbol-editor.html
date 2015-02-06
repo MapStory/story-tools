@@ -5,15 +5,7 @@
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
         <color-editor st-model="model" property="fillColor" ></color-editor>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
-        <div data-dropdown ng-if="showRotation">
-            <button type="button" class="dropdown-toggle"   >
-                {{model.rotationAttribute||'Select Rotation'}}<span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu scrollable-combo rotation-attribute" role="menu">
-                <li ng-click="model.rotationAttribute=null">[ None ]</li>
-                <li ng-repeat="attribute in layer.get('layerInfo').attributes" ng-click="model.rotationAttribute=attribute">{{attribute}}</li>
-            </ul>
-        </div>
+        <attribute-combo layer="layer" include="double" ng-if="showRotation" st-model="model" property="rotationAttribute"></attribute-combo>
         <div dropdown ng-if="showRotation">
             <button type="button" class="dropdown-toggle"   >
                 {{model.rotationUnits}} <span class="caret"></span>

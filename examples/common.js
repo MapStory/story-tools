@@ -198,6 +198,11 @@
             }).success(function(data) {
                 var wfs = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
                 var layerInfo = wfs.parseResult(data);
+                if (layerInfo.timeAttr !== null) {
+                    layer.set('timeAttribute', layerInfo.timeAttr);
+                } else {
+                    return getTimeAttribute(layer);
+                }
                 var parts = id.split(':');
                 layerInfo.typeName = id;
                 layerInfo.featurePrefix = parts[0];
@@ -277,7 +282,10 @@
         }
         function getTimeAttribute(layer) {
             var promise;
-            if (layer.get('server').timeEndpoint) {
+            if (layer.get('timeAttribute')) {
+                promise = $q.when('');
+            }
+            else if (layer.get('server').timeEndpoint) {
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
                     layer.set('timeAttribute', data.attribute);
@@ -290,7 +298,7 @@
             return promise;
         }
         function load(layer, styleName) {
-            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer, styleName), getTimeAttribute(layer));
+            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer, styleName));
         }
     }
 

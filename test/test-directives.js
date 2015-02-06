@@ -51,6 +51,39 @@ describe('test directives', function() {
         }));
     });
 
+    describe('attribute-combo', function() {
+        it('should filter attributes', function() {
+            var attributes = [
+                {name: 's', type: 'string'},
+                {name: 'i', type: 'integer'},
+                {name: 'd', type: 'double'},
+                {name: 't', type: 'dateTime'},
+                {name: 'g', type: 'geom', typeNS:'http://www.opengis.net/gml'}
+            ];
+            var scope = {
+                layer: {
+                    get: function() {
+                        // mock layerInfo
+                        return {attributes: attributes};
+                    }
+                }
+            };
+            function attributeText(el) {
+                // extract attribute text from elements disregarding the first
+                return angular.element(el.find('li').splice(1)).text();
+            }
+            // expecting all attributes
+            var el = compile("<attribute-combo layer=layer></attribute-combo>", scope);
+            expect(attributeText(el)).toBe('dgist');
+            // exclude geom
+            el = compile("<attribute-combo filter=nogeom layer=layer></attribute-combo>", scope);
+            expect(attributeText(el)).toBe('dist');
+            // include string and integer
+            el = compile("<attribute-combo include='string,integer' layer=layer></attribute-combo>", scope);
+            expect(attributeText(el)).toBe('is');
+        });
+    });
+
     describe('number editor', function() {
         it('should bind and edit', function() {
             var el = compile("<number-editor st-model='thing' property='value'></number-editor>", {thing: {value: 42}});
@@ -179,11 +212,16 @@ describe('test directives', function() {
                 "fontStyle": "normal",
                 "fontWeight": "normal"
             };
-            var el = compile("<label-editor st-model='thing'></graphic-editor>", {
+            var attributes = [
+                {name: 'a', type: 'string'},
+                {name: 'b', type: 'integer'}
+            ];
+            var el = compile("<label-editor layer=layer st-model='thing'></graphic-editor>", {
                 thing: {label: label},
                 layer: {
                     get: function() {
-                        return {attributes: ['a', 'b']};
+                        // mock layerInfo
+                        return {attributes: attributes};
                     }
                 }
             });
@@ -205,10 +243,15 @@ describe('test directives', function() {
                     max: 16
                 }
             };
+            var attributes = [
+                {name: 'a', type: 'string'},
+                {name: 'b', type: 'integer'}
+            ];
             el = compile("<classify-editor show-max-classes=true show-fixed-classes></classify-editor>", {
                 layer: {
                     get: function() {
-                        return {attributes: ['a', 'b']};
+                        // mock layerInfo
+                        return {attributes: attributes};
                     }
                 },
                 activeStyle: {classify: classify},
@@ -220,7 +263,7 @@ describe('test directives', function() {
             });
         });
         it('should bind and edit attribute', function() {
-            click(el.find('ul.dropdown-menu li').get(0));
+            click(el.find('ul.dropdown-menu li').get(1));
             expect(classify.attribute).toBe('a');
         });
         it('should bind and edit maxClasses', function() {
@@ -239,6 +282,13 @@ describe('test directives', function() {
     describe('rules-editor', function() {
         it('has a smoke test', function() {
             var el = compile("<rules-editor></rules-editor>", {});
+            expect(el.children().length).toBe(1);
+        });
+    });
+
+    describe('symbol-editor', function() {
+        it('has a smoke test', function() {
+            var el = compile("<symbol-editor st-model='thing'></symbol-editor>", {thing: {symbol: {}}});
             expect(el.children().length).toBe(1);
         });
     });

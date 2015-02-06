@@ -1,15 +1,7 @@
 <div ng-form="label" class="style-editor-item">
     <div class="title">Label</div>
     <div class="controls">
-        <div data-dropdown>
-            <button type="button" class="dropdown-toggle"   >
-                {{model.attribute||'Select Attribute'}}<span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu scrollable-combo label-attribute" role="menu">
-                <li ng-click="model.attribute=null">[ None ]</li>
-                <li ng-repeat="attribute in layer.get('layerInfo').attributes" ng-click="model.attribute=attribute">{{attribute}}</li>
-            </ul>
-        </div>
+        <attribute-combo layer="layer" st-model="model" css="label-attribute" filter="nogeom"></attribute-combo>
         <number-editor st-model="model" property="fontSize"></number-editor>
     </div>
     <div class="controls">
