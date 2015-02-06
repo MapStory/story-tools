@@ -177,18 +177,19 @@
             } else {
                 layer = new ol.layer.Tile(options);
             }
-            return load(layer, styleName).then(function() {
+            return load.call(self, layer, styleName).then(function() {
                 self.map.addLayer(layer);
                 if (fitExtent === true) {
                     self.map.getView().fitExtent(layer.getExtent(), self.map.getSize());
                 }
             });
         };
-        function describeFeatureType(layer) {
+        this.describeFeatureType = function(layer, url) {
             var id = layer.get('id');
+            var self = this;
             return $http({
                 method: 'GET',
-                url: layer.get('server').path + 'wfs',
+                url: url ? url : layer.get('server').path + 'wfs',
                 params: {
                     'SERVICE': 'WFS',
                     'VERSION': '1.0.0',
@@ -207,8 +208,9 @@
                 layerInfo.typeName = id;
                 layerInfo.featurePrefix = parts[0];
                 angular.extend(layer.get('layerInfo'), layerInfo);
+                self.layer = layer;
             });
-        }
+        };
         function getStyleName(layer, styleName) {
             var promise;
             if (layer.get('server').canStyleWMS && styleName === undefined) {
@@ -285,7 +287,7 @@
             if (layer.get('timeAttribute')) {
                 promise = $q.when('');
             }
-            else if (layer.get('server').timeEndpoint) {
+            else if (layer.get('server') && layer.get('server').timeEndpoint) {
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
                     layer.set('timeAttribute', data.attribute);
@@ -298,7 +300,7 @@
             return promise;
         }
         function load(layer, styleName) {
-            return $q.all(loadCapabilities(layer, styleName), describeFeatureType(layer), getStyleName(layer, styleName));
+            return $q.all(loadCapabilities(layer, styleName), this.describeFeatureType(layer), getStyleName(layer, styleName));
         }
     }
 
