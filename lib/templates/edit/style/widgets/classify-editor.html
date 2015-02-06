@@ -1,7 +1,7 @@
 <div class="style-editor-item">
     <div class="title">Classification</div>
     <div class="controls">
-        <attribute-combo st-model="activeStyle.classify" st-type="classify" css="classify-attribute" filter="nogeom"></attribute-combo>
+        <attribute-combo on-change="changeClassifyProperty" layer="layer" st-model="activeStyle.classify" css="classify-attribute" filter="nogeom"></attribute-combo>
         <div class="btn-group" ng-if="showMaxClasses">
             <input class="btn-xs" size="3" type="number" min="0" step="1" ng-model="activeStyle.classify.maxClasses" ng-change="changeClassifyProperty()"   />
         </div>

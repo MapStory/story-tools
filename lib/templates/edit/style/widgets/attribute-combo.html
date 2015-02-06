@@ -1,9 +1,9 @@
 <div data-dropdown>
     <button type="button" class="dropdown-toggle">
-        {{model.attribute||'Select Attribute'}}<span class="caret"></span>
+        {{model[property]||'Select Attribute'}}<span class="caret"></span>
     </button>
     <ul class="dropdown-menu scrollable-combo {{css}}" role="menu">
-        <li ng-click="model.attribute=null">[ None ]</li>
-        <li ng-repeat="attribute in attributes" ng-click="onSelect(attribute)">{{attribute}}</li>
+        <li ng-click="onChange(null)">[ None ]</li>
+        <li ng-repeat="attribute in attributes" ng-click="onChange(property, attribute)">{{attribute}}</li>
     </ul>
 </div>
