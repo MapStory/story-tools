@@ -5,6 +5,7 @@
     var module = angular.module('fullExample', [
         'storytools.examples.common',
         'storytools.core.time',
+        'storytools.core.mapstory',
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
@@ -17,7 +18,7 @@
     module.constant('mapid', 8675309);
 
     module.controller('exampleController', function($scope, mapFactory, TimeControlsManager,
-        styleUpdater, stAnnotationsStore, StoryPinLayerManager) {
+        styleUpdater, stAnnotationsStore, StoryPinLayerManager, stMapConfigStore) {
         $scope.map = mapFactory.create();
         $scope.pinsOverlay = new ol.FeatureOverlay({
             map: $scope.map.map
@@ -40,6 +41,10 @@
             fixed: false
         };
 
+        $scope.saveMap = function(mapid) {
+            var config = new storytools.mapstory.MapConfig.MapConfig().write($scope.map, mapid);
+            stMapConfigStore.saveConfig(config);
+        };
         $scope.styleChanged = function(layer) {
             styleUpdater.updateStyle(layer);
         };
