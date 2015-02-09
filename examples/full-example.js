@@ -5,6 +5,7 @@
     var module = angular.module('fullExample', [
         'storytools.examples.common',
         'storytools.core.time',
+        'storytools.core.mapstory',
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
@@ -12,7 +13,11 @@
         'ui.bootstrap'
     ]);
 
-    module.controller('exampleController', function($scope, mapFactory, stTimeControlsFactory, styleUpdater) {
+    // @todo determine mapid approach
+    // longer term, this could be controlled using a route, for now it's Jenny
+    module.constant('mapid', 8675309);
+
+    module.controller('exampleController', function($scope, mapFactory, stTimeControlsFactory, styleUpdater, stMapConfigStore) {
         $scope.map = mapFactory.create();
         $scope.timeControls = null;
         $scope.playbackOptions = {
@@ -20,6 +25,10 @@
             fixed: false
         };
 
+        $scope.saveMap = function(mapid) {
+            var config = new storytools.mapstory.MapConfig.MapConfig().write($scope.map, mapid);
+            stMapConfigStore.saveConfig(config);
+        };
         // we currently need to lazily create the timeControls, should probably extract this
         // @todo! we don't want to create the timeControls here if there is a saved configuration
         $scope.map.map.getLayers().on('change:length', function() {

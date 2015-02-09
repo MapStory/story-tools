@@ -24,7 +24,6 @@ var watch = false;
 var coreLibsBundle = 'story-tools-core.js';
 var mapstoryLibsBundle = 'story-tools-mapstory.js';
 var editLibsBundle = 'story-tools-edit.js';
-var editCoreBundle = 'story-tools-core-ng.js';
 var editNgBundle = 'story-tools-edit-ng.js';
 var coreNgBundle = 'story-tools-core-ng.js';
 var coreTemplatesBundle = 'story-tools-core-tpls.js';
