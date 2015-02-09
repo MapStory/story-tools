@@ -9,3 +9,4 @@ require('./test-directives.js');
 require('./test-styleChoices.js');
 require('./test-StyleComplete.js');
 require('./test-storyPins.js');
+require('./test-MapConfig.js');
