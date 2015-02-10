@@ -1,3 +1,4 @@
 <div ng-repeat="lyr in layers">
     {{lyr.get('title')}}
+    <button class="pull-right btn btn-small" ng-click="removeLayer(lyr)"><i class="glyphicon glyphicon-remove-circle"></i></button>
 </div>

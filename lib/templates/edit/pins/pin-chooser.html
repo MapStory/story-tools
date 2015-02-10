@@ -2,22 +2,26 @@
     <table class="table table-condensed">
         <thead>
             <tr>
+                <th></th>
                 <th>Title</th>
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Geometry</th>
                 <th>In Map</th>
                 <th>In Timeline</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="pin in pinsCtrl.storyPins">
+            <tr ng-repeat="pin in pinsCtrl.storyPinLayerManager.storyPins" ng-class="pinsCtrl.currentPin == pin ? 'active' : ''">
+                <td><i ng-click='editPin(pin)' style="cursor: pointer;" class='glyphicon glyphicon-edit'></i></td>
                 <td>{{ pin.title }}</td>
-                <td>{{ pin.start_time }}</td>
-                <td>{{ pin.end_time }}</td>
+                <td>{{ pin.start_time|isodate }}</td>
+                <td>{{ pin.end_time|isodate }}</td>
                 <td>{{ pin.$feature.getGeometry().getType() }}</td>
                 <td>{{ pin.in_map }}</td>
                 <td>{{ pin.in_timeline }}</td>
+                <td><i ng-click='pinsCtrl.deleteStoryPin(pin)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>
             </tr>
         </tbody>
     </table>

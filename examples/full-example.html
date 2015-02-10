@@ -59,11 +59,19 @@
             #middle{
                 display: table-cell;
             }
+            .side {
+                display: table-cell;
+                vertical-align: middle;
+                float: none;
+            }
             .floating {
                 left: 0;
                 position: absolute;
                 z-index: 500;
                 padding: 1em;
+            }
+            .floating-below {
+                z-index: 400;
             }
             #map {
                 width: 100%;
@@ -78,10 +86,17 @@
                 top: 4.5em;
                 bottom: auto;
             }
-            #time-controls-panel, #time-controls-panel > div {
+            #time-controls-panel {
                 padding: 0;
-                width: 100%;
                 bottom: 0;
+                width: 100%;
+            }
+            #time-controls-panel > div {
+                padding: 1px 16px;
+                background:white;
+            }
+            #time-controls-panel2 {
+                padding: 1px 16px;
             }
             .todo {
                 color: white;
@@ -145,39 +160,40 @@
                         </div>
                     </div>
                     <!-- @todo style-editor-item class used for convenience -->
-                    <div ng-if="selected.pins" class="floating col-lg-4 style-editor-item" pins-editor>
-                        <accordion close-others="true" ng-init="open={1:true,2:false}">
-                            <accordion-group heading="Add StoryPin" is-open="open.1">
+                    <div ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="pinsLayerManager" pins-overlay="pinsOverlay">
+                        <accordion close-others="false" ng-init="open={chooser:true,editor:false}">
+                            <accordion-group heading="StoryPins" is-open="open.chooser">
+                                <button>Bulk Upload</button>
+                                <button ng-click="pinsCtrl.editStoryPin(); open.editor=true">Add StoryPin</button>
+                                <pin-chooser pin-selected="open.editor=true"></pin-chooser>
+                            </accordion-group>
+                            <accordion-group is-open="open.editor">
+                                <accordion-heading><div ng-bind="pinsCtrl.currentPin ? 'Edit StoryPin ' + pinsCtrl.currentPin.title : 'Add StoryPin'"></div></accordion-heading>
                                 <div pin-editor>
                                     <pin-editor-form></pin-editor-form>
-                                    <button ng-disabled="!pinCtrl.isFormValid()" ng-click="pinsCtrl.addStoryPin(pinCtrl.finish())">Add Pin</button>
-                                    <span ng-show="storyPinAdded" class="ng-hide">Added</span>
+                                    <button ng-disabled="!pinCtrl.isFormValid()" ng-click="pinsCtrl.saveStoryPin()">Save</button>
                                 </div>
-                            </accordion-group>
-                            <accordion-group heading="StoryPins" is-open="open.2">
-                                <button>Bulk Upload</button>
-                                <pin-chooser story-pins="storyPins"></pin-chooser>
                             </accordion-group>
                         </accordion>
                     </div>
-                    <div id="time-controls-panel" ng-show="selected.preview" class="floating ng-hide">
-                        <div style="position:absolute; bottom:0; background:white">
-                            <div id="slider"></div>
-                            <st-playback-controls ng-show="timeControls" time-controls="timeControls"></st-playback-controls>
-                            <div id="timeline"></div>
-                        </div>
-                    </div>
+                    <!--<div id="time-controls-panel" ng-show="true||selected.preview||selected.pins" class="floating floating-below ng-hide">
+                    </div>-->
                     <div ng-show="selected.preview" class="floating ng-hide col-lg-4">
                         <div class="panel">
                             <div class="panel-heading">Playback Options</div>
                             <div class="panel-body">
-                                <st-playback-settings playback-options="playbackOptions" time-controls="timeControls"></st-playback-settings>
+                                <st-playback-settings playback-options="playbackOptions" time-controls="timeControlsManager.timeControls"></st-playback-settings>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div id="footer">
+                <div id="time-controls-panel2">
+                    <div id="slider"></div>
+                    <st-playback-controls ng-show="timeControlsManager.timeControls" time-controls="timeControlsManager.timeControls"></st-playback-controls>
+                    <div id="timeline"></div>
+                </div>
             </div>
         </div>
     </body>

@@ -71,4 +71,113 @@ describe("test maps", function() {
         expect(data[0]).toBe(599616000000);
         expect(data[24]).toBe(1356998400000);
     });
+    describe('computeVectorRange works', function() {
+        var layer, features, range;
+
+        beforeEach(function() {
+            layer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                timeAttribute: "time"
+            });
+
+            features = [
+                new ol.Feature({time: 1000})
+            ];
+            layer.set('features', features);
+        });
+
+        it('using features as property', function() {
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(1000);
+            expect(range.end).toBe(1000);
+        });
+        it('using features from source', function() {
+            layer.set('features', null);
+            layer.getSource().addFeatures(features);
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(1000);
+            expect(range.end).toBe(1000);
+        });
+        it('when empty endTimeAttribute', function() {
+            layer.set('endTimeAttribute', 'endTime');
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(1000);
+            expect(range.end).toBe(1000);
+        });
+        it('when unsorted mixed data', function() {
+            layer.set('endTimeAttribute', 'endTime');
+            features.push(new ol.Feature({time: 500}));
+            features.push(new ol.Feature({time: 100, endTime: 900}));
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(100);
+            expect(range.end).toBe(1000);
+        });
+        it('with single endAttribute', function() {
+            layer.set('endTimeAttribute', 'endTime');
+            layer.set('features', [new ol.Feature({endTime: 678})]);
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(678);
+            expect(range.end).toBe(678);
+        });
+        it('when text', function() {
+            // works with text
+            layer.set('features', [new ol.Feature({time: '2001'})]);
+            range = maps.computeVectorRange(layer);
+            expect(range.start).toBe(Date.parse('2001'));
+            expect(range.end).toBe(Date.parse('2001'));
+        });
+    });
+    describe('filterVectorLayer works', function() {
+        var layer, features;
+
+        function ids() {
+            var ids = layer.getSource().getFeatures().map(function(f) {
+                return f.get('id');
+            });
+            ids.sort();
+            return ids;
+        }
+
+        beforeEach(function() {
+            layer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                timeAttribute: "time",
+                endTimeAttribute: "endTime"
+            });
+            var id = 1;
+            features = [
+                new ol.Feature({id:id++, time: 1000}),
+                new ol.Feature({id:id++, time: 1000, endTime: 2000}),
+                new ol.Feature({id:id++, time: 2000}),
+                new ol.Feature({id:id++, time: 2000, endTime: 3000})
+            ];
+            layer.set('features', features);
+        });
+        it('filters instants', function() {
+            layer.set('endTimeAttribute', null);
+            // range before everything
+            maps.filterVectorLayer(layer, {start:500, end: 501});
+            expect(ids()).toEqual([]);
+            // range after everything
+            maps.filterVectorLayer(layer, {start:2500, end: 2600});
+            expect(ids()).toEqual([]);
+            // direct hit (ignores end exclusion)
+            maps.filterVectorLayer(layer, {start:2000, end: 2000});
+            expect(ids()).toEqual([3,4]);
+        });
+        it('filters extents', function() {
+            // range before everything
+            maps.filterVectorLayer(layer, {start:500, end: 501});
+            expect(ids()).toEqual([]);
+            // range before and after everything
+            maps.filterVectorLayer(layer, {start:500, end: 4000});
+            expect(ids()).toEqual([1,2,3,4]);
+            // excludes 3 due to intersection rules with end
+            maps.filterVectorLayer(layer, {start:1000, end:2000});
+            expect(ids()).toEqual([1,2]);
+            // 1 and 3 included as they are open ended and before
+            maps.filterVectorLayer(layer, {start:3000, end:4000});
+            expect(ids()).toEqual([1,3,4]);
+        });
+    });
 });

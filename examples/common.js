@@ -290,6 +290,10 @@
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
                     layer.set('timeAttribute', data.attribute);
+                    if (data.endAttribute) {
+                        // @todo verify this with sample from mapstory that has endAttribute
+                        layer.set('endTimeAttribute', data.endAttribute);
+                    }
                 });
             } else {
                 // @todo make sure we have time attribute _somehow_
@@ -387,6 +391,9 @@
                 scope.map.map.getLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
                 });
+                scope.removeLayer = function(lyr) {
+                    scope.map.map.removeLayer(lyr);
+                };
             }
         };
     });
