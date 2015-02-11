@@ -209,7 +209,7 @@
                             <div ng-repeat="lyr in map.map.getLayers().getArray()">
                                 <h4>ID: {{ lyr.get('id') }}</h4>
                                 <pre>title = {{ lyr.get('title') | json }}</pre>
-                                <pre>times = {{ lyr.get('times') | json }}</pre>
+                                <pre>times = {{ lyr.get('layerInfo').times | json }}</pre>
                                 <pre>layerInfo = {{ lyr.get('layerInfo') | json }}</pre>
                             </div>
                         </div>
