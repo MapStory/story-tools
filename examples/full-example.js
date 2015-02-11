@@ -43,8 +43,8 @@
                 var options = {};
                 if (result.mapstoryMapId) {
                     options.url = '/maps/' + result.mapstoryMapId + "/data/";
-                } else if (result.locallocalMapId) {
-                    options.id = result.locallocalMapId;
+                } else if (result.localMapId) {
+                    options.id = result.localMapId;
                 }
                 $scope.map.loadMap(options);
             });
