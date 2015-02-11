@@ -114,15 +114,26 @@
     </head>
     <body ng-controller="exampleController as example">
         <div id="container" ng-init="selected = {layers:true}">
-            <div id="header">
-                <ul class="nav nav-pills" id="tl-nav">
+            <div id="header" class="navbar navbar-default">
+                <ul class="nav navbar-nav nav-pills" id="tl-nav">
                     <li ng-class="selected.layers && 'active'"><a ng-click="selected = {layers:true}">Layers</a></li>
                     <li ng-class="selected.style && 'active'"><a ng-click="selected = {style:true}">Style</a></li>
                     <li ng-class="selected.boxes && 'active'"><a ng-click="selected = {boxes:true}">Boxes</a></li>
                     <li ng-class="selected.pins && 'active'"><a ng-click="selected = {pins:true}">Pins</a></li>
                     <li ng-class="selected.preview && 'active'"><a ng-click="selected = {preview:true}">Preview</a></li>
+                    <li ng-class="selected.debug && 'active'"><a ng-click="selected = {debug:true}">Debug</a></li>
                 </ul>
-                <button style="position: absolute; top: 2px; right: 2px;" ng-click="saveMap()" class="btn btn-primary">Save Map</button>
+                <ul class="nav navbar-nav nav-pills navbar-right">
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            Map <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a ng-click="showLoadMapDialog()">Load</a></li>
+                            <li><a ng-click="saveMap()">Save</a></li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
             <div id="main">
                 <div id="content">
@@ -161,7 +172,7 @@
                         </div>
                     </div>
                     <!-- @todo style-editor-item class used for convenience -->
-                    <div ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="pinsLayerManager" pins-overlay="pinsOverlay">
+                    <div ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="map.storyPinLayerManager" pins-overlay="map.overlay">
                         <accordion close-others="false" ng-init="open={chooser:true,editor:false}">
                             <accordion-group heading="StoryPins" is-open="open.chooser">
                                 <button>Bulk Upload</button>
@@ -184,6 +195,16 @@
                             <div class="panel-heading">Playback Options</div>
                             <div class="panel-body">
                                 <st-playback-settings playback-options="playbackOptions" time-controls="timeControlsManager.timeControls"></st-playback-settings>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-show="selected.debug" class="floating ng-hide col-lg-8" style="max-height: 75%; overflow: auto; background:white">
+                        <div class="panel">
+                            <div ng-repeat="lyr in map.map.getLayers().getArray()">
+                                <h4>ID: {{ lyr.get('id') }}</h4>
+                                <pre>title = {{ lyr.get('title') | json }}</pre>
+                                <pre>times = {{ lyr.get('times') | json }}</pre>
+                                <pre>layerInfo = {{ lyr.get('layerInfo') | json }}</pre>
                             </div>
                         </div>
                     </div>

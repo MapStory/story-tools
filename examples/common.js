@@ -80,30 +80,71 @@
         })
     })];
 
-    function MapManager($http, $q, $log) {
+    function MapManager($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
         var self = this;
         this.map = new ol.Map({target: 'map'});
+        this.overlay = new ol.FeatureOverlay({
+            map: this.map
+        });
+        this.storyPinLayerManager = new StoryPinLayerManager();
         this.defaultMap = function() {
             this.map.setView(new ol.View({center: [0,0], zoom: 3}));
             this.map.addLayer(new ol.layer.Tile({
                 source: new ol.source.MapQuest({layer: 'sat'})
             }));
         };
+        this.loadMap = function(options) {
+            options = options || {};
+            this.map.getLayers().clear();
+            if (options.id) {
+                var config = stMapConfigStore.loadConfig(options.id);
+                new storytools.mapstory.MapConfig.MapConfig().read(config, self);
+                var annotations = stAnnotationsStore.loadAnnotations(options.id);
+                this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
+            } else if (options.url) {
+                $http.get(options.url).success(function(data) {
+                    new storytools.mapstory.MapConfig.MapConfig().read(data, self);
+                }).error(function(data, status) {
+                    if (status === 401) {
+                        window.console.warn('Not authorized to see map ' + mapId);
+                        self.defaultMap();
+                    }
+                });
+                $http.get(options.url.replace('/data/','/annotations')).success(function(data) {
+                    // @todo move elsewhere
+                    var annotations = [];
+                    var collection = data.features;
+                    for (var i = 0, ii = collection.length; i < ii; i++) {
+                        var f = collection[i];
+                        var pin = {
+                            id: f.id,
+                            the_geom: f.geometry
+                        };
+                        angular.extend(pin, f.properties);
+                        annotations.push(pin);
+                    }
+                    self.storyPinLayerManager.pinsChanged(annotations, 'add', true);
+                });
+            } else {
+                this.defaultMap();
+            }
+            this.currentMapOptions = options;
+            // @todo how to make on top?
+            this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
+        };
+        this.saveMap = function() {
+            var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
+            stMapConfigStore.saveConfig(config);
+        };
+        // @todo put this into router
         var mapId = null;
         if (window.location.hash !== "") {
             mapId = window.location.hash.replace('#', '');
         }
         if (mapId !== null) {
-            $http.get('/maps/' + mapId + '/data/').success(function(data) {
-                new storytools.mapstory.MapConfig.MapConfig().read(data, self);
-            }).error(function(data, status) {
-                if (status === 401) {
-                    window.console.warn('Not authorized to see map ' + mapId);
-                    self.defaultMap();
-                }
-            });
+            this.loadMap({url:'/maps/' + mapId + '/data/'});
         } else {
-            this.defaultMap();
+            this.loadMap();
         }
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
@@ -337,10 +378,10 @@
         };
     });
 
-    module.service('mapFactory', function($http, $q, $log) {
+    module.service('mapFactory', function($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
         return {
             create: function() {
-                return new MapManager($http, $q, $log);
+                return new MapManager($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore);
             }
         };
     });
@@ -395,6 +436,23 @@
                     scope.map.map.removeLayer(lyr);
                 };
             }
+        };
+    });
+
+    module.service('loadMapDialog', function($modal, $rootScope, stMapConfigStore) {
+        function show() {
+            var scope = $rootScope.$new(true);
+            scope.maps = stMapConfigStore.listMaps();
+            scope.choice = {};
+            return $modal.open({
+                templateUrl: 'templates/load-map-dialog.html',
+                scope: scope
+            }).result.then(function() {
+                return scope.choice;
+            });
+        };
+        return {
+            show: show
         };
     });
 
