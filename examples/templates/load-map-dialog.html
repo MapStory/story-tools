@@ -7,9 +7,9 @@
             <label for="msid">From MapStory</label>
             <input id="msid" type="number" ng-model="choice.mapstoryMapId">
         </div>
-        <select>
+        <select ng-model="choice.localMapId">
             <option ng-click="null">Local Map</option>
-            <option ng-repeat="map in maps" ng-click="choice.localMapId = map.id">Map {{map.id}}</option>
+            <option ng-repeat="map in maps" ng-value="{{map.id}}">Map {{map.id}}</option>
         </select>
     </div>
     <div class="modal-footer">

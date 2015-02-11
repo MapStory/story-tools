@@ -35,7 +35,7 @@ describe('MapConfig', function() {
             })
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","times":["2001","2002","2003"],"layerInfo":{"geomType":"point"},"singleTile":false,"type":"WMS","params":{"LAYERS":"x"}}]}}';
+        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","times":["2001","2002","2003"],"layerInfo":{"geomType":"point"},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
         expect(JSON.stringify(config)).toBe(expected);
     });
 
@@ -60,7 +60,7 @@ describe('MapConfig', function() {
             })
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":217,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","times":["2001","2002","2003"],"layerInfo":{"geomType":"point"},"singleTile":true,"type":"WMS","params":{"LAYERS":"x"}}]}}';
+        var expected = '{"id":217,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","times":["2001","2002","2003"],"layerInfo":{"geomType":"point"},"singleTile":true,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
         expect(JSON.stringify(config)).toBe(expected);
     });
 
