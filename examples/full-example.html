@@ -180,7 +180,7 @@
                                 <pin-chooser pin-selected="open.editor=true"></pin-chooser>
                             </accordion-group>
                             <accordion-group is-open="open.editor">
-                                <accordion-heading><div ng-bind="pinsCtrl.currentPin ? 'Edit StoryPin ' + pinsCtrl.currentPin.title : 'Add StoryPin'"></div></accordion-heading>
+                                <accordion-heading><div ng-bind="pinsCtrl.isEditing() ? 'Edit StoryPin ' + pinsCtrl.currentPin.title : 'Add StoryPin'"></div></accordion-heading>
                                 <div pin-editor>
                                     <pin-editor-form></pin-editor-form>
                                     <button ng-disabled="!pinCtrl.isFormValid()" ng-click="pinsCtrl.saveStoryPin()">Save</button>
