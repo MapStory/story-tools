@@ -260,7 +260,8 @@ describe('ol3StyleConverter', function() {
                 }
             }]
         };
-        var style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 5}));
+        // this tests for being inclusive on the lower boundary
+        var style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 0}));
         expect(style[0].getImage().getFill().getColor()).toBe('#ff9900');
         style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
         expect(style[0].getImage().getFill().getColor()).toBe('#b36b00');
@@ -274,7 +275,8 @@ describe('ol3StyleConverter', function() {
         styleConfig.geomType = "polygon";
         style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 5}));
         expect(style[0].getFill().getColor()).toBe('#ff9900');
-        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 15}));
+        // this tests for being inclusive on the upper bondary
+        style = ol3StyleConverter.generateStyle(styleConfig, new ol.Feature({'foo': 20}));
         expect(style[0].getFill().getColor()).toBe('#b36b00');
 
     }));
