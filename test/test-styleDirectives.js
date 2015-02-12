@@ -3,32 +3,10 @@ require('../lib/ng/edit/style/services/iconCommons.js');
 require('../lib/ng/edit/style/services/styleChoices.js');
 require('../lib/ng/core/style/ol3StyleConverter.js');
 require('../lib/ng/core/style/svgIcon.js');
+helpers = require('./helpers.js');
 $ = require('../bower_components/jquery/dist/jquery.js');
 
-function setInputValue(el, val) {
-    el.val(val);
-    // tiggerHandler only works with angular element (not jquery)?
-    angular.element(el).triggerHandler(sniffer.hasEvent('input') ? 'input' : 'change');
-    return el;
-}
-
-function click(el) {
-    angular.element(el).triggerHandler('click');
-}
-
-function compile(html, contents) {
-    var scope = $rootScope.$new();
-    var el = $compile(html)(scope);
-    angular.extend(scope, contents);
-    scope.$digest();
-    return $(el);
-}
-
-function getScope(el) {
-    return angular.element(el).scope();
-}
-
-describe('test directives', function() {
+describe('test style directives', function() {
 
     beforeEach(function() {
         // @todo mock dependency for now - used by graphicEditor
@@ -44,11 +22,7 @@ describe('test directives', function() {
         window.angular.mock.module('storytools.core.style.ol3StyleConverter');
         window.angular.mock.module('storytools.core.style.svgIcon');
 
-        inject(inject(function(_$compile_, _$rootScope_, $sniffer) {
-            $compile = _$compile_;
-            $rootScope = _$rootScope_;
-            sniffer = $sniffer;
-        }));
+        inject(helpers.inject);
     });
 
     describe('attribute-combo', function() {
@@ -73,32 +47,32 @@ describe('test directives', function() {
                 return angular.element(el.find('li').splice(1)).text();
             }
             // expecting all attributes
-            var el = compile("<attribute-combo layer=layer></attribute-combo>", scope);
+            var el = helpers.compile("<attribute-combo layer=layer></attribute-combo>", scope);
             expect(attributeText(el)).toBe('dgist');
             // exclude geom
-            el = compile("<attribute-combo filter=nogeom layer=layer></attribute-combo>", scope);
+            el = helpers.compile("<attribute-combo filter=nogeom layer=layer></attribute-combo>", scope);
             expect(attributeText(el)).toBe('dist');
             // include string and integer
-            el = compile("<attribute-combo include='string,integer' layer=layer></attribute-combo>", scope);
+            el = helpers.compile("<attribute-combo include='string,integer' layer=layer></attribute-combo>", scope);
             expect(attributeText(el)).toBe('is');
         });
     });
 
     describe('number editor', function() {
         it('should bind and edit', function() {
-            var el = compile("<number-editor st-model='thing' property='value'></number-editor>", {thing: {value: 42}});
+            var el = helpers.compile("<number-editor st-model='thing' property='value'></number-editor>", {thing: {value: 42}});
             expect(el.find('button').text().trim()).toBe('42');
-            setInputValue(el.find('input'), '13');
-            expect(getScope(el).thing.value).toBe(13);
+            helpers.setInputValue(el.find('input'), '13');
+            expect(helpers.getScope(el).thing.value).toBe(13);
         });
     });
 
     describe('color editor', function() {
         it('should bind and edit', function() {
-            var el = compile("<color-editor st-model='thing' property='value'></color-editor>", {thing: {value: '#faa'}});
+            var el = helpers.compile("<color-editor st-model='thing' property='value'></color-editor>", {thing: {value: '#faa'}});
             expect(el.find('i').css('backgroundColor')).toBe('rgb(255, 170, 170)');
-            setInputValue(el.find('input'), '#aaa');
-            expect(getScope(el).thing.value).toBe('#aaa');
+            helpers.setInputValue(el.find('input'), '#aaa');
+            expect(helpers.getScope(el).thing.value).toBe('#aaa');
             expect(el.find('i').css('backgroundColor')).toBe('rgb(170, 170, 170)');
         });
     });
@@ -110,7 +84,7 @@ describe('test directives', function() {
             stRecentChoices.icons.clear();
         }));
         it('should bind and edit marks', function() {
-            var el = compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {shape: 'circle'}});
+            var el = helpers.compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {shape: 'circle'}});
             // @todo not a great test - instead of using a canvas, this could be an image w/ data URI
             expect(el.find('span canvas').attr('mark')).toBe('circle');
             angular.forEach(el.find('canvas'), function(e) {
@@ -141,7 +115,7 @@ describe('test directives', function() {
             // completed and the recent icons have been set in the scope
             function whenReady(el, $httpBackend) {
                 // grab the directive scope and watch for svg icons to resolve before running tests
-                var scope = getScope(el.children());
+                var scope = helpers.getScope(el.children());
                 var loaded = $q.defer();
                 scope.$watch('recent', function() {
                     loaded.resolve(true);
@@ -154,7 +128,7 @@ describe('test directives', function() {
             // this will cover the failure case. see: http://jasmine.github.io/2.0/introduction.html#section-Asynchronous_Support
             // IMPORTANT: $timeout.flush() is required to trigger promise resolution
             it('should bind to recent choices', function(done) {
-                var el = compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {}});
+                var el = helpers.compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {}});
                 whenReady(el, $httpBackend).then(function() {
                     var img = el.find('.recent-icons img');
                     expect(img.length).toBe(2);
@@ -163,7 +137,7 @@ describe('test directives', function() {
                 $timeout.flush();
             });
             it('should update with change in recent choices', function(done) {
-                var el = compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {}});
+                var el = helpers.compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {}});
 
                 whenReady(el, $httpBackend).then(function() {
                     var img = el.find('.recent-icons img');
@@ -177,7 +151,7 @@ describe('test directives', function() {
                         // and add this recent choice (normally would be from user selecting from icon-commons dialog
                         stRecentChoices.icons.add('/item3.svg');
                         // this triggers an update as if user used the dialog
-                        getScope(el.children())._updateRecent();
+                        helpers.getScope(el.children())._updateRecent();
                         // there should be 3 icons now
                         whenReady(el, $httpBackend).then(function() {
                             var img = el.find('.recent-icons img');
@@ -189,7 +163,7 @@ describe('test directives', function() {
                 $timeout.flush();
             });
             it('should bind and edit svg', function(done) {
-                var el = compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {graphic: '/item1.svg'}});
+                var el = helpers.compile("<graphic-editor symbol='thing'></graphic-editor>", {thing: {graphic: '/item1.svg'}});
                 whenReady(el, $httpBackend).then(function() {
                     var img = el.find('.recent-icons img');
                     expect(img.length).toBe(2);
@@ -216,7 +190,7 @@ describe('test directives', function() {
                 {name: 'a', type: 'string'},
                 {name: 'b', type: 'integer'}
             ];
-            var el = compile("<label-editor layer=layer st-model='thing'></graphic-editor>", {
+            var el = helpers.compile("<label-editor layer=layer st-model='thing'></graphic-editor>", {
                 thing: {label: label},
                 layer: {
                     get: function() {
@@ -226,7 +200,7 @@ describe('test directives', function() {
                 }
             });
             expect(el.find('.dropdown-toggle').eq(0).text().trim()).toBe('Select Attribute');
-            click(el.find('.dropdown-menu').eq(0).find('li').eq(1));
+            helpers.click(el.find('.dropdown-menu').eq(0).find('li').eq(1));
             expect(label.attribute).toBe('a');
         });
     });
@@ -247,7 +221,7 @@ describe('test directives', function() {
                 {name: 'a', type: 'string'},
                 {name: 'b', type: 'integer'}
             ];
-            el = compile("<classify-editor show-max-classes=true show-fixed-classes></classify-editor>", {
+            el = helpers.compile("<classify-editor show-max-classes=true show-fixed-classes></classify-editor>", {
                 layer: {
                     get: function() {
                         // mock layerInfo
@@ -263,32 +237,32 @@ describe('test directives', function() {
             });
         });
         it('should bind and edit attribute', function() {
-            click(el.find('ul.dropdown-menu li').get(1));
+            helpers.click(el.find('ul.dropdown-menu li').get(1));
             expect(classify.attribute).toBe('a');
         });
         it('should bind and edit maxClasses', function() {
-            setInputValue(el.find('[ng-if=showMaxClasses] input').eq(0), '13');
+            helpers.setInputValue(el.find('[ng-if=showMaxClasses] input').eq(0), '13');
             expect(classify.maxClasses).toBe(13);
         });
     });
 
     describe('stroke-editor', function() {
         it('has a smoke test', function() {
-            var el = compile("<stroke-editor st-model='thing'></stroke-editor>", {thing: {stroke: {}}});
+            var el = helpers.compile("<stroke-editor st-model='thing'></stroke-editor>", {thing: {stroke: {}}});
             expect(el.children().length).toBe(1);
         });
     });
 
     describe('rules-editor', function() {
         it('has a smoke test', function() {
-            var el = compile("<rules-editor></rules-editor>", {});
+            var el = helpers.compile("<rules-editor></rules-editor>", {});
             expect(el.children().length).toBe(1);
         });
     });
 
     describe('symbol-editor', function() {
         it('has a smoke test', function() {
-            var el = compile("<symbol-editor st-model='thing'></symbol-editor>", {thing: {symbol: {}}});
+            var el = helpers.compile("<symbol-editor st-model='thing'></symbol-editor>", {thing: {symbol: {}}});
             expect(el.children().length).toBe(1);
         });
     });
