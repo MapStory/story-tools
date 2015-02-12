@@ -143,6 +143,7 @@
         this.saveMap = function() {
             var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
             stMapConfigStore.saveConfig(config);
+            stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
         };
         // @todo put this into router
         var mapId = null;
