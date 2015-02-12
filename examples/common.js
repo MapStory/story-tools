@@ -43,6 +43,7 @@
         {
             name: 'mapstory',
             path: '/geoserver/',
+            absolutePath: 'http://mapstory.org/geoserver/',
             canStyleWMS: false,
             timeEndpoint: function(layer) {
                 return '/maps/time_info.json?layer=' + layer.get('name');
@@ -226,6 +227,15 @@
             });
         };
         this.describeFeatureType = function(layer, url) {
+            if (url) {
+                for (var i=0, ii=servers.length; i<ii; ++i) {
+                    if (servers[i].absolutePath) {
+                        if (url.indexOf(servers[i].absolutePath) !== -1) {
+                            url = url.replace(servers[i].absolutePath, servers[i].path);
+                        }
+                    }
+                }
+            }
             var id = layer.get('id');
             var self = this;
             return $http({
@@ -450,7 +460,7 @@
             }).result.then(function() {
                 return scope.choice;
             });
-        };
+        }
         return {
             show: show
         };
