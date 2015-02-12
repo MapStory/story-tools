@@ -11,3 +11,4 @@ require('./test-styleChoices.js');
 require('./test-StyleComplete.js');
 require('./test-storyPins.js');
 require('./test-MapConfig.js');
+require('./test-timeServices.js');

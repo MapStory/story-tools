@@ -39,6 +39,7 @@ describe("test utils", function() {
             r = utils.createRange(1999, null);
             expect(r.start).toBe(1999);
             expect(r.end).toBe(null);
+            // null 2nd arg (open range)
             r = utils.createRange(null, 6789);
             expect(r.start).toBe(null);
             expect(r.end).toBe(6789);
@@ -112,6 +113,15 @@ describe("test utils", function() {
             expect(r.intersects(utils.createRange(2004, 2005))).toBe(false);
             expect(r.intersects(utils.createRange(1998, 1999))).toBe(false);
         });
+        it("isRangeLike works", function() {
+            expect(utils.isRangeLike(null)).toBe(false);
+            expect(utils.isRangeLike(undefined)).toBe(false);
+            expect(utils.isRangeLike('x')).toBe(false);
+            expect(utils.isRangeLike(22)).toBe(false);
+            expect(utils.isRangeLike({start:1})).toBe(true);
+            expect(utils.isRangeLike({end:1})).toBe(true);
+            expect(utils.isRangeLike({start:1, end:1})).toBe(true);
+        });
     });
     it("tests interval picking", function() {
         expect(utils.pickInterval(utils.createRange('2000','2001'))).toBe(
@@ -128,5 +138,8 @@ describe("test utils", function() {
         r = utils.computeRange([utils.createRange(100,400), utils.createRange(100,300)]);
         expect(r.start).toBe(100);
         expect(r.end).toBe(400);
+        r = utils.computeRange([20,10,50]);
+        expect(r.start).toBe(10);
+        expect(r.end).toBe(50);
     });
 });

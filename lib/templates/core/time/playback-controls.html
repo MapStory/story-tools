@@ -2,3 +2,5 @@
 <button class="btn" ng-click="prev()">&lt;&lt;</button>
 <button class="btn" ng-click="next()">&gt;&gt;</button>
 <button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }">{{ loopText}}</button>
+Start: {{ currentRange.start|isodate }}
+End: {{ currentRange.end|isodate }}
