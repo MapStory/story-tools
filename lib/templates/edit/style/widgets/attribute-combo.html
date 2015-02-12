@@ -3,7 +3,7 @@
         {{model[property]||'Select Attribute'}}<span class="caret"></span>
     </button>
     <ul class="dropdown-menu scrollable-combo {{css}}" role="menu">
-        <li ng-click="onChange(null)">[ None ]</li>
+        <li ng-click="onChange(property, null)">[ None ]</li>
         <li ng-repeat="attribute in attributes" ng-click="onChange(property, attribute)">{{attribute}}</li>
     </ul>
 </div>
