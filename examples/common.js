@@ -122,6 +122,13 @@
                             the_geom: f.geometry
                         };
                         angular.extend(pin, f.properties);
+                        // timestamps are in seconds - not milliseconds
+                        if (pin.start_time) {
+                            pin.start_time *= 1000;
+                        }
+                        if (pin.end_time) {
+                            pin.end_time *= 1000;
+                        }
                         annotations.push(pin);
                     }
                     self.storyPinLayerManager.pinsChanged(annotations, 'add', true);
