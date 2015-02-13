@@ -1,24 +1,6 @@
 var maps = require('../lib/core/time/maps.js');
 
 describe("test maps", function() {
-    it("parseISODuration should throw sometimes", function() {
-        expect(function() {
-            maps.parseISODuration('TP1M');
-        }).toThrowError('expected P as starting duration : TP1M');
-        expect(function() {
-            maps.parseISODuration('P1X');
-        }).toThrowError('unknown duration specifier : X');
-    });
-    it("parseISODuration should parse correctly", function() {
-        expect(maps.parseISODuration('PT1S')).toBe(1000);
-        expect(maps.parseISODuration('PT1M')).toBe(60000);
-        expect(maps.parseISODuration('PT1H')).toBe(3600000);
-        expect(maps.parseISODuration('P1D')).toBe(86400000);
-        expect(maps.parseISODuration('P1W')).toBe(604800000);
-        expect(maps.parseISODuration('P1M')).toBe(2592000000);
-        expect(maps.parseISODuration('P1Y')).toBe(31536000000);
-        expect(maps.parseISODuration('P1MT1M')).toBe(2592000000 + 60000);
-    });
     it("readCapabilitiesTimeDimensions works", function() {
         function makeCaps(config) {
             return {

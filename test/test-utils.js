@@ -142,4 +142,33 @@ describe("test utils", function() {
         expect(r.start).toBe(10);
         expect(r.end).toBe(50);
     });
+    it("tests createOffsetter works", function() {
+        function offsetAsISO(timestamp, duration) {
+            return new Date(utils.createOffsetter(duration)(timestamp)).toISOString();
+        }
+        expect(offsetAsISO('1970', 'P1Y')).toBe('1971-01-01T00:00:00.000Z');
+        expect(offsetAsISO('1970-06-01', 'P1Y1M')).toBe('1971-07-01T00:00:00.000Z');
+        expect(offsetAsISO('1974-02-28T12:24', 'P2Y2M')).toBe('1976-04-28T12:24:00.000Z');
+        expect(offsetAsISO('1974-02-28T12:24', 'P2Y2M')).toBe('1976-04-28T12:24:00.000Z');
+        // verify current algorithm fails - jan 31st + 1month wraps into march
+        expect(offsetAsISO('1974-01-31T12:24', 'P2Y1M')).toBe('1976-03-02T12:24:00.000Z');
+    });
+        it("parseISODuration should throw sometimes", function() {
+        expect(function() {
+            utils.parseISODuration('TP1M');
+        }).toThrowError('expected P as starting duration : TP1M');
+        expect(function() {
+            utils.parseISODuration('P1X');
+        }).toThrowError('unknown duration specifier : X');
+    });
+    it("parseISODuration should parse correctly", function() {
+        expect(utils.parseISODuration('PT1S')).toBe(1000);
+        expect(utils.parseISODuration('PT1M')).toBe(60000);
+        expect(utils.parseISODuration('PT1H')).toBe(3600000);
+        expect(utils.parseISODuration('P1D')).toBe(86400000);
+        expect(utils.parseISODuration('P1W')).toBe(604800000);
+        expect(utils.parseISODuration('P1M')).toBe(2592000000);
+        expect(utils.parseISODuration('P1Y')).toBe(31536000000);
+        expect(utils.parseISODuration('P1MT1M')).toBe(2592000000 + 60000);
+    });
 });

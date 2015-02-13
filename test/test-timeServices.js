@@ -1,7 +1,7 @@
-require('../lib/ng/core/time/services.js');
 storytools = {
     core: require('../lib/core/index.js')
 };
+require('../lib/ng/core/time/services.js');
 
 describe('test time services', function() {
 
@@ -37,7 +37,7 @@ describe('test time services', function() {
             layers = timeLayers(
                 [10000, 40000],
                 [20000, 30000],
-                {start: 5000, end: 50000, interval: 5000}
+                new storytools.core.time.utils.Interval({start: 5000, end: 50000, duration:'P5S'})
             );
             var results = [];
             for (var i = 5000; i <= 50000; i+= 5000 ) {
