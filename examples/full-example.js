@@ -6,9 +6,9 @@
         'storytools.examples.common'
     ]);
 
-    module.controller('exampleController', function($scope, mapFactory, TimeControlsManager,
-        styleUpdater, loadMapDialog) {
-        var map = mapFactory.create();
+    module.controller('exampleController', function($scope, MapManager, TimeControlsManager,
+        styleUpdater, loadMapDialog, $location) {
+        var map = MapManager;
 
         var timeControlsManager = new TimeControlsManager({
             mode: map.mode,
@@ -27,19 +27,20 @@
         $scope.saveMap = function() {
             map.saveMap();
         };
+        $scope.newMap = function() {
+            $location.path('/new');
+        };
         $scope.styleChanged = function(layer) {
             styleUpdater.updateStyle(layer);
         };
         $scope.showLoadMapDialog = function() {
             var promise = loadMapDialog.show();
             promise.then(function(result) {
-                var options = {};
                 if (result.mapstoryMapId) {
-                    options.url = '/maps/' + result.mapstoryMapId + "/data/";
+                    $location.path('/maps/' + result.mapstoryMapId + "/data/");
                 } else if (result.localMapId) {
-                    options.id = result.localMapId;
+                    $location.path('/local/' + result.localMapId);
                 }
-                $scope.map.loadMap(options);
             });
         };
 

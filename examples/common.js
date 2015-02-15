@@ -89,7 +89,8 @@
         })
     })];
 
-    function MapManager($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
+    function MapManager($http, $q, $log, $rootScope, $location,
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
         var self = this;
         this.map = new ol.Map({target: 'map'});
         this.overlay = new ol.FeatureOverlay({
@@ -153,16 +154,16 @@
             stMapConfigStore.saveConfig(config);
             stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
         };
-        // @todo put this into router
-        var mapId = null;
-        if (window.location.hash !== "") {
-            mapId = window.location.hash.replace('#', '');
-        }
-        if (mapId !== null) {
-            this.loadMap({url:'/maps/' + mapId + '/data/'});
-        } else {
-            this.loadMap();
-        }
+        $rootScope.$on('$locationChangeSuccess', function() {
+            var path = $location.path();
+            if (path === '/new') {
+                self.loadMap();
+            } else if (path.indexOf('/local') == 0) {
+                self.loadMap({id: /\d+/.exec(path)});
+            } else {
+                self.loadMap({url: path});
+            }
+        });
         this.getNamedLayers = function() {
             return this.map.getLayers().getArray().filter(function(lyr) {
                 return angular.isString(lyr.get('name'));
@@ -404,12 +405,8 @@
         };
     });
 
-    module.service('mapFactory', function($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
-        return {
-            create: function() {
-                return new MapManager($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore);
-            }
-        };
+    module.service('MapManager', function($injector) {
+        return $injector.instantiate(MapManager);
     });
 
     module.directive('addLayers', function($modal, $log) {
