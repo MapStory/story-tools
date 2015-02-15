@@ -241,8 +241,8 @@ describe('test style directives', function() {
             expect(classify.attribute).toBe('a');
         });
         it('should bind and edit maxClasses', function() {
-            helpers.setInputValue(el.find('[ng-if=showMaxClasses] input').eq(0), '13');
-            expect(classify.maxClasses).toBe(13);
+            helpers.setInputValue(el.find('[ng-if=showMaxClasses] input').eq(0), '7');
+            expect(classify.maxClasses).toBe(7);
         });
     });
 
