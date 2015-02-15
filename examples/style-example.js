@@ -3,9 +3,8 @@
 (function() {
 
     var module = angular.module('styleExample', [
-        'storytools.edit.style',
-        'storytools.examples.common',
-        'colorpicker.module']);
+        'storytools.examples.common'
+    ]);
     var mapManager;
 
     function makeLayers() {
@@ -19,7 +18,7 @@
                 d['rotation_degrees'] = 360 / parseInt(Math.max(1, Math.random()*12));
                 return new ol.Feature(d);
             });
-            atts.push('rotation', 'rotation_degrees');
+            atts.push({name:'rotation', type:'double'},{name:'rotation_degrees', type:'double'});
             mapManager.addMemoryLayer({
                 id: name,
                 geomType: type,
@@ -27,23 +26,30 @@
                 attributes: atts
             });
         }
+        function atts(a1, a2, a3) {
+            return [
+                { name: a1, type: 'string' },
+                { name: a2, type: 'integer' },
+                { name: a3, type: 'double' },
+            ];
+        }
         makeLayer('point1', 'point', [
             {'geometry': new ol.geom.Point([-500000, -500000])},
             {'geometry': new ol.geom.Point([-500000, -400000])},
             {'geometry': new ol.geom.Point([-500000, -300000])},
             {'geometry': new ol.geom.Point([-500000, -200000])},
             {'geometry': new ol.geom.Point([-500000, -100000])}
-        ], ['p1a1','p1a2','p1a3']);
+        ], atts('p1a1','p1a2','p1a3'));
         makeLayer('point2', 'point', [
             {'geometry': new ol.geom.Point([-750000, -500000])},
             {'geometry': new ol.geom.Point([-750000, -400000])},
             {'geometry': new ol.geom.Point([-750000, -300000])},
             {'geometry': new ol.geom.Point([-750000, -200000])},
             {'geometry': new ol.geom.Point([-750000, -100000])}
-        ], ['p2a1','p2a2','p2a3']);
+        ], atts('p2a1','p2a2','p2a3'));
         makeLayer('line', 'line', [
             {'geometry': new ol.geom.LineString([[0, 0], [-500000, 500000]])}
-        ], ['l1','l2','l3']);
+        ], atts('l1','l2','l3'));
     }
 
     module.run(function(mapFactory) {

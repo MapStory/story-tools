@@ -3,14 +3,7 @@
 (function() {
 
     var module = angular.module('fullExample', [
-        'storytools.examples.common',
-        'storytools.core.time',
-        'storytools.core.mapstory',
-        'storytools.edit.style',
-        'storytools.edit.boxes',
-        'storytools.edit.pins',
-        'colorpicker.module',
-        'ui.bootstrap'
+        'storytools.examples.common'
     ]);
 
     module.controller('exampleController', function($scope, mapFactory, TimeControlsManager,

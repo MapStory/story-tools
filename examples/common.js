@@ -1,6 +1,14 @@
 (function() {
 
-    var module = angular.module('storytools.examples.common', []);
+    var module = angular.module('storytools.examples.common', [
+        'storytools.core.time',
+        'storytools.core.mapstory',
+        'storytools.edit.style',
+        'storytools.edit.boxes',
+        'storytools.edit.pins',
+        'colorpicker.module',
+        'ui.bootstrap'
+    ]);
 
     module.run(function() {
         // install a watchers debug loop
