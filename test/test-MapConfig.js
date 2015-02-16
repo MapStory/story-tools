@@ -4,6 +4,15 @@ var instance = new MapConfig();
 
 describe('MapConfig', function() {
 
+    it('should transform to Interval object', function() {
+        var data = JSON.parse('{"id":214,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","layerInfo":{"geomType":"point","attributes": ["attr1", "attr2"],"timeAttribute":"attr1","times":{"start": 631152000000, "end": 1230768000000, "duration": "P1Y"}},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}');
+        instance.read(data, {
+            mapid: 214,
+            map: new ol.Map({view: new ol.View()})
+        });
+        expect(data.map.layers[0].layerInfo.times.interval).toBe(31536000000);
+    });
+
     it('should convert extent, zoom and projection', function() {
         var mapManager = {
             mapid: 215
