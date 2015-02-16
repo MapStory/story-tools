@@ -70,7 +70,7 @@
                 z-index: 500;
                 padding: 1em;
             }
-            .floating-below {
+            .floating-below * {
                 z-index: 400;
             }
             #map {
@@ -109,6 +109,11 @@
             }
             input.ng-invalid {
                 border-color: red;
+            }
+            pin-chooser {
+                display: block;
+                height: 400px;
+                overflow: auto;
             }
         </style>
     </head>
@@ -211,7 +216,7 @@
                     </div>
                 </div>
             </div>
-            <div id="footer">
+            <div id="footer" class='floating-below'>
                 <div id="time-controls-panel2">
                     <div id="slider"></div>
                     <div class="navbar" style="margin:5px 0 0; min-height: auto" ng-controller="tileProgressController">
