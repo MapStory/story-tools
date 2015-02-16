@@ -83,6 +83,16 @@
 
     function MapManager($http, $q, $log, StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
         var self = this;
+        var projCfg = {
+            units: 'm',
+            extent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
+            global: true,
+            worldExtent: [-180, -85, 180, 85]
+        };
+        projCfg.code = 'EPSG:3857';
+        ol.proj.addProjection(new ol.proj.Projection(projCfg));
+        projCfg.code = 'EPSG:900913';
+        ol.proj.addProjection(new ol.proj.Projection(projCfg));
         this.map = new ol.Map({target: 'map'});
         this.overlay = new ol.FeatureOverlay({
             map: this.map
