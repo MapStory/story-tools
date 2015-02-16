@@ -15,12 +15,12 @@ describe('test time services', function() {
             Array.prototype.slice.call(arguments).forEach(function(data) {
                 layers.push({
                     get: function() {
-                        return data;
+                        return {times: data};
                     }
                 });
             });
             return layers;
-        };
+        }
         beforeEach(function() {
 
             inject(function($injector) {

@@ -277,9 +277,7 @@
             }).success(function(data) {
                 var wfs = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
                 var layerInfo = wfs.parseResult(data);
-                if (layerInfo.timeAttr !== null) {
-                    layer.set('timeAttribute', layerInfo.timeAttr);
-                } else {
+                if (layerInfo.timeAttribute === null) {
                     getTimeAttribute(layer);
                 }
                 var parts = id.split(':');
@@ -317,7 +315,7 @@
                 );
             layer.setExtent(extent);
             if (name in found) {
-                layer.set('times', found[name]);
+                angular.extend(layer.get('layerInfo') || {}, {times: found[name]});
                 start = found[name].start || found[name][0];
             }
             if (layer instanceof ol.layer.Tile) {
@@ -361,16 +359,16 @@
         }
         function getTimeAttribute(layer) {
             var promise;
-            if (layer.get('timeAttribute')) {
+            if (layer.get('layerInfo').timeAttribute) {
                 promise = $q.when('');
             }
             else if (layer.get('server') && layer.get('server').timeEndpoint) {
                 var url = layer.get('server').timeEndpoint(layer);
                 $http.get(url).success(function(data) {
-                    layer.set('timeAttribute', data.attribute);
+                    angular.extend(layer.get('layerInfo') || {}, {timeAttribute: data.attribute});
                     if (data.endAttribute) {
                         // @todo verify this with sample from mapstory that has endAttribute
-                        layer.set('endTimeAttribute', data.endAttribute);
+                        angular.extend(layer.get('layerInfo') || {}, {endTimeAttribute: data.endAttribute});
                     }
                 });
             } else {

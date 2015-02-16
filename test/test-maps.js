@@ -59,7 +59,9 @@ describe("test maps", function() {
         beforeEach(function() {
             layer = new ol.layer.Vector({
                 source: new ol.source.Vector(),
-                timeAttribute: "time"
+                layerInfo: {
+                    timeAttribute: "time"
+                }
             });
 
             features = [
@@ -81,7 +83,9 @@ describe("test maps", function() {
             expect(range.end).toBe(1000);
         });
         it('when empty endTimeAttribute', function() {
-            layer.set('endTimeAttribute', 'endTime');
+            var layerInfo = layer.get('layerInfo');
+            layerInfo.endTimeAttribute = 'endTime';
+            layer.set('layerInfo', layerInfo);
             range = maps.computeVectorRange(layer);
             expect(range.start).toBe(1000);
             expect(range.end).toBe(1000);
@@ -95,7 +99,9 @@ describe("test maps", function() {
             expect(range.end).toBe(1000);
         });
         it('with single endAttribute', function() {
-            layer.set('endTimeAttribute', 'endTime');
+            var layerInfo = layer.get('layerInfo');
+            layerInfo.endTimeAttribute = 'endTime';
+            layer.set('layerInfo', layerInfo);
             layer.set('features', [new ol.Feature({endTime: 678})]);
             range = maps.computeVectorRange(layer);
             expect(range.start).toBe(678);
@@ -123,8 +129,10 @@ describe("test maps", function() {
         beforeEach(function() {
             layer = new ol.layer.Vector({
                 source: new ol.source.Vector(),
-                timeAttribute: "time",
-                endTimeAttribute: "endTime"
+                layerInfo: {
+                    timeAttribute: "time",
+                    endTimeAttribute: "endTime"
+                }
             });
             var id = 1;
             features = [
@@ -136,7 +144,9 @@ describe("test maps", function() {
             layer.set('features', features);
         });
         it('filters instants', function() {
-            layer.set('endTimeAttribute', null);
+            var layerInfo = layer.get('layerInfo');
+            layerInfo.endTimeAttribute = null;
+            layer.set('layerInfo', layerInfo);
             // range before everything
             maps.filterVectorLayer(layer, {start:500, end: 501});
             expect(ids()).toEqual([]);
