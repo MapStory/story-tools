@@ -122,35 +122,22 @@
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
-                $http.get(options.url).success(function(data) {
+                var mapLoad = $http.get(options.url).success(function(data) {
                     new storytools.mapstory.MapConfig.MapConfig().read(data, self);
+                    return data;
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
                         self.defaultMap();
                     }
                 });
-                $http.get(options.url.replace('/data/','/annotations')).success(function(data) {
-                    // @todo move elsewhere
-                    var annotations = [];
-                    var collection = data.features;
-                    for (var i = 0, ii = collection.length; i < ii; i++) {
-                        var f = collection[i];
-                        var pin = {
-                            id: f.id,
-                            the_geom: f.geometry
-                        };
-                        angular.extend(pin, f.properties);
-                        // timestamps are in seconds - not milliseconds
-                        if (pin.start_time) {
-                            pin.start_time *= 1000;
-                        }
-                        if (pin.end_time) {
-                            pin.end_time *= 1000;
-                        }
-                        annotations.push(pin);
-                    }
-                    self.storyPinLayerManager.pinsChanged(annotations, 'add', true);
+                var annotationsURL = options.url.replace('/data/','/annotations');
+                var annotationsLoad = $http.get(annotationsURL).success(function(data) {
+                    return data;
+                });
+                $q.all([mapLoad, annotationsLoad]).then(function(values) {
+                    var geojson = values[1].data;
+                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
                 });
             } else {
                 this.defaultMap();
