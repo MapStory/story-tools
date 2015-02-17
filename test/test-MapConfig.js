@@ -44,7 +44,7 @@ describe('MapConfig', function() {
             })
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttribute":"attr1","times":["2001","2002","2003"]},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
+        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttribute":"attr1","times":["2001","2002","2003"]},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
         expect(JSON.stringify(config)).toBe(expected);
     });
 
@@ -69,7 +69,7 @@ describe('MapConfig', function() {
             })
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":217,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttr":"attr1","times":["2001","2002","2003"]},"singleTile":true,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
+        var expected = '{"id":217,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttr":"attr1","times":["2001","2002","2003"]},"singleTile":true,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
         expect(JSON.stringify(config)).toBe(expected);
     });
 
@@ -90,7 +90,7 @@ describe('MapConfig', function() {
             }
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":227,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","layerInfo":{"wfsUrl":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"]},"type":"Vector"}]}}';
+        var expected = '{"id":227,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","layerInfo":{"wfsUrl":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"]},"type":"Vector"}]}}';
         expect(JSON.stringify(config)).toBe(expected);
         // if no typeName layer will not get exported
         mapManager.map.getLayers().item(0).get('layerInfo').typeName = undefined;
