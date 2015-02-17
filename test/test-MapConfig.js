@@ -73,6 +73,32 @@ describe('MapConfig', function() {
         expect(JSON.stringify(config)).toBe(expected);
     });
 
+    it('should convert a vector layer', function() {
+        var mapManager = {
+            mapid: 227
+        };
+        mapManager.map = new ol.Map({view: new ol.View({center: [0,0], zoom: 3})});
+        mapManager.map.addLayer(new ol.layer.Vector({
+            id: 'foo',
+            title: 'My layer',
+            layerInfo: {
+                wfsUrl: '/geoserver/wfs',
+                geomType: 'point',
+                timeAttr: 'attr1',
+                typeName: 'foo',
+                times: ['2001', '2002', '2003']
+            }
+        }));
+        var config = instance.write(mapManager);
+        var expected = '{"id":227,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","title":"My layer","layerInfo":{"wfsUrl":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"]},"type":"Vector"}]}}';
+        expect(JSON.stringify(config)).toBe(expected);
+        // if no typeName layer will not get exported
+        mapManager.map.getLayers().item(0).get('layerInfo').typeName = undefined;
+        config = instance.write(mapManager);
+        expected = '{"id":227,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[]}}';
+        expect(JSON.stringify(config)).toBe(expected);
+    });
+
     it('should convert an OSM layer', function() {
         var mapManager = {
             mapid: 218
