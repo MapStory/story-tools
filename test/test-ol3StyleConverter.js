@@ -178,6 +178,10 @@ describe('ol3StyleConverter', function() {
             "stroke": {
                 "strokeColor": "#ffff00"
             },
+            "symbol": {
+                "size": 10,
+                "shape": "circle"
+            },
             "geomType": "point",
             "classify": {
                 "attribute": "foo"
@@ -227,6 +231,10 @@ describe('ol3StyleConverter', function() {
         var styleConfig = {
             "stroke": {
                 "strokeColor": "#ffff00"
+            },
+            "symbol": {
+                "size": 10,
+                "shape": "circle"
             },
             "geomType": "point",
             "classify": {
@@ -285,6 +293,10 @@ describe('ol3StyleConverter', function() {
         var styleConfig = {
             "stroke": {
                 "strokeColor": "#ffff00"
+            },
+            "symbol": {
+                "size": 10,
+                "shape": "circle"
             },
             "geomType": "point",
             "classify": {
