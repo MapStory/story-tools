@@ -253,6 +253,22 @@
                 }
             });
         };
+        this.getFeatures = function(layer, wfsUrl, start) {
+            var name = layer.get('layerInfo').typeName, self = this;
+            wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
+                name + '&outputFormat=application/json' +
+                '&srsName=' + self.map.getView().getProjection().getCode();
+            $http.get(wfsUrl).success(function(response) {
+                var features = new ol.format.GeoJSON().readFeatures(response);
+                layer.setSource(new ol.source.Vector());
+                if (start) {
+                    layer.set('features', features);
+                    storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
+                } else {
+                    layer.getSource().addFeatures(features);
+                }
+            });
+        };
         this.describeFeatureType = function(layer, url) {
             if (url) {
                 for (var i=0, ii=servers.length; i<ii; ++i) {
@@ -335,20 +351,8 @@
                     serverType: 'geoserver'
                 }));
             } else if (layer instanceof ol.layer.Vector) {
-                var wfsUrl = url;
-                wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
-                    name + '&outputFormat=application/json' +
-                    '&srsName=' + self.map.getView().getProjection().getCode();
-                $http.get(wfsUrl).success(function(response) {
-                    var features = new ol.format.GeoJSON().readFeatures(response);
-                    layer.setSource(new ol.source.Vector());
-                    if (start) {
-                        layer.set('features', features);
-                        storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
-                    } else {
-                        layer.getSource().addFeatures(features);
-                    }
-                });
+                angular.extend(layer.get('layerInfo') || {}, {wfsUrl: url});
+                self.getFeatures.call(self, layer, url, start);
             }
         }
         function loadCapabilities(layer, styleName) {
