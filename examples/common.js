@@ -118,7 +118,7 @@
         this.setBaseLayer = function(cfg, baseLayer) {
             this.baseLayer = cfg;
             this.map.getLayers().forEach(function(lyr) {
-                if (lyr.get('group') === 'base') {
+                if (lyr.get('group') === 'background') {
                     this.map.removeLayer(lyr);
                 }
             }, this);
@@ -488,8 +488,14 @@
                     type: 'MapQuest',
                     layer: 'sat'
                 }, {
+                    title: 'Humanitarian OpenStreetMap',
+                    type: 'HOT'
+                }, {
                     title: 'OpenStreetMap',
                     type: 'OSM'
+                }, {
+                    title: 'No background',
+                    type: 'None'
                 }];
                 scope.map.map.getLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
