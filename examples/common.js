@@ -109,9 +109,23 @@
         this.storyPinLayerManager = new StoryPinLayerManager();
         this.defaultMap = function() {
             this.map.setView(new ol.View({center: [0,0], zoom: 3}));
-            this.map.addLayer(new ol.layer.Tile({
-                source: new ol.source.MapQuest({layer: 'sat'})
-            }));
+            this.setBaseLayer({
+                title: 'Satellite Imagery',
+                type: 'MapQuest',
+                layer: 'sat'
+            });
+        };
+        this.setBaseLayer = function(baseLayer) {
+            this.baseLayer = baseLayer;
+            this.map.getLayers().forEach(function(lyr) {
+                if (lyr.get('group') === 'base') {
+                    this.map.removeLayer(lyr);
+                }
+            }, this);
+            var layerObj = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(baseLayer);
+            if (layerObj !== undefined) {
+                this.map.getLayers().insertAt(0, layerObj);
+            }
         };
         this.loadMap = function(options) {
             options = options || {};
@@ -451,11 +465,31 @@
             },
             templateUrl: 'templates/layer-list.html',
             link: function(scope, el, atts) {
+                scope.baseLayers = [{
+                    title: 'World Light',
+                    type: 'MapBox',
+                    name: 'world-light'
+                }, {
+                    title: 'Geography Class',
+                    type: 'MapBox',
+                    name: 'geography-class'
+                }, {
+                    title: 'Natural Earth 2',
+                    type: 'MapBox',
+                    name: 'natural-earth-2'
+                }, {
+                    title: 'Satellite Imagery',
+                    type: 'MapQuest',
+                    layer: 'sat'
+                }];
                 scope.map.map.getLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
                 });
                 scope.removeLayer = function(lyr) {
                     scope.map.map.removeLayer(lyr);
+                };
+                scope.onChange = function(baseLayer) {
+                    scope.map.setBaseLayer(baseLayer);
                 };
             }
         };
