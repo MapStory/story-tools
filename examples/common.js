@@ -115,16 +115,18 @@
                 layer: 'sat'
             });
         };
-        this.setBaseLayer = function(baseLayer) {
-            this.baseLayer = baseLayer;
+        this.setBaseLayer = function(cfg, baseLayer) {
+            this.baseLayer = cfg;
             this.map.getLayers().forEach(function(lyr) {
                 if (lyr.get('group') === 'base') {
                     this.map.removeLayer(lyr);
                 }
             }, this);
-            var layerObj = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(baseLayer);
-            if (layerObj !== undefined) {
-                this.map.getLayers().insertAt(0, layerObj);
+            if (baseLayer === undefined) {
+                baseLayer = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(cfg);
+            }
+            if (baseLayer !== undefined) {
+                this.map.getLayers().insertAt(0, baseLayer);
             }
         };
         this.loadMap = function(options) {
