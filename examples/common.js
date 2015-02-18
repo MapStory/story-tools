@@ -493,6 +493,9 @@
                 }, {
                     title: 'OpenStreetMap',
                     type: 'OSM'
+                }, {
+                    title: 'No background',
+                    type: 'None'
                 }];
                 scope.map.map.getLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
