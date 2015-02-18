@@ -480,9 +480,16 @@
                     type: 'MapBox',
                     name: 'natural-earth-2'
                 }, {
+                    title: 'Natural Earth',
+                    type: 'MapBox',
+                    name: 'natural-earth-1'
+                }, {
                     title: 'Satellite Imagery',
                     type: 'MapQuest',
                     layer: 'sat'
+                }, {
+                    title: 'OpenStreetMap',
+                    type: 'OSM'
                 }];
                 scope.map.map.getLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
