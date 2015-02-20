@@ -4,8 +4,9 @@
         <button class="pull-right btn btn-xs" ng-click="removeLayer(lyr)"><i class="glyphicon glyphicon-remove-circle"></i></button>
     </div>
 </div>
-<div data-dropdown>
-    <button type="button" class="dropdown-toggle">
+<div data-dropdown style="position:relative">
+    <label>Background:</label>
+    <button type="button" class="dropdown-toggle btn">
         {{map.baseLayer.title||'Select Base Layer'}}<span class="caret"></span>
     </button>
     <ul class="dropdown-menu scrollable-combo {{css}}" role="menu">
