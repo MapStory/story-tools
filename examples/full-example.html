@@ -216,11 +216,11 @@
                     </div>
                 </div>
             </div>
-            <div id="footer" class='floating-below'>
+            <div id="footer" class='floating-below' ng-show="timeControlsManager.timeControls">
                 <div id="time-controls-panel2">
                     <div id="slider"></div>
                     <div class="navbar" style="margin:5px 0 0; min-height: auto" ng-controller="tileProgressController">
-                        <st-playback-controls class="pull-left" ng-show="timeControlsManager.timeControls" time-controls="timeControlsManager.timeControls"></st-playback-controls>
+                        <st-playback-controls class="pull-left" time-controls="timeControlsManager.timeControls"></st-playback-controls>
                         <progressbar animate="false" style="width: 15%; margin:6px 0; font-size:14px" class="navbar-nav navbar-right" value="tilesLoadedProgress"><b ng-if="tilesLoaded" ng-bind="tilesLoaded + '/' + tilesToLoad" style="color:black"></b></progressbar>
                     </div>
                     <div id="timeline"></div>
