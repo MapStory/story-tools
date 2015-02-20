@@ -124,6 +124,7 @@
             }, this);
             if (baseLayer === undefined) {
                 baseLayer = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(cfg);
+                baseLayer.set('group', 'background');
             }
             if (baseLayer !== undefined) {
                 this.map.getLayers().insertAt(0, baseLayer);
