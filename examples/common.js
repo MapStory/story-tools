@@ -141,17 +141,14 @@
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     new storytools.mapstory.MapConfig.MapConfig().read(data, self);
-                    return data;
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
                         self.defaultMap();
                     }
                 });
-                var annotationsURL = options.url.replace('/data/','/annotations');
-                var annotationsLoad = $http.get(annotationsURL).success(function(data) {
-                    return data;
-                });
+                var annotationsURL = options.url.replace('/data','/annotations');
+                var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
                     self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
