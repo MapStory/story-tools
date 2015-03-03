@@ -105,7 +105,7 @@ describe('SLDStyleConverter', function() {
             "label": {
                 "attribute": "foo",
                 "fillColor": "#000000",
-                "fontFamily": "Serif",
+                "fontFamily": "serif",
                 "fontSize": 10,
                 "fontStyle": "normal",
                 "fontWeight": "normal"
