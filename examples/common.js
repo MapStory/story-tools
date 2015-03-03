@@ -148,6 +148,9 @@
                     }
                 });
                 var annotationsURL = options.url.replace('/data','/annotations');
+                if (annotationsURL.slice(-1) === '/') {
+                    annotationsURL = annotationsURL.slice(0, -1);
+                }
                 var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
@@ -169,7 +172,7 @@
             var path = $location.path();
             if (path === '/new') {
                 self.loadMap();
-            } else if (path.indexOf('/local') == 0) {
+            } else if (path.indexOf('/local') === 0) {
                 self.loadMap({id: /\d+/.exec(path)});
             } else {
                 self.loadMap({url: path});
