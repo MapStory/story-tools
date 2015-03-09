@@ -115,6 +115,35 @@
                 layer: 'sat'
             });
         };
+        this.setAllowPan = function(allowPan) {
+            this.map.getInteractions().forEach(function(i) {
+                if (i instanceof ol.interaction.KeyboardPan ||
+                  i instanceof ol.interaction.DragPan) {
+                    i.setActive(allowPan);
+                }
+            });
+        };
+        this.setAllowZoom = function(allowZoom) {
+            var zoomCtrl;
+            this.map.getControls().forEach(function(c) {
+                if (c instanceof ol.control.Zoom) {
+                    zoomCtrl = c;
+                }
+            });
+            if (!allowZoom) {
+                this.map.removeControl(zoomCtrl);
+            } else {
+                this.map.addControl(new ol.control.Zoom());
+            }
+            this.map.getInteractions().forEach(function(i) {
+                if (i instanceof ol.interaction.DoubleClickZoom ||
+                  i instanceof ol.interaction.PinchZoom ||
+                  i instanceof ol.interaction.DragZoom ||
+                  i instanceof ol.interaction.MouseWheelZoom) {
+                    i.setActive(allowZoom);
+                }
+            });
+        };
         this.setBaseLayer = function(cfg, baseLayer) {
             this.baseLayer = cfg;
             this.map.getLayers().forEach(function(lyr) {
