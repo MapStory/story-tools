@@ -115,6 +115,19 @@
                 layer: 'sat'
             });
         };
+        this.animateCenterAndZoom = function(center, zoom) {
+            var view = this.map.getView();
+            this.map.beforeRender(ol.animation.pan({
+                duration: 500,
+                source: view.getCenter()
+            }));
+            view.setCenter(center);
+            this.map.beforeRender(ol.animation.zoom({
+                resolution: view.getResolution(),
+                duration: 500
+            }));
+            view.setZoom(zoom);
+        };
         this.setAllowPan = function(allowPan) {
             this.map.getInteractions().forEach(function(i) {
                 if (i instanceof ol.interaction.KeyboardPan ||
