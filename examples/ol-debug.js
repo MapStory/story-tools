@@ -1,6 +1,6 @@
 // OpenLayers 3. See http://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/ol3/master/LICENSE.md
-// Version: old-master-9480-g194933d
+// Version: old-master-9547-g189708f
 
 (function (root, factory) {
   if (typeof define === "function" && define.amd) {
@@ -18651,7 +18651,8 @@ ol.proj.Units = {
   DEGREES: 'degrees',
   FEET: 'ft',
   METERS: 'm',
-  PIXELS: 'pixels'
+  PIXELS: 'pixels',
+  USFEET: 'us-ft'
 };
 
 
@@ -18666,6 +18667,7 @@ ol.proj.METERS_PER_UNIT[ol.proj.Units.DEGREES] =
     2 * Math.PI * ol.sphere.NORMAL.radius / 360;
 ol.proj.METERS_PER_UNIT[ol.proj.Units.FEET] = 0.3048;
 ol.proj.METERS_PER_UNIT[ol.proj.Units.METERS] = 1;
+ol.proj.METERS_PER_UNIT[ol.proj.Units.USFEET] = 1200 / 3937;
 
 
 
@@ -47455,7 +47457,7 @@ ol.renderer.Layer.prototype.loadImage = function(image) {
     // listener (a noop if the listener was already registered)
     goog.asserts.assert(imageState == ol.ImageState.IDLE ||
         imageState == ol.ImageState.LOADING);
-    goog.events.listenOnce(image, goog.events.EventType.CHANGE,
+    goog.events.listen(image, goog.events.EventType.CHANGE,
         this.handleImageChange_, false, this);
   }
   if (imageState == ol.ImageState.IDLE) {
@@ -52565,20 +52567,22 @@ goog.provide('ol.geom.flat.segments');
  * @param {number} offset Offset.
  * @param {number} end End.
  * @param {number} stride Stride.
- * @param {function(ol.Coordinate, ol.Coordinate): T} callback Function
+ * @param {function(this: S, ol.Coordinate, ol.Coordinate): T} callback Function
  *     called for each segment.
+ * @param {S=} opt_this The object to be used as the value of 'this'
+ *     within callback.
  * @return {T|boolean} Value.
- * @template T
+ * @template T,S
  */
 ol.geom.flat.segments.forEach =
-    function(flatCoordinates, offset, end, stride, callback) {
+    function(flatCoordinates, offset, end, stride, callback, opt_this) {
   var point1 = [flatCoordinates[offset], flatCoordinates[offset + 1]];
   var point2 = [];
   var ret;
   for (; (offset + stride) < end; offset += stride) {
     point2[0] = flatCoordinates[offset + stride];
     point2[1] = flatCoordinates[offset + stride + 1];
-    ret = callback(point1, point2);
+    ret = callback.call(opt_this, point1, point2);
     if (ret) {
       return ret;
     }
@@ -55707,6 +55711,12 @@ ol.style.createDefaultEditingStyles = function() {
   ];
   styles[ol.geom.GeometryType.MULTI_LINE_STRING] =
       styles[ol.geom.GeometryType.LINE_STRING];
+
+  styles[ol.geom.GeometryType.CIRCLE] =
+      styles[ol.geom.GeometryType.POLYGON].concat(
+          styles[ol.geom.GeometryType.LINE_STRING]
+      );
+
 
   styles[ol.geom.GeometryType.POINT] = [
     new ol.style.Style({
@@ -61540,6 +61550,7 @@ goog.require('ol.geom.flat.inflate');
 goog.require('ol.geom.flat.interpolate');
 goog.require('ol.geom.flat.intersectsextent');
 goog.require('ol.geom.flat.length');
+goog.require('ol.geom.flat.segments');
 goog.require('ol.geom.flat.simplify');
 
 
@@ -61633,6 +61644,25 @@ ol.geom.LineString.prototype.closestPointXY =
   return ol.geom.flat.closest.getClosestPoint(
       this.flatCoordinates, 0, this.flatCoordinates.length, this.stride,
       this.maxDelta_, false, x, y, closestPoint, minSquaredDistance);
+};
+
+
+/**
+ * Iterate over each segment, calling the provided callback.
+ * If the callback returns a truthy value the function returns that
+ * value immediately. Otherwise the function returns `false`.
+ *
+ * @param {function(this: S, ol.Coordinate, ol.Coordinate): T} callback Function
+ *     called for each segment.
+ * @param {S=} opt_this The object to be used as the value of 'this'
+ *     within callback.
+ * @return {T|boolean} Value.
+ * @template T,S
+ * @api
+ */
+ol.geom.LineString.prototype.forEachSegment = function(callback, opt_this) {
+  return ol.geom.flat.segments.forEach(this.flatCoordinates, 0,
+      this.flatCoordinates.length, this.stride, callback, opt_this);
 };
 
 
@@ -63100,8 +63130,10 @@ goog.provide('ol.source.Image');
 
 goog.require('goog.array');
 goog.require('goog.asserts');
+goog.require('goog.events.Event');
 goog.require('ol.Attribution');
 goog.require('ol.Extent');
+goog.require('ol.ImageState');
 goog.require('ol.array');
 goog.require('ol.source.Source');
 
@@ -63189,6 +63221,33 @@ ol.source.Image.prototype.getImage = goog.abstractMethod;
 
 
 /**
+ * Handle image change events.
+ * @param {goog.events.Event} event Event.
+ * @protected
+ */
+ol.source.Image.prototype.handleImageChange = function(event) {
+  var image = /** @type {ol.Image} */ (event.target);
+  switch (image.getState()) {
+    case ol.ImageState.LOADING:
+      this.dispatchEvent(
+          new ol.source.ImageEvent(ol.source.ImageEventType.IMAGELOADSTART,
+              image));
+      break;
+    case ol.ImageState.LOADED:
+      this.dispatchEvent(
+          new ol.source.ImageEvent(ol.source.ImageEventType.IMAGELOADEND,
+              image));
+      break;
+    case ol.ImageState.ERROR:
+      this.dispatchEvent(
+          new ol.source.ImageEvent(ol.source.ImageEventType.IMAGELOADERROR,
+              image));
+      break;
+  }
+};
+
+
+/**
  * Default image load function for image sources that use ol.Image image
  * instances.
  * @param {ol.Image} image Image.
@@ -63196,6 +63255,62 @@ ol.source.Image.prototype.getImage = goog.abstractMethod;
  */
 ol.source.Image.defaultImageLoadFunction = function(image, src) {
   image.getImage().src = src;
+};
+
+
+
+/**
+ * @classdesc
+ * Events emitted by {@link ol.source.Image} instances are instances of this
+ * type.
+ *
+ * @constructor
+ * @extends {goog.events.Event}
+ * @implements {oli.source.ImageEvent}
+ * @param {string} type Type.
+ * @param {ol.Image} image The image.
+ */
+ol.source.ImageEvent = function(type, image) {
+
+  goog.base(this, type);
+
+  /**
+   * The image related to the event.
+   * @type {ol.Image}
+   * @api
+   */
+  this.image = image;
+
+};
+goog.inherits(ol.source.ImageEvent, goog.events.Event);
+
+
+/**
+ * @enum {string}
+ */
+ol.source.ImageEventType = {
+
+  /**
+   * Triggered when an image starts loading.
+   * @event ol.source.ImageEvent#imageloadstart
+   * @api
+   */
+  IMAGELOADSTART: 'imageloadstart',
+
+  /**
+   * Triggered when an image finishes loading.
+   * @event ol.source.ImageEvent#imageloadend
+   * @api
+   */
+  IMAGELOADEND: 'imageloadend',
+
+  /**
+   * Triggered if image loading results in an error.
+   * @event ol.source.ImageEvent#imageloaderror
+   * @api
+   */
+  IMAGELOADERROR: 'imageloaderror'
+
 };
 
 goog.provide('ol.source.ImageCanvas');
@@ -63787,7 +63902,7 @@ function enlargedArea(a, b) {
            (Math.max(b[3], a[3]) - Math.min(b[1], a[1]));
 }
 
-function intersectionArea (a, b) {
+function intersectionArea(a, b) {
     var minX = Math.max(a[0], b[0]),
         minY = Math.max(a[1], b[1]),
         maxX = Math.min(a[2], b[2]),
@@ -63804,7 +63919,7 @@ function contains(a, b) {
            b[3] <= a[3];
 }
 
-function intersects (a, b) {
+function intersects(a, b) {
     return b[0] <= a[2] &&
            b[1] <= a[3] &&
            b[2] >= a[0] &&
@@ -63881,7 +63996,7 @@ function swap(arr, i, j) {
 
 
 // export as AMD/CommonJS module or global variable
-if (typeof define === 'function' && define.amd) define(function() { return rbush; });
+if (typeof define === 'function' && define.amd) define('rbush', function() { return rbush; });
 else if (typeof module !== 'undefined') module.exports = rbush;
 else if (typeof self !== 'undefined') self.rbush = rbush;
 else window.rbush = rbush;
@@ -75621,13 +75736,7 @@ ol.Map.prototype.handleTargetChanged_ = function() {
   // If it's not now an Element we remove the viewport from the DOM.
   // If it's an Element we append the viewport element to it.
 
-  var target = this.getTarget();
-
-  /**
-   * @type {Element}
-   */
-  var targetElement = goog.isDef(target) ?
-      goog.dom.getElement(target) : null;
+  var targetElement = this.getTargetElement();
 
   this.keyHandler_.detach();
 
@@ -76028,12 +76137,7 @@ ol.Map.prototype.skipFeature = function(feature) {
  * @api stable
  */
 ol.Map.prototype.updateSize = function() {
-  var target = this.getTarget();
-
-  /**
-   * @type {Element}
-   */
-  var targetElement = goog.isDef(target) ? goog.dom.getElement(target) : null;
+  var targetElement = this.getTargetElement();
 
   if (goog.isNull(targetElement)) {
     this.setSize(undefined);
@@ -76309,7 +76413,9 @@ ol.Overlay = function(options) {
    * @private
    * @type {Element}
    */
-  this.element_ = goog.dom.createElement(goog.dom.TagName.DIV);
+  this.element_ = goog.dom.createDom(goog.dom.TagName.DIV, {
+    'class': 'ol-overlay-container'
+  });
   this.element_.style.position = 'absolute';
 
   /**
@@ -77304,6 +77410,7 @@ goog.require('ol.TransformFunction');
 goog.require('ol.control.Control');
 goog.require('ol.css');
 goog.require('ol.proj');
+goog.require('ol.proj.METERS_PER_UNIT');
 goog.require('ol.proj.Units');
 goog.require('ol.sphere.NORMAL');
 
@@ -77518,20 +77625,18 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     pointResolution *= Math.PI * cosLatitude * ol.sphere.NORMAL.radius / 180;
     projectionUnits = ol.proj.Units.METERS;
 
-  } else if ((projectionUnits == ol.proj.Units.FEET ||
-      projectionUnits == ol.proj.Units.METERS) &&
+  } else if (projectionUnits != ol.proj.Units.DEGREES &&
       units == ol.control.ScaleLineUnits.DEGREES) {
 
-    // Convert pointResolution from meters or feet to degrees
+    // Convert pointResolution from other units to degrees
     if (goog.isNull(this.toEPSG4326_)) {
       this.toEPSG4326_ = ol.proj.getTransformFromProjections(
           projection, ol.proj.get('EPSG:4326'));
     }
     cosLatitude = Math.cos(goog.math.toRadians(this.toEPSG4326_(center)[1]));
     var radius = ol.sphere.NORMAL.radius;
-    if (projectionUnits == ol.proj.Units.FEET) {
-      radius /= 0.3048;
-    }
+    goog.asserts.assert(goog.isDef(ol.proj.METERS_PER_UNIT[projectionUnits]));
+    radius /= ol.proj.METERS_PER_UNIT[projectionUnits];
     pointResolution *= 180 / (Math.PI * cosLatitude * radius);
     projectionUnits = ol.proj.Units.DEGREES;
 
@@ -83660,7 +83765,7 @@ ol.format.GeoJSON.prototype.readProjectionFromObject = function(object) {
  *
  * @function
  * @param {ol.Feature} feature Feature.
- * @param {olx.format.WriteOptions} options Write options.
+ * @param {olx.format.WriteOptions=} opt_options Write options.
  * @return {string} GeoJSON.
  * @api stable
  */
@@ -83694,6 +83799,8 @@ ol.format.GeoJSON.prototype.writeFeatureObject = function(
   goog.object.remove(properties, feature.getGeometryName());
   if (!goog.object.isEmpty(properties)) {
     object['properties'] = properties;
+  } else {
+    object['properties'] = null;
   }
   return object;
 };
@@ -83704,7 +83811,7 @@ ol.format.GeoJSON.prototype.writeFeatureObject = function(
  *
  * @function
  * @param {Array.<ol.Feature>} features Features.
- * @param {olx.format.WriteOptions} options Write options.
+ * @param {olx.format.WriteOptions=} opt_options Write options.
  * @return {string} GeoJSON.
  * @api stable
  */
@@ -83739,7 +83846,7 @@ ol.format.GeoJSON.prototype.writeFeaturesObject =
  *
  * @function
  * @param {ol.geom.Geometry} geometry Geometry.
- * @param {olx.format.WriteOptions} options Write options.
+ * @param {olx.format.WriteOptions=} opt_options Write options.
  * @return {string} GeoJSON.
  * @api stable
  */
@@ -85020,13 +85127,13 @@ ol.format.GMLBase = function(opt_options) {
 
   /**
    * @protected
-   * @type {string}
+   * @type {Array.<string>|string|undefined}
    */
   this.featureType = options.featureType;
 
   /**
    * @protected
-   * @type {string}
+   * @type {Object.<string, string>|string|undefined}
    */
   this.featureNS = options.featureNS;
 
@@ -85082,18 +85189,52 @@ ol.format.GMLBase.prototype.readFeaturesInternal = function(node, objectStack) {
     var context = objectStack[0];
     goog.asserts.assert(goog.isObject(context));
     var featureType = context['featureType'];
-    if (!goog.isDef(featureType) && !goog.isNull(node.firstElementChild)) {
-      var member = node.firstElementChild;
-      featureType = member.nodeName.split(':').pop();
+    var featureNS = context['featureNS'];
+    var i, ii, prefix = 'p', defaultPrefix = 'p0';
+    if (!goog.isDef(featureType) && goog.isDefAndNotNull(node.childNodes)) {
+      featureType = [], featureNS = {};
+      for (i = 0, ii = node.childNodes.length; i < ii; ++i) {
+        var child = node.childNodes[i];
+        if (child.nodeType === 1) {
+          var ft = child.nodeName.split(':').pop();
+          if (goog.array.indexOf(featureType, ft) === -1) {
+            var key;
+            if (!goog.object.contains(featureNS, child.namespaceURI)) {
+              key = prefix + goog.object.getCount(featureNS);
+              featureNS[key] = child.namespaceURI;
+            } else {
+              key = goog.object.findKey(featureNS, function(value) {
+                return value === child.namespaceURI;
+              });
+            }
+            featureType.push(key + ':' + ft);
+          }
+        }
+      }
       context['featureType'] = featureType;
-      context['featureNS'] = member.namespaceURI;
+      context['featureNS'] = featureNS;
     }
-    var parsers = {};
+    if (goog.isString(featureNS)) {
+      var ns = featureNS;
+      featureNS = {};
+      featureNS[defaultPrefix] = ns;
+    }
     var parsersNS = {};
-    parsers[featureType] = (localName == 'featureMembers') ?
-        ol.xml.makeArrayPusher(this.readFeatureElement, this) :
-        ol.xml.makeReplacer(this.readFeatureElement, this);
-    parsersNS[context['featureNS']] = parsers;
+    var featureTypes = goog.isArray(featureType) ? featureType : [featureType];
+    for (var p in featureNS) {
+      var parsers = {};
+      for (i = 0, ii = featureTypes.length; i < ii; ++i) {
+        var featurePrefix = featureTypes[i].indexOf(':') === -1 ?
+            defaultPrefix : featureTypes[i].split(':')[0];
+        if (featurePrefix === p) {
+          parsers[featureTypes[i].split(':').pop()] =
+              (localName == 'featureMembers') ?
+              ol.xml.makeArrayPusher(this.readFeatureElement, this) :
+              ol.xml.makeReplacer(this.readFeatureElement, this);
+        }
+      }
+      parsersNS[featureNS[p]] = parsers;
+    }
     features = ol.xml.pushParseAndPop([], parsersNS, node, objectStack);
   }
   if (!goog.isDef(features)) {
@@ -95985,13 +96126,13 @@ ol.format.WFS = function(opt_options) {
 
   /**
    * @private
-   * @type {string}
+   * @type {Array.<string>|string|undefined}
    */
   this.featureType_ = options.featureType;
 
   /**
    * @private
-   * @type {string}
+   * @type {Object.<string, string>|string|undefined}
    */
   this.featureNS_ = options.featureNS;
 
@@ -100122,6 +100263,7 @@ ol.Image.prototype.handleImageLoad_ = function() {
 ol.Image.prototype.load = function() {
   if (this.state == ol.ImageState.IDLE) {
     this.state = ol.ImageState.LOADING;
+    this.changed();
     goog.asserts.assert(goog.isNull(this.imageListenerKeys_));
     this.imageListenerKeys_ = [
       goog.events.listenOnce(this.image_, goog.events.EventType.ERROR,
@@ -104133,11 +104275,11 @@ goog.require('ol.Collection');
 goog.require('ol.Coordinate');
 goog.require('ol.Feature');
 goog.require('ol.FeatureOverlay');
-goog.require('ol.Map');
 goog.require('ol.MapBrowserEvent');
 goog.require('ol.MapBrowserEvent.EventType');
 goog.require('ol.Object');
 goog.require('ol.events.condition');
+goog.require('ol.geom.Circle');
 goog.require('ol.geom.GeometryType');
 goog.require('ol.geom.LineString');
 goog.require('ol.geom.MultiLineString');
@@ -104371,10 +104513,6 @@ ol.interaction.Draw.prototype.setMap = function(map) {
  * @api
  */
 ol.interaction.Draw.handleEvent = function(mapBrowserEvent) {
-  var map = mapBrowserEvent.map;
-  if (!map.isDef()) {
-    return true;
-  }
   var pass = true;
   if (mapBrowserEvent.type === ol.MapBrowserEvent.EventType.POINTERMOVE) {
     pass = this.handlePointerMove_(mapBrowserEvent);
@@ -104419,6 +104557,8 @@ ol.interaction.Draw.handleUpEvent_ = function(event) {
     if (goog.isNull(this.finishCoordinate_)) {
       this.startDrawing_(event);
     } else if (this.mode_ === ol.interaction.DrawMode.POINT ||
+        this.mode_ === ol.interaction.DrawMode.CIRCLE &&
+            !goog.isNull(this.finishCoordinate_) ||
         this.atFinish_(event)) {
       this.finishDrawing();
     } else {
@@ -104527,6 +104667,10 @@ ol.interaction.Draw.prototype.startDrawing_ = function(event) {
             start.slice()]));
       this.sketchPolygonCoords_ = [[start.slice(), start.slice()]];
       geometry = new ol.geom.Polygon(this.sketchPolygonCoords_);
+    } else if (this.mode_ === ol.interaction.DrawMode.CIRCLE) {
+      geometry = new ol.geom.Circle(start.slice(), 0);
+      this.sketchLine_ = new ol.Feature(new ol.geom.LineString([start.slice(),
+            start.slice()]));
     }
   }
   goog.asserts.assert(goog.isDef(geometry));
@@ -104549,7 +104693,7 @@ ol.interaction.Draw.prototype.startDrawing_ = function(event) {
 ol.interaction.Draw.prototype.modifyDrawing_ = function(event) {
   var coordinate = event.coordinate;
   var geometry = this.sketchFeature_.getGeometry();
-  var coordinates, last;
+  var coordinates, last, sketchLineGeom;
   if (this.mode_ === ol.interaction.DrawMode.POINT) {
     goog.asserts.assertInstanceof(geometry, ol.geom.Point);
     last = geometry.getCoordinates();
@@ -104563,6 +104707,9 @@ ol.interaction.Draw.prototype.modifyDrawing_ = function(event) {
     } else if (this.mode_ === ol.interaction.DrawMode.POLYGON) {
       goog.asserts.assertInstanceof(geometry, ol.geom.Polygon);
       coordinates = this.sketchPolygonCoords_[0];
+    } else if (this.mode_ === ol.interaction.DrawMode.CIRCLE) {
+      goog.asserts.assertInstanceof(geometry, ol.geom.Circle);
+      coordinates = geometry.getCenter();
     }
     if (this.atFinish_(event)) {
       // snap to finish
@@ -104578,11 +104725,17 @@ ol.interaction.Draw.prototype.modifyDrawing_ = function(event) {
       goog.asserts.assertInstanceof(geometry, ol.geom.LineString);
       geometry.setCoordinates(coordinates);
     } else if (this.mode_ === ol.interaction.DrawMode.POLYGON) {
-      var sketchLineGeom = this.sketchLine_.getGeometry();
+      sketchLineGeom = this.sketchLine_.getGeometry();
       goog.asserts.assertInstanceof(sketchLineGeom, ol.geom.LineString);
       sketchLineGeom.setCoordinates(coordinates);
       goog.asserts.assertInstanceof(geometry, ol.geom.Polygon);
       geometry.setCoordinates(this.sketchPolygonCoords_);
+    } else if (this.mode_ === ol.interaction.DrawMode.CIRCLE) {
+      goog.asserts.assertInstanceof(geometry, ol.geom.Circle);
+      sketchLineGeom = this.sketchLine_.getGeometry();
+      goog.asserts.assertInstanceof(sketchLineGeom, ol.geom.LineString);
+      sketchLineGeom.setCoordinates([geometry.getCenter(), coordinate]);
+      geometry.setRadius(sketchLineGeom.getLength());
     }
   }
   this.updateSketchFeatures_();
@@ -104686,7 +104839,7 @@ ol.interaction.Draw.prototype.shouldStopEvent = goog.functions.FALSE;
 
 
 /**
- * Redraw the skecth features.
+ * Redraw the sketch features.
  * @private
  */
 ol.interaction.Draw.prototype.updateSketchFeatures_ = function() {
@@ -104735,6 +104888,8 @@ ol.interaction.Draw.getMode_ = function(type) {
   } else if (type === ol.geom.GeometryType.POLYGON ||
       type === ol.geom.GeometryType.MULTI_POLYGON) {
     mode = ol.interaction.DrawMode.POLYGON;
+  } else if (type === ol.geom.GeometryType.CIRCLE) {
+    mode = ol.interaction.DrawMode.CIRCLE;
   }
   goog.asserts.assert(goog.isDef(mode));
   return mode;
@@ -104749,7 +104904,8 @@ ol.interaction.Draw.getMode_ = function(type) {
 ol.interaction.DrawMode = {
   POINT: 'Point',
   LINE_STRING: 'LineString',
-  POLYGON: 'Polygon'
+  POLYGON: 'Polygon',
+  CIRCLE: 'Circle'
 };
 
 goog.provide('ol.interaction.Modify');
@@ -105549,6 +105705,7 @@ goog.provide('ol.interaction.Select');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.events');
+goog.require('goog.events.Event');
 goog.require('goog.functions');
 goog.require('ol.CollectionEventType');
 goog.require('ol.Feature');
@@ -105557,6 +105714,52 @@ goog.require('ol.events.condition');
 goog.require('ol.geom.GeometryType');
 goog.require('ol.interaction.Interaction');
 goog.require('ol.style.Style');
+
+
+/**
+ * @enum {string}
+ */
+ol.SelectEventType = {
+  /**
+   * Triggered when feature(s) has been (de)selected.
+   * @event ol.SelectEvent#select
+   * @api
+   */
+  SELECT: 'select'
+};
+
+
+
+/**
+ * @classdesc
+ * Events emitted by {@link ol.interaction.Select} instances are instances of
+ * this type.
+ *
+ * @param {string} type The event type.
+ * @param {Array.<ol.Feature>} selected Selected features.
+ * @param {Array.<ol.Feature>} deselected Deselected features.
+ * @implements {oli.SelectEvent}
+ * @extends {goog.events.Event}
+ * @constructor
+ */
+ol.SelectEvent = function(type, selected, deselected) {
+  goog.base(this, type);
+
+  /**
+   * Selected features array.
+   * @type {Array.<ol.Feature>}
+   * @api
+   */
+  this.selected = selected;
+
+  /**
+   * Deselected features array.
+   * @type {Array.<ol.Feature>}
+   * @api
+   */
+  this.deselected = deselected;
+};
+goog.inherits(ol.SelectEvent, goog.events.Event);
 
 
 
@@ -105686,6 +105889,7 @@ ol.interaction.Select.handleEvent = function(mapBrowserEvent) {
   var features = this.featureOverlay_.getFeatures();
   var /** @type {Array.<ol.Feature>} */ deselected = [];
   var /** @type {Array.<ol.Feature>} */ selected = [];
+  var change = false;
   if (set) {
     // Replace the currently selected feature(s) with the feature(s) at the
     // pixel, or clear the selected feature(s) if there is no feature at
@@ -105697,19 +105901,18 @@ ol.interaction.Select.handleEvent = function(mapBrowserEvent) {
          */
         function(feature, layer) {
           selected.push(feature);
-        }, undefined, this.layerFilter_);
+          return !this.multi_;
+        }, this, this.layerFilter_);
     if (selected.length > 0 && features.getLength() == 1 &&
         features.item(0) == selected[0]) {
       // No change
     } else {
+      change = true;
       if (features.getLength() !== 0) {
+        deselected = Array.prototype.concat(features.getArray());
         features.clear();
       }
-      if (this.multi_) {
-        features.extend(selected);
-      } else if (selected.length > 0) {
-        features.push(selected[0]);
-      }
+      features.extend(selected);
     }
   } else {
     // Modify the currently selected feature(s).
@@ -105735,6 +105938,13 @@ ol.interaction.Select.handleEvent = function(mapBrowserEvent) {
       features.remove(deselected[i]);
     }
     features.extend(selected);
+    if (selected.length > 0 || deselected.length > 0) {
+      change = true;
+    }
+  }
+  if (change) {
+    this.dispatchEvent(
+        new ol.SelectEvent(ol.SelectEventType.SELECT, selected, deselected));
   }
   return ol.events.condition.pointerMove(mapBrowserEvent);
 };
@@ -110389,6 +110599,8 @@ goog.inherits(ol.source.IGC, ol.source.StaticVector);
 
 goog.provide('ol.source.ImageMapGuide');
 
+goog.require('goog.events');
+goog.require('goog.events.EventType');
 goog.require('goog.object');
 goog.require('goog.uri.utils');
 goog.require('ol.Image');
@@ -110404,6 +110616,7 @@ goog.require('ol.source.Image');
  * Source for images from Mapguide servers
  *
  * @constructor
+ * @fires ol.source.ImageEvent
  * @extends {ol.source.Image}
  * @param {olx.source.ImageMapGuideOptions} options Options.
  * @api stable
@@ -110539,6 +110752,8 @@ ol.source.ImageMapGuide.prototype.getImage =
     image = new ol.Image(extent, resolution, pixelRatio,
         this.getAttributions(), imageUrl, this.crossOrigin_,
         this.imageLoadFunction_);
+    goog.events.listen(image, goog.events.EventType.CHANGE,
+        this.handleImageChange, false, this);
   } else {
     image = null;
   }
@@ -110722,6 +110937,8 @@ ol.source.wms.ServerType = {
 goog.provide('ol.source.ImageWMS');
 
 goog.require('goog.asserts');
+goog.require('goog.events');
+goog.require('goog.events.EventType');
 goog.require('goog.object');
 goog.require('goog.string');
 goog.require('goog.uri.utils');
@@ -110741,6 +110958,7 @@ goog.require('ol.source.wms.ServerType');
  * Source for WMS servers providing single, untiled images.
  *
  * @constructor
+ * @fires ol.source.ImageEvent
  * @extends {ol.source.Image}
  * @param {olx.source.ImageWMSOptions=} opt_options Options.
  * @api stable
@@ -110965,6 +111183,9 @@ ol.source.ImageWMS.prototype.getImage =
       this.getAttributions(), url, this.crossOrigin_, this.imageLoadFunction_);
 
   this.renderedRevision_ = this.getRevision();
+
+  goog.events.listen(this.image_, goog.events.EventType.CHANGE,
+      this.handleImageChange, false, this);
 
   return this.image_;
 
@@ -111675,6 +111896,243 @@ ol.source.Stamen.ATTRIBUTIONS = [
   }),
   ol.source.OSM.ATTRIBUTION
 ];
+
+goog.provide('ol.source.TileArcGISRest');
+
+goog.require('goog.array');
+goog.require('goog.asserts');
+goog.require('goog.math');
+goog.require('goog.object');
+goog.require('goog.string');
+goog.require('goog.uri.utils');
+goog.require('ol');
+goog.require('ol.TileCoord');
+goog.require('ol.TileUrlFunction');
+goog.require('ol.extent');
+goog.require('ol.proj');
+goog.require('ol.source.TileImage');
+goog.require('ol.tilecoord');
+
+
+
+/**
+ * @classdesc
+ * Layer source for tile data from ArcGIS Rest services. Map and Image
+ * Services are supported.
+ *
+ * For cached ArcGIS services, better performance is available using the
+ * {@link ol.source.XYZ} data source.
+ *
+ * @constructor
+ * @extends {ol.source.TileImage}
+ * @param {olx.source.TileArcGISRestOptions=} opt_options Tile ArcGIS Rest
+ *     options.
+ * @api
+ */
+ol.source.TileArcGISRest = function(opt_options) {
+
+  var options = goog.isDef(opt_options) ? opt_options : {};
+
+  var params = goog.isDef(options.params) ? options.params : {};
+
+  goog.base(this, {
+    attributions: options.attributions,
+    logo: options.logo,
+    projection: options.projection,
+    tileGrid: options.tileGrid,
+    tileLoadFunction: options.tileLoadFunction,
+    tileUrlFunction: goog.bind(this.tileUrlFunction_, this)
+  });
+
+  var urls = options.urls;
+  if (!goog.isDef(urls) && goog.isDef(options.url)) {
+    urls = ol.TileUrlFunction.expandUrl(options.url);
+  }
+
+  /**
+   * @private
+   * @type {!Array.<string>}
+   */
+  this.urls_ = goog.isDefAndNotNull(urls) ? urls : [];
+
+  /**
+   * @private
+   * @type {Object}
+   */
+  this.params_ = params;
+
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
+  this.tmpExtent_ = ol.extent.createEmpty();
+
+};
+goog.inherits(ol.source.TileArcGISRest, ol.source.TileImage);
+
+
+/**
+ * Get the user-provided params, i.e. those passed to the constructor through
+ * the "params" option, and possibly updated using the updateParams method.
+ * @return {Object} Params.
+ * @api
+ */
+ol.source.TileArcGISRest.prototype.getParams = function() {
+  return this.params_;
+};
+
+
+/**
+ * @param {ol.TileCoord} tileCoord Tile coordinate.
+ * @param {number} tileSize Tile size.
+ * @param {ol.Extent} tileExtent Tile extent.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.proj.Projection} projection Projection.
+ * @param {Object} params Params.
+ * @return {string|undefined} Request URL.
+ * @private
+ */
+ol.source.TileArcGISRest.prototype.getRequestUrl_ =
+    function(tileCoord, tileSize, tileExtent,
+        pixelRatio, projection, params) {
+
+  var urls = this.urls_;
+  if (goog.array.isEmpty(urls)) {
+    return undefined;
+  }
+
+  // ArcGIS Server only wants the numeric portion of the projection ID.
+  var srid = projection.getCode().split(':').pop();
+
+  params['SIZE'] = tileSize + ',' + tileSize;
+  params['BBOX'] = tileExtent.join(',');
+  params['BBOXSR'] = srid;
+  params['IMAGESR'] = srid;
+  params['DPI'] = 90 * pixelRatio;
+
+  var url;
+  if (urls.length == 1) {
+    url = urls[0];
+  } else {
+    var index = goog.math.modulo(ol.tilecoord.hash(tileCoord), urls.length);
+    url = urls[index];
+  }
+
+  if (!goog.string.endsWith(url, '/')) {
+    url = url + '/';
+  }
+
+  // If a MapServer, use export. If an ImageServer, use exportImage.
+  if (goog.string.endsWith(url, 'MapServer/')) {
+    url = url + 'export';
+  }
+  else if (goog.string.endsWith(url, 'ImageServer/')) {
+    url = url + 'exportImage';
+  }
+  else {
+    goog.asserts.fail('Unknown Rest Service', url);
+  }
+
+  return goog.uri.utils.appendParamsFromMap(url, params);
+};
+
+
+/**
+ * @param {number} z Z.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.proj.Projection} projection Projection.
+ * @return {number} Size.
+ */
+ol.source.TileArcGISRest.prototype.getTilePixelSize =
+    function(z, pixelRatio, projection) {
+  var tileSize = goog.base(this, 'getTilePixelSize', z, pixelRatio, projection);
+  if (pixelRatio == 1) {
+    return tileSize;
+  } else {
+    return (tileSize * pixelRatio + 0.5) | 0;
+  }
+};
+
+
+/**
+ * Return the URLs used for this ArcGIS source.
+ * @return {!Array.<string>} URLs.
+ * @api stable
+ */
+ol.source.TileArcGISRest.prototype.getUrls = function() {
+  return this.urls_;
+};
+
+
+/**
+ * @param {string|undefined} url URL.
+ * @api stable
+ */
+ol.source.TileArcGISRest.prototype.setUrl = function(url) {
+  var urls = goog.isDef(url) ? ol.TileUrlFunction.expandUrl(url) : null;
+  this.setUrls(urls);
+};
+
+
+/**
+ * @param {Array.<string>|undefined} urls URLs.
+ * @api stable
+ */
+ol.source.TileArcGISRest.prototype.setUrls = function(urls) {
+  this.urls_ = goog.isDefAndNotNull(urls) ? urls : [];
+  this.changed();
+};
+
+
+/**
+ * @param {ol.TileCoord} tileCoord Tile coordinate.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.proj.Projection} projection Projection.
+ * @return {string|undefined} Tile URL.
+ * @private
+ */
+ol.source.TileArcGISRest.prototype.tileUrlFunction_ =
+    function(tileCoord, pixelRatio, projection) {
+
+  var tileGrid = this.getTileGrid();
+  if (goog.isNull(tileGrid)) {
+    tileGrid = this.getTileGridForProjection(projection);
+  }
+
+  if (tileGrid.getResolutions().length <= tileCoord[0]) {
+    return undefined;
+  }
+
+  var tileExtent = tileGrid.getTileCoordExtent(
+      tileCoord, this.tmpExtent_);
+  var tileSize = tileGrid.getTileSize(tileCoord[0]);
+
+  if (pixelRatio != 1) {
+    tileSize = (tileSize * pixelRatio + 0.5) | 0;
+  }
+
+  // Apply default params and override with user specified values.
+  var baseParams = {
+    'F': 'image',
+    'FORMAT': 'PNG32',
+    'TRANSPARENT': true
+  };
+  goog.object.extend(baseParams, this.params_);
+
+  return this.getRequestUrl_(tileCoord, tileSize, tileExtent,
+      pixelRatio, projection, baseParams);
+};
+
+
+/**
+ * Update the user-provided params.
+ * @param {Object} params Params.
+ * @api stable
+ */
+ol.source.TileArcGISRest.prototype.updateParams = function(params) {
+  goog.object.extend(this.params_, params);
+  this.changed();
+};
 
 goog.provide('ol.source.TileDebug');
 
@@ -113183,6 +113641,7 @@ goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.math');
 goog.require('goog.object');
+goog.require('goog.string');
 goog.require('goog.uri.utils');
 goog.require('ol.TileUrlFunction');
 goog.require('ol.TileUrlFunctionType');
@@ -113600,8 +114059,22 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
   /** @type {!Array.<string>} */
   var urls = [];
   var requestEncoding = config['requestEncoding'];
-  if (wmtsCap['OperationsMetadata'].hasOwnProperty('GetTile') &&
-      requestEncoding != 'REST') {
+  requestEncoding = goog.isDef(requestEncoding) ? requestEncoding : '';
+
+  goog.asserts.assert(
+      goog.array.contains(['REST', 'RESTful', 'KVP', ''], requestEncoding));
+
+  if (!wmtsCap['OperationsMetadata'].hasOwnProperty('GetTile') ||
+      goog.string.startsWith(requestEncoding, 'REST')) {
+    // Add REST tile resource url
+    requestEncoding = ol.source.WMTSRequestEncoding.REST;
+    goog.array.forEach(l['ResourceURL'], function(elt, index, array) {
+      if (elt['resourceType'] == 'tile') {
+        format = elt['format'];
+        urls.push(/** @type {string} */ (elt['template']));
+      }
+    });
+  } else {
     var gets = wmtsCap['OperationsMetadata']['GetTile']['DCP']['HTTP']['Get'];
 
     var constraint = goog.array.find(gets[0]['Constraint'],
@@ -113614,15 +114087,6 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
       urls.push(/** @type {string} */ (gets[0]['href']));
 
     }
-  } else {
-    // Add REST tile resource url
-    requestEncoding = ol.source.WMTSRequestEncoding.REST;
-    goog.array.forEach(l['ResourceURL'], function(elt, index, array) {
-      if (elt['resourceType'] == 'tile') {
-        format = elt['format'];
-        urls.push(/** @type {string} */ (elt['template']));
-      }
-    });
   }
   goog.asserts.assert(urls.length > 0);
 
@@ -115081,6 +115545,7 @@ goog.require('ol.source.Stamen');
 goog.require('ol.source.State');
 goog.require('ol.source.StaticVector');
 goog.require('ol.source.Tile');
+goog.require('ol.source.TileArcGISRest');
 goog.require('ol.source.TileDebug');
 goog.require('ol.source.TileImage');
 goog.require('ol.source.TileJSON');
@@ -116735,6 +117200,11 @@ goog.exportSymbol(
     ol.source.Image,
     OPENLAYERS);
 
+goog.exportProperty(
+    ol.source.ImageEvent.prototype,
+    'image',
+    ol.source.ImageEvent.prototype.image);
+
 goog.exportSymbol(
     'ol.source.ImageStatic',
     ol.source.ImageStatic,
@@ -116884,6 +117354,36 @@ goog.exportSymbol(
     'ol.source.StaticVector',
     ol.source.StaticVector,
     OPENLAYERS);
+
+goog.exportSymbol(
+    'ol.source.TileArcGISRest',
+    ol.source.TileArcGISRest,
+    OPENLAYERS);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getParams',
+    ol.source.TileArcGISRest.prototype.getParams);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getUrls',
+    ol.source.TileArcGISRest.prototype.getUrls);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'setUrl',
+    ol.source.TileArcGISRest.prototype.setUrl);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'setUrls',
+    ol.source.TileArcGISRest.prototype.setUrls);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'updateParams',
+    ol.source.TileArcGISRest.prototype.updateParams);
 
 goog.exportSymbol(
     'ol.source.TileDebug',
@@ -117775,6 +118275,16 @@ goog.exportSymbol(
     ol.interaction.Pointer.handleEvent,
     OPENLAYERS);
 
+goog.exportProperty(
+    ol.SelectEvent.prototype,
+    'selected',
+    ol.SelectEvent.prototype.selected);
+
+goog.exportProperty(
+    ol.SelectEvent.prototype,
+    'deselected',
+    ol.SelectEvent.prototype.deselected);
+
 goog.exportSymbol(
     'ol.interaction.Select',
     ol.interaction.Select,
@@ -117969,6 +118479,11 @@ goog.exportProperty(
     ol.geom.LineString.prototype,
     'clone',
     ol.geom.LineString.prototype.clone);
+
+goog.exportProperty(
+    ol.geom.LineString.prototype,
+    'forEachSegment',
+    ol.geom.LineString.prototype.forEachSegment);
 
 goog.exportProperty(
     ol.geom.LineString.prototype,
@@ -122579,6 +123094,121 @@ goog.exportProperty(
     ol.source.Stamen.prototype,
     'unByKey',
     ol.source.Stamen.prototype.unByKey);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getTileLoadFunction',
+    ol.source.TileArcGISRest.prototype.getTileLoadFunction);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getTileUrlFunction',
+    ol.source.TileArcGISRest.prototype.getTileUrlFunction);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'setTileLoadFunction',
+    ol.source.TileArcGISRest.prototype.setTileLoadFunction);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'setTileUrlFunction',
+    ol.source.TileArcGISRest.prototype.setTileUrlFunction);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getTileGrid',
+    ol.source.TileArcGISRest.prototype.getTileGrid);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getAttributions',
+    ol.source.TileArcGISRest.prototype.getAttributions);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getLogo',
+    ol.source.TileArcGISRest.prototype.getLogo);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getProjection',
+    ol.source.TileArcGISRest.prototype.getProjection);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getState',
+    ol.source.TileArcGISRest.prototype.getState);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'bindTo',
+    ol.source.TileArcGISRest.prototype.bindTo);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'get',
+    ol.source.TileArcGISRest.prototype.get);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getKeys',
+    ol.source.TileArcGISRest.prototype.getKeys);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getProperties',
+    ol.source.TileArcGISRest.prototype.getProperties);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'set',
+    ol.source.TileArcGISRest.prototype.set);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'setProperties',
+    ol.source.TileArcGISRest.prototype.setProperties);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'unbind',
+    ol.source.TileArcGISRest.prototype.unbind);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'unbindAll',
+    ol.source.TileArcGISRest.prototype.unbindAll);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'changed',
+    ol.source.TileArcGISRest.prototype.changed);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'getRevision',
+    ol.source.TileArcGISRest.prototype.getRevision);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'on',
+    ol.source.TileArcGISRest.prototype.on);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'once',
+    ol.source.TileArcGISRest.prototype.once);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'un',
+    ol.source.TileArcGISRest.prototype.un);
+
+goog.exportProperty(
+    ol.source.TileArcGISRest.prototype,
+    'unByKey',
+    ol.source.TileArcGISRest.prototype.unByKey);
 
 goog.exportProperty(
     ol.source.TileDebug.prototype,
