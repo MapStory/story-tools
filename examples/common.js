@@ -284,7 +284,8 @@
                 title: title || name,
                 server: server,
                 url: url,
-                layerInfo: {}
+                layerInfo: {},
+                useOldAsInterimTiles: true
             };
             if (asVector === true) {
                 options.style = defaultStyle;
