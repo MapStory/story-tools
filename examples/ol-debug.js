@@ -57113,7 +57113,8 @@ goog.require('ol.layer.Layer');
  */
 ol.layer.TileProperty = {
   PRELOAD: 'preload',
-  USE_INTERIM_TILES_ON_ERROR: 'useInterimTilesOnError'
+  USE_INTERIM_TILES_ON_ERROR: 'useInterimTilesOnError',
+  USE_OLD_AS_INTERIM_TILES: 'useOldAsInterimTiles'
 };
 
 
@@ -57139,11 +57140,14 @@ ol.layer.Tile = function(opt_options) {
 
   delete baseOptions.preload;
   delete baseOptions.useInterimTilesOnError;
+  delete baseOptions.useOldAsInterimTiles;
   goog.base(this,  /** @type {olx.layer.LayerOptions} */ (baseOptions));
 
   this.setPreload(goog.isDef(options.preload) ? options.preload : 0);
   this.setUseInterimTilesOnError(goog.isDef(options.useInterimTilesOnError) ?
       options.useInterimTilesOnError : true);
+  this.setUseOldAsInterimTiles(goog.isDef(options.useOldAsInterimTiles) ?
+      options.useOldAsInterimTiles : false);
 };
 goog.inherits(ol.layer.Tile, ol.layer.Layer);
 
@@ -57213,6 +57217,37 @@ goog.exportProperty(
     ol.layer.Tile.prototype,
     'setUseInterimTilesOnError',
     ol.layer.Tile.prototype.setUseInterimTilesOnError);
+
+
+/**
+ * @return {boolean} Use old tiles as interim tiles.
+ * @observable
+ * @api
+ */
+ol.layer.Tile.prototype.getUseOldAsInterimTiles = function() {
+  return /** @type {boolean} */ (
+      this.get(ol.layer.TileProperty.USE_OLD_AS_INTERIM_TILES));
+};
+goog.exportProperty(
+    ol.layer.Tile.prototype,
+    'getUseOldAsInterimTiles',
+    ol.layer.Tile.prototype.getUseOldAsInterimTiles);
+
+
+/**
+ * @param {boolean} useOldAsInterimTiles Use old tiles as interim tiles.
+ * @observable
+ * @api
+ */
+ol.layer.Tile.prototype.setUseOldAsInterimTiles =
+    function(useOldAsInterimTiles) {
+  this.set(
+      ol.layer.TileProperty.USE_OLD_AS_INTERIM_TILES, useOldAsInterimTiles);
+};
+goog.exportProperty(
+    ol.layer.Tile.prototype,
+    'setUseOldAsInterimTiles',
+    ol.layer.Tile.prototype.setUseOldAsInterimTiles);
 
 goog.provide('ol.layer.Vector');
 
@@ -65646,7 +65681,6 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   var canvasHeight = tilePixelSize * tileRange.getHeight();
 
   var canvas, context;
-  var zoomLevelChange = false;
   if (goog.isNull(this.canvas_)) {
     goog.asserts.assert(goog.isNull(this.canvasSize_));
     goog.asserts.assert(goog.isNull(this.context_));
@@ -65679,9 +65713,6 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
     } else {
       canvasWidth = this.canvasSize_[0];
       canvasHeight = this.canvasSize_[1];
-      if (z != this.renderedCanvasZ_) {
-        zoomLevelChange = true;
-      }
       if (z != this.renderedCanvasZ_ ||
           !this.renderedCanvasTileRange_.containsTileRange(tileRange)) {
         this.renderedCanvasTileRange_ = null;
@@ -65723,6 +65754,7 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   var findLoadedTiles = this.createLoadedTileFinder(tileSource, tilesToDrawByZ);
 
   var useInterimTilesOnError = tileLayer.getUseInterimTilesOnError();
+  var useOldAsInterimTiles = tileLayer.getUseOldAsInterimTiles();
 
   var tmpExtent = ol.extent.createEmpty();
   var tmpTileRange = new ol.TileRange(0, 0, 0, 0);
@@ -65756,7 +65788,7 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame =
   }
 
   var i, ii;
-  if (zoomLevelChange) {
+  if (!useOldAsInterimTiles) {
     for (i = 0, ii = tilesToClear.length; i < ii; ++i) {
       tile = tilesToClear[i];
       x = tilePixelSize * (tile.tileCoord[1] - canvasTileRange.minX);
@@ -118079,6 +118111,16 @@ goog.exportProperty(
     ol.layer.Tile.prototype,
     'setUseInterimTilesOnError',
     ol.layer.Tile.prototype.setUseInterimTilesOnError);
+
+goog.exportProperty(
+    ol.layer.Tile.prototype,
+    'getUseOldAsInterimTiles',
+    ol.layer.Tile.prototype.getUseOldAsInterimTiles);
+
+goog.exportProperty(
+    ol.layer.Tile.prototype,
+    'setUseOldAsInterimTiles',
+    ol.layer.Tile.prototype.setUseOldAsInterimTiles);
 
 goog.exportSymbol(
     'ol.layer.Vector',
