@@ -23,6 +23,7 @@ var watch = false;
 // outputs
 var coreLibsBundle = 'story-tools-core.js';
 var mapstoryLibsBundle = 'story-tools-mapstory.js';
+var owsjsBundle = 'ows.js';
 var editLibsBundle = 'story-tools-edit.js';
 var editNgBundle = 'story-tools-edit-ng.js';
 var coreNgBundle = 'story-tools-core-ng.js';
@@ -127,6 +128,7 @@ gulp.task('minify', ['scripts'], function() {
         gulp.src(src).pipe(uglify()).pipe(rename({extname: '.min.js'})).pipe(gulp.dest('dist'));
     }
     doMinify('dist/' + coreLibsBundle);
+    doMinify('dist/' + owsjsBundle);
     doMinify('dist/' + mapstoryLibsBundle);
     doMinify('dist/' + editLibsBundle);
     doMinify('dist/' + coreNgBundle);
@@ -161,6 +163,13 @@ gulp.task('bundleCoreLibs', function() {
         entries: ['./lib/core/index.js'],
         standalone: 'storytools.core'
     }), coreLibsBundle, ['lint', 'karma']);
+});
+
+gulp.task('bundleOwsjsLibs', function() {
+    return bundle(browserify({
+        entries: ['./lib/owsjs/index.js'],
+        standalone: 'owsjs'
+    }), owsjsBundle, ['lint', 'karma']);
 });
 
 /** 
@@ -222,7 +231,7 @@ gulp.task('lessEdit', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleCore', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
+gulp.task('scripts', ['bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);
@@ -258,6 +267,7 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     // enable watch mode and start watchify tasks
     watch = true;
     gulp.start('bundleCore');
+    gulp.start('bundleOwsjsLibs');
     gulp.start('bundleMapstoryLibs');
     gulp.start('bundleEdit');
     gulp.start('testsBundle');
