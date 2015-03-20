@@ -33,6 +33,7 @@ describe('MapConfig', function() {
         mapManager.map.addLayer(new ol.layer.Tile({
             id: 'foo',
             title: 'My layer',
+            useOldAsInterimTiles: true,
             layerInfo: {
                 geomType: 'point',
                 timeAttribute: 'attr1',
@@ -46,7 +47,7 @@ describe('MapConfig', function() {
             })
         }));
         var config = instance.write(mapManager);
-        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttribute":"attr1","times":["2001","2002","2003"]},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
+        var expected = '{"id":216,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","layerInfo":{"geomType":"point","timeAttribute":"attr1","times":["2001","2002","2003"]},"useOldAsInterimTiles":true,"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}';
         expect(JSON.stringify(config)).toBe(expected);
     });
 
