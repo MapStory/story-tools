@@ -12,3 +12,4 @@ require('./test-StyleComplete.js');
 require('./test-storyPins.js');
 require('./test-MapConfig.js');
 require('./test-timeServices.js');
+require('./test-MapConfigTransformer.js');

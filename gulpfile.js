@@ -231,7 +231,12 @@ gulp.task('lessEdit', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
+gulp.task('bundleMapConfigTransformer', function(){
+    gulp.src('lib/mapstory/MapConfigTransformer.js')
+        .pipe(gulp.dest('dist'));
+});
+
+gulp.task('scripts', ['bundleMapConfigTransformer', 'bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);

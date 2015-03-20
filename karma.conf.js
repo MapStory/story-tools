@@ -10,6 +10,7 @@ module.exports = function(config) {
         'bower_components/jquery/dist/jquery.js',
         'bower_components/angular/angular.js',
         'bower_components/angular-mocks/angular-mocks.js',
+        'dist/MapConfigTransformer.js',
         'dist/ows.js',
         'dist/tests.js',
         /* must be included to have ng-html2js pick them up */
