@@ -299,7 +299,7 @@
             };
             return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
               self.storyMap.addStoryLayer(a);
-              self.map.addLayer(a.get('layer'));
+              self.map.addLayer(a.getLayer());
               if (fitExtent === true) {
                 self.map.getView().fitExtent(a.get('extent'), self.map.getSize());
               }
