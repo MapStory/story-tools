@@ -91,7 +91,8 @@
     })];
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder) {
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap) {
+        this.storyMap = new StoryMap();
         var self = this;
         var projCfg = {
             units: 'm',
@@ -297,6 +298,7 @@
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
             return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
+              self.storyMap.addStoryLayer(a);
               self.map.addLayer(a.get('layer'));
               if (fitExtent === true) {
                 self.map.getView().fitExtent(a.get('extent'), self.map.getSize());
