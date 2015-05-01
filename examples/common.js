@@ -6,6 +6,7 @@
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
+        'storytools.edit.ogc',
         'colorpicker.module',
         'ui.bootstrap'
     ]);
@@ -53,8 +54,8 @@
             path: '/geoserver/',
             absolutePath: 'http://mapstory.org/geoserver/',
             canStyleWMS: false,
-            timeEndpoint: function(layer) {
-                return '/maps/time_info.json?layer=' + layer.get('name');
+            timeEndpoint: function(name) {
+                return '/maps/time_info.json?layer=' + name;
             }
         },
         {
@@ -90,7 +91,7 @@
     })];
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder) {
         var self = this;
         var projCfg = {
             units: 'm',
@@ -287,6 +288,20 @@
                 layerInfo: {},
                 useOldAsInterimTiles: true
             };
+            var options = {
+              id: id,
+              name: name,
+              title: title || name,
+              url: url,
+              timeEndpoint: server.timeEndpoint(name),
+              type: (asVector === true) ? 'VECTOR': 'WMS'
+            };
+            return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
+              self.map.addLayer(a.get('layer'));
+              if (fitExtent === true) {
+                self.map.getView().fitExtent(a.get('extent'), self.map.getSize());
+              }
+            });
             if (asVector === true) {
                 options.style = defaultStyle;
                 layer = new ol.layer.Vector(options);
