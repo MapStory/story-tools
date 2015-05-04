@@ -294,7 +294,7 @@
               name: name,
               title: title || name,
               url: url,
-              timeEndpoint: server.timeEndpoint(name),
+              timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
             return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
