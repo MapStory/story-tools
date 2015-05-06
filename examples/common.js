@@ -294,6 +294,7 @@
               name: name,
               title: title || name,
               url: url,
+              path: server.path,
               timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
