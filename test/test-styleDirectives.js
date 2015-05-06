@@ -37,8 +37,7 @@ describe('test style directives', function() {
             var scope = {
                 layer: {
                     get: function() {
-                        // mock layerInfo
-                        return {attributes: attributes};
+                        return attributes;
                     }
                 }
             };
@@ -194,8 +193,8 @@ describe('test style directives', function() {
                 thing: {label: label},
                 layer: {
                     get: function() {
-                        // mock layerInfo
-                        return {attributes: attributes};
+                        // mock attributes
+                        return attributes;
                     }
                 }
             });
@@ -224,8 +223,7 @@ describe('test style directives', function() {
             el = helpers.compile("<classify-editor show-max-classes=true show-fixed-classes></classify-editor>", {
                 layer: {
                     get: function() {
-                        // mock layerInfo
-                        return {attributes: attributes};
+                        return attributes;
                     }
                 },
                 activeStyle: {classify: classify},
