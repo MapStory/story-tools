@@ -73,18 +73,19 @@
         return server;
     }
 
-    function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stBaseLayerBuilder, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
+    function MapManager($http, $q, $rootScope, $location,
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
         this.storyMap = new EditableStoryMap({target: 'map'});
+        window.storyMap = this.storyMap;
         var self = this;
-        this.storyPinLayerManager = new StoryPinLayerManager();
+        StoryPinLayerManager.storyPinsLayer = this.storyMap.storyPinsLayer;
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
-                this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
+                StoryPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, data);
@@ -101,19 +102,17 @@
                 var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
-                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
+                    StoryPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
                 });
             } else {
                 stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
-            // @todo how to make on top?
-            this.storyMap.getMap().addLayer(this.storyPinLayerManager.storyPinsLayer);
         };
         this.saveMap = function() {
             var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
-            stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), this.storyPinLayerManager.storyPins);
+            stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), StoryPinLayerManager.storyPins);
         };
         $rootScope.$on('$locationChangeSuccess', function() {
             var path = $location.path();
@@ -202,7 +201,7 @@
         return $injector.instantiate(MapManager);
     });
 
-    module.directive('addLayers', function($modal, $log) {
+    module.directive('addLayers', function($modal, $log, MapManager) {
         return {
             restrict: 'E',
             scope: {
@@ -216,7 +215,7 @@
                 scope.servers = servers;
                 scope.addLayer = function() {
                     scope.loading = true;
-                    scope.map.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
+                    MapManager.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
                         // pass
                     }, function(problem) {
                         var msg = 'Something went wrong:';
@@ -236,7 +235,7 @@
             }
         };
     });
-    module.directive('layerList', function(stStoryMapBuilder) {
+    module.directive('layerList', function(stStoryMapBaseBuilder, MapManager) {
         return {
             restrict: 'E',
             scope: {
@@ -274,21 +273,21 @@
                     title: 'No background',
                     type: 'None'
                 }];
-                var baseLayer = scope.map.storyMap.get('baselayer');
+                var baseLayer = MapManager.storyMap.get('baselayer');
                 if (baseLayer) {
-                  scope.map.baseLayer = baseLayer.get('title');
+                    MapManager.storyMap.baseLayer = baseLayer.get('title');
                 }
-                scope.map.storyMap.on('change:baselayer', function() {
-                  scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
+                MapManager.storyMap.on('change:baselayer', function() {
+                    MapManager.storyMap.baseLayer = MapManager.storyMap.get('baselayer').get('title');
                 });
-                scope.map.storyMap.getStoryLayers().on('change:length', function() {
-                    scope.layers = scope.map.storyMap.getStoryLayers().getArray();
+                MapManager.storyMap.getStoryLayers().on('change:length', function() {
+                    scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 });
                 scope.removeLayer = function(lyr) {
-                    scope.map.storyMap.removeStoryLayer(lyr);
+                    MapManager.storyMap.removeStoryLayer(lyr);
                 };
                 scope.onChange = function(baseLayer) {
-                    stStoryMapBuilder.setBaseLayer(scope.map.storyMap, baseLayer);
+                    stStoryMapBaseBuilder.setBaseLayer(MapManager.storyMap, baseLayer);
                 };
             }
         };
@@ -331,26 +330,18 @@
         });
     });
 
-    module.controller('composerController', function($scope, MapManager, TimeControlsManager,
+    module.controller('composerController', function($scope, $injector, MapManager, TimeControlsManager,
         styleUpdater, loadMapDialog, $location) {
-        var map = MapManager;
 
-        var timeControlsManager = new TimeControlsManager({
-            mode: map.mode,
-            storyMap: map.storyMap,
-            pinsLayerManager: map.storyPinLayerManager
-        });
-        $scope.map = map;
-        $scope.timeControlsManager = timeControlsManager;
-
-        $scope.timeControls = null;
+        $scope.mapManager = MapManager;
+        $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
         $scope.playbackOptions = {
             mode: 'instant',
             fixed: false
         };
 
         $scope.saveMap = function() {
-            map.saveMap();
+            MapManager.storyMap.saveMap();
         };
         $scope.newMap = function() {
             $location.path('/new');

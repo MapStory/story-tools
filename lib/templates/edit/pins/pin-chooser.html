@@ -13,12 +13,12 @@
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="pin in pinsCtrl.storyPinLayerManager.storyPins" ng-class="pinsCtrl.currentPin == pin ? 'active' : ''">
+            <tr ng-repeat="pin in pinsCtrl.StoryPinLayerManager.storyPins" ng-class="pinsCtrl.currentPin == pin ? 'active' : ''">
                 <td><i ng-click='editPin(pin)' style="cursor: pointer;" class='glyphicon glyphicon-edit'></i></td>
                 <td>{{ pin.title }}</td>
                 <td>{{ pin.start_time|isodate }}</td>
                 <td>{{ pin.end_time|isodate }}</td>
-                <td>{{ pin.$feature.getGeometry().getType() }}</td>
+                <td>{{ pin.getGeometry().getType() }}</td>
                 <td>{{ pin.in_map }}</td>
                 <td>{{ pin.in_timeline }}</td>
                 <td><i ng-click='pinsCtrl.deleteStoryPin(pin)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>

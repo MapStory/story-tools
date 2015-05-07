@@ -1,4 +1,4 @@
-<form name="pinForm">
+<form name="pinForm" class="form form-horizontal pin-editor-form">
     <div class="form-group">
         <label for="storyPinTitle">StoryPin Title</label>
         <input name="title" ng-required="true"  ng-model="storyPin.title" class="form-control" type="text" id="storyPinTitle" placeholder="Title">
@@ -12,13 +12,17 @@
     <div class="form-group">
         <label>Location</label>
 
-        <div class="btn-group">
-            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Point'">Point</label>
-            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'LineString'">Line</label>
-            <label class="btn btn-primary" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Polygon'">Polygon</label>
+        <div>
+            <div class="btn-group nopad">
+                <button class="btn" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Point'">Point</button>
+                <button class="btn" ng-model="pinsCtrl.activeDrawTool" btn-radio="'LineString'">Line</button>
+                <button class="btn" ng-model="pinsCtrl.activeDrawTool" btn-radio="'Polygon'">Polygon</button>
+            </div>
+            <div ng-if="storyPin.getGeometry()" class="btn-group nopad pull-right">
+                <button class="btn" ng-class="pinsCtrl.activeDrawTool == 'Modify' ? 'active' : null" ng-click="pinsCtrl.activeDrawTool = 'Modify'">Edit</button>
+                <button class="btn" ng-click="pinsCtrl.deleteGeometry()">Delete</button>
+            </div>
         </div>
-        <!-- @todo does nothing -->
-        <button ng-if="storyPin.$feature" class="pull-right">Edit</button>
     </div>
     <hr>
 
@@ -47,13 +51,15 @@
 
     <div class="form-group">
         <label>Options</label>
-        <div class="checkbox">
-            <input ng-model="storyPin.in_timeline" id="showInTimeline" type="checkbox">
-            <label for="showInTimeline">Show in Timeline</label>
-        </div>
-        <div class="checkbox">
-            <input ng-model="storyPin.in_map" id="showInMap" type="checkbox">
-            <label for="showInMap">Show in Map</label>
+        <div>
+            <div class="checkbox">
+                <input ng-model="storyPin.in_timeline" id="showInTimeline" type="checkbox">
+                <label for="showInTimeline">Show in Timeline</label>
+            </div>
+            <div class="checkbox">
+                <input ng-model="storyPin.in_map" id="showInMap" type="checkbox">
+                <label for="showInMap">Show in Map</label>
+            </div>
         </div>
     </div>
 </form>

@@ -16,7 +16,7 @@
         <script src="../bower_components/nouislider/distribute/jquery.nouislider.min.js" type="text/javascript"></script>
         <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
         <script src="../bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js"></script>
-        <script src="ol.js" ></script>
+        <script src="ol-debug.js" ></script>
         <script src="../dist/story-tools-core-tpls.js"></script>
         <script src="../dist/story-tools-edit-tpls.js"></script>
         <script src="../dist/story-tools-core.js"></script>
@@ -98,6 +98,10 @@
             #time-controls-panel2 {
                 padding: 1px 16px;
             }
+            #pins-editor .panel-body {
+                max-height: 400px;
+                overflow: auto;
+            }
             .todo {
                 color: white;
                 background: red;
@@ -109,11 +113,6 @@
             }
             input.ng-invalid {
                 border-color: red;
-            }
-            pin-chooser {
-                display: block;
-                height: 400px;
-                overflow: auto;
             }
         </style>
     </head>
@@ -162,7 +161,7 @@
                     </div>
                     <div ng-show="selected.style" class="floating col-lg-4 ng-hide">
                         <accordion close-others="true">
-                            <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in map.storyMap.getStoryLayers().getArray()" is-open="accordianOpen" ng-init="accordianOpen = $first">
+                            <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in mapManager.storyMap.getStoryLayers().getArray()" is-open="accordianOpen" ng-init="accordianOpen = $first">
                                 <!-- to reduce watchers, add ng-if=accordianOpen -->
                                 <style-editor class="minheight" layer="layer" on-change="styleChanged"></style-editor>
                             </accordion-group>
@@ -178,7 +177,7 @@
                         </div>
                     </div>
                     <!-- @todo style-editor-item class used for convenience -->
-                    <div ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="map.storyPinLayerManager" pins-overlay="map.overlay">
+                    <div id="pins-editor" ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-overlay="mapManager.storyMap.overlay">
                         <accordion close-others="false" ng-init="open={chooser:true,editor:false}">
                             <accordion-group heading="StoryPins" is-open="open.chooser">
                                 <button>Bulk Upload</button>
@@ -206,7 +205,7 @@
                     </div>
                     <div ng-show="selected.debug" class="floating ng-hide col-lg-8" style="max-height: 75%; overflow: auto; background:white">
                         <div class="panel">
-                            <div ng-repeat="lyr in map.storyMap.getStoryLayers().getArray()">
+                            <div ng-repeat="lyr in mapManager.storyMap.getStoryLayers().getArray()">
                                 <h4>ID: {{ lyr.get('id') }}</h4>
                                 <pre>title = {{ lyr.get('title') | json }}</pre>
                                 <pre>times = {{ lyr.get('times') | json }}</pre>

@@ -40,10 +40,9 @@
     });
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder, stStoryMapBaseBuilder) {
+        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder) {
         this.storyMap = new StoryMap({target: 'map'});
         var self = this;
-        this.storyPinLayerManager = new StoryPinLayerManager();
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
@@ -101,18 +100,8 @@
         });
     });
 
-    module.controller('viewerController', function($scope, MapManager, TimeControlsManager) {
-        var map = MapManager;
-
-        var timeControlsManager = new TimeControlsManager({
-            mode: map.mode,
-            storyMap: map.storyMap,
-            pinsLayerManager: map.storyPinLayerManager
-        });
-        $scope.map = map;
-        $scope.timeControlsManager = timeControlsManager;
-
-        $scope.timeControls = null;
+    module.controller('viewerController', function($scope, $injector, TimeControlsManager) {
+        $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
         $scope.playbackOptions = {
             mode: 'instant',
             fixed: false

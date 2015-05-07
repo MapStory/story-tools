@@ -67,6 +67,10 @@ describe("test utils", function() {
             r.extend(utils.createRange(1900, 2010));
             expect(r.start).toBe(1900);
             expect(r.end).toBe(2010);
+            // start with nothing, extend w/ nothing
+            r = utils.createRange(null, null);
+            r.extend(r = utils.createRange(null, null));
+            expect(r.isEmpty()).toBe(true);
             // starting with nothing, extend open-ended start
             r = utils.createRange(null, null);
             r.extend(utils.createRange(1234, null));
