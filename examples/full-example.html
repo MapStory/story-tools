@@ -99,6 +99,10 @@
             #time-controls-panel2 {
                 padding: 1px 16px;
             }
+            #pins-editor .panel-body {
+                max-height: 400px;
+                overflow: scroll;
+            }
             .todo {
                 color: white;
                 background: red;
@@ -110,11 +114,6 @@
             }
             input.ng-invalid {
                 border-color: red;
-            }
-            pin-chooser {
-                display: block;
-                height: 400px;
-                overflow: auto;
             }
         </style>
     </head>
@@ -179,7 +178,7 @@
                         </div>
                     </div>
                     <!-- @todo style-editor-item class used for convenience -->
-                    <div ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="map.storyPinLayerManager" pins-overlay="map.overlay">
+                    <div id="pins-editor" ng-if="selected.pins" class="floating col-lg-6 style-editor-item" pins-editor pins-layer-manager="map.storyPinLayerManager" pins-overlay="map.overlay">
                         <accordion close-others="false" ng-init="open={chooser:true,editor:false}">
                             <accordion-group heading="StoryPins" is-open="open.chooser">
                                 <button>Bulk Upload</button>

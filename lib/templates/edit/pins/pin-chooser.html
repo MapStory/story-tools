@@ -18,7 +18,7 @@
                 <td>{{ pin.title }}</td>
                 <td>{{ pin.start_time|isodate }}</td>
                 <td>{{ pin.end_time|isodate }}</td>
-                <td>{{ pin.$feature.getGeometry().getType() }}</td>
+                <td>{{ pin.getGeometry().getType() }}</td>
                 <td>{{ pin.in_map }}</td>
                 <td>{{ pin.in_timeline }}</td>
                 <td><i ng-click='pinsCtrl.deleteStoryPin(pin)' style="cursor: pointer;" class='glyphicon glyphicon-trash'></i></td>
