@@ -1,4 +1,5 @@
 var maps = require('../lib/core/time/maps.js');
+require('../lib/ng/edit/ogc/module.js');
 
 describe("test maps", function() {
     it("readCapabilitiesTimeDimensions works", function() {
@@ -54,71 +55,73 @@ describe("test maps", function() {
         expect(data[24]).toBe(1356998400000);
     });
     describe('computeVectorRange works', function() {
-        var layer, features, range;
+        var storyLayer, features, range, StoryLayer;
 
         beforeEach(function() {
-            layer = new ol.layer.Vector({
-                source: new ol.source.Vector(),
-                layerInfo: {
-                    timeAttribute: "time"
-                }
+            // window.angular.mock.module is work around browserify conflict
+            window.angular.mock.module('storytools.edit.ogc');
+
+            inject(function($injector) {
+                StoryLayer = $injector.get('StoryLayer');
+            });
+
+            storyLayer = new StoryLayer({
+                timeAttribute: "time",
+                type: "VECTOR"
             });
 
             features = [
                 new ol.Feature({time: 1000})
             ];
-            layer.set('features', features);
+            storyLayer.set('features', features);
         });
 
         it('using features as property', function() {
-            range = maps.computeVectorRange(layer);
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(1000);
             expect(range.end).toBe(1000);
         });
         it('using features from source', function() {
-            layer.set('features', null);
-            layer.getSource().addFeatures(features);
-            range = maps.computeVectorRange(layer);
+            storyLayer.set('features', null);
+            storyLayer.getLayer().getSource().addFeatures(features);
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(1000);
             expect(range.end).toBe(1000);
         });
         it('when empty endTimeAttribute', function() {
-            var layerInfo = layer.get('layerInfo');
-            layerInfo.endTimeAttribute = 'endTime';
-            layer.set('layerInfo', layerInfo);
-            range = maps.computeVectorRange(layer);
+            storyLayer.set('endTimeAttribute', 'endTime');
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(1000);
             expect(range.end).toBe(1000);
         });
         it('when unsorted mixed data', function() {
-            layer.set('endTimeAttribute', 'endTime');
+            storyLayer.set('endTimeAttribute', 'endTime');
             features.push(new ol.Feature({time: 500}));
             features.push(new ol.Feature({time: 100, endTime: 900}));
-            range = maps.computeVectorRange(layer);
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(100);
             expect(range.end).toBe(1000);
         });
         it('with single endAttribute', function() {
-            var layerInfo = layer.get('layerInfo');
-            layerInfo.endTimeAttribute = 'endTime';
-            layer.set('layerInfo', layerInfo);
-            layer.set('features', [new ol.Feature({endTime: 678})]);
-            range = maps.computeVectorRange(layer);
+            storyLayer.set('endTimeAttribute', 'endTime');
+            storyLayer.set('features', [new ol.Feature({endTime: 678})]);
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(678);
             expect(range.end).toBe(678);
         });
         it('when text', function() {
             // works with text
-            layer.set('features', [new ol.Feature({time: '2001'})]);
-            range = maps.computeVectorRange(layer);
+            storyLayer.set('features', [new ol.Feature({time: '2001'})]);
+            range = maps.computeVectorRange(storyLayer);
             expect(range.start).toBe(Date.parse('2001'));
             expect(range.end).toBe(Date.parse('2001'));
         });
     });
     describe('filterVectorLayer works', function() {
-        var layer, features;
+        var storyLayer, features, StoryLayer;
 
         function ids() {
+            var layer = storyLayer.getLayer();
             var ids = layer.getSource().getFeatures().map(function(f) {
                 return f.get('id');
             });
@@ -127,12 +130,17 @@ describe("test maps", function() {
         }
 
         beforeEach(function() {
-            layer = new ol.layer.Vector({
-                source: new ol.source.Vector(),
-                layerInfo: {
-                    timeAttribute: "time",
-                    endTimeAttribute: "endTime"
-                }
+            // window.angular.mock.module is work around browserify conflict
+            window.angular.mock.module('storytools.edit.ogc');
+                
+            inject(function($injector) {
+                StoryLayer = $injector.get('StoryLayer');
+            });
+
+            storyLayer = new StoryLayer({
+              timeAttribute: "time",
+              endTimeAttribute: "endTime",
+              type: "VECTOR"
             });
             var id = 1;
             features = [
