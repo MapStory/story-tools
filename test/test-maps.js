@@ -69,6 +69,7 @@ describe("test maps", function() {
                 timeAttribute: "time",
                 type: "VECTOR"
             });
+            storyLayer.getLayer().setSource(new ol.source.Vector());
 
             features = [
                 new ol.Feature({time: 1000})
@@ -142,6 +143,7 @@ describe("test maps", function() {
               endTimeAttribute: "endTime",
               type: "VECTOR"
             });
+            storyLayer.getLayer().setSource(new ol.source.Vector());
             var id = 1;
             features = [
                 new ol.Feature({id:id++, time: 1000}),
@@ -149,34 +151,32 @@ describe("test maps", function() {
                 new ol.Feature({id:id++, time: 2000}),
                 new ol.Feature({id:id++, time: 2000, endTime: 3000})
             ];
-            layer.set('features', features);
+            storyLayer.set('features', features);
         });
         it('filters instants', function() {
-            var layerInfo = layer.get('layerInfo');
-            layerInfo.endTimeAttribute = null;
-            layer.set('layerInfo', layerInfo);
+            storyLayer.set('endTimeAttribute', null);
             // range before everything
-            maps.filterVectorLayer(layer, {start:500, end: 501});
+            maps.filterVectorLayer(storyLayer, {start:500, end: 501});
             expect(ids()).toEqual([]);
             // range after everything
-            maps.filterVectorLayer(layer, {start:2500, end: 2600});
+            maps.filterVectorLayer(storyLayer, {start:2500, end: 2600});
             expect(ids()).toEqual([]);
             // direct hit (ignores end exclusion)
-            maps.filterVectorLayer(layer, {start:2000, end: 2000});
+            maps.filterVectorLayer(storyLayer, {start:2000, end: 2000});
             expect(ids()).toEqual([3,4]);
         });
         it('filters extents', function() {
             // range before everything
-            maps.filterVectorLayer(layer, {start:500, end: 501});
+            maps.filterVectorLayer(storyLayer, {start:500, end: 501});
             expect(ids()).toEqual([]);
             // range before and after everything
-            maps.filterVectorLayer(layer, {start:500, end: 4000});
+            maps.filterVectorLayer(storyLayer, {start:500, end: 4000});
             expect(ids()).toEqual([1,2,3,4]);
             // excludes 3 due to intersection rules with end
-            maps.filterVectorLayer(layer, {start:1000, end:2000});
+            maps.filterVectorLayer(storyLayer, {start:1000, end:2000});
             expect(ids()).toEqual([1,2]);
             // 1 and 3 included as they are open ended and before
-            maps.filterVectorLayer(layer, {start:3000, end:4000});
+            maps.filterVectorLayer(storyLayer, {start:3000, end:4000});
             expect(ids()).toEqual([1,3,4]);
         });
     });
