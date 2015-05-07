@@ -295,6 +295,7 @@
               title: title || name,
               url: url,
               path: server.path,
+              canStyleWMS: server.canStyleWMS,
               timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
