@@ -293,7 +293,16 @@
               self.storyMap.addStoryLayer(a);
               self.map.addLayer(a.getLayer());
               if (fitExtent === true) {
-                self.map.getView().fitExtent(a.get('extent'), self.map.getSize());
+                a.get('latlonBBOX');
+                var extent = ol.proj.transformExtent(
+                  a.get('latlonBBOX'),
+                  'EPSG:4326',
+                  self.map.getView().getProjection()
+                );
+                // prevent getting off the earth
+                extent[1] = Math.max(-20037508.34, Math.min(extent[1], 20037508.34));
+                extent[3] = Math.max(-20037508.34, Math.min(extent[3], 20037508.34));
+                self.map.getView().fitExtent(extent, self.map.getSize());
               }
             });
         };
