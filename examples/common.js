@@ -184,7 +184,21 @@
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
-                    new storytools.mapstory.MapConfig.MapConfig().read(data, self);
+                    var config = new storytools.mapstory.MapConfig.MapConfig().read(data, self);
+                    for (var i=0, ii=config.map.layers.length; i<ii; ++i) {
+                      var cfg = config.map.layers[i];
+                      stLayerBuilder.buildEditableLayer(cfg, this.map).then(function(a) {
+                        // TODO insert at the correct index
+                        self.storyMap.addStoryLayer(a);
+                        self.map.addLayer(a.getLayer());
+                      });
+                    }
+            self.map.setView(new ol.View({
+                center: config.map.center,
+                zoom: config.map.zoom,
+                projection: config.map.projection
+            }));
+
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
