@@ -94,32 +94,9 @@
         StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder) {
         this.storyMap = new StoryMap({target: 'map'});
         var self = this;
-        var projCfg = {
-            units: 'm',
-            extent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
-            global: true,
-            worldExtent: [-180, -85, 180, 85]
-        };
-        projCfg.code = 'EPSG:3857';
-        ol.proj.addProjection(new ol.proj.Projection(projCfg));
-        projCfg.code = 'EPSG:900913';
-        ol.proj.addProjection(new ol.proj.Projection(projCfg));
-        //this.map = new ol.Map({target: 'map'});
-        /*this.overlay = new ol.FeatureOverlay({
-            map: this.map
-        });*/
         this.storyPinLayerManager = new StoryPinLayerManager();
-        this.defaultMap = function() {
-            this.map.setView(new ol.View({center: [0,0], zoom: 3}));
-            this.setBaseLayer({
-                title: 'Satellite Imagery',
-                type: 'MapQuest',
-                layer: 'sat'
-            });
-        };
         this.loadMap = function(options) {
             options = options || {};
-            //this.map.getLayers().clear();
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 new storytools.mapstory.MapConfig.MapConfig().read(config, self);
@@ -128,26 +105,10 @@
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
-                    /*self.storyMap.loadFromConfig(data);
-                    var config = new storytools.mapstory.MapConfig.MapConfig().read(data, self);
-                    for (var i=0, ii=config.map.layers.length; i<ii; ++i) {
-                      var cfg = config.map.layers[i];
-                      stLayerBuilder.buildEditableLayer(cfg, this.map).then(function(a) {
-                        // TODO insert at the correct index
-                        self.storyMap.addStoryLayer(a);
-                        self.map.addLayer(a.getLayer());
-                      });
-                    }
-            self.map.setView(new ol.View({
-                center: config.map.center,
-                zoom: config.map.zoom,
-                projection: config.map.projection
-            }));*/
-
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
-                        self.defaultMap();
+                        stStoryMapBuilder.defaultMap(self.storyMap);
                     }
                 });
                 var annotationsURL = options.url.replace('/data','/annotations');
@@ -161,7 +122,7 @@
                     self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
                 });*/
             } else {
-                this.defaultMap();
+                stStoryMapBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
             // @todo how to make on top?
@@ -170,8 +131,6 @@
         };
         this.saveMap = function() {
             var config = this.storyMap.getState();
-return;
-            var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
             stMapConfigStore.saveConfig(config);
             stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
         };
@@ -378,6 +337,10 @@ return;
                     title: 'No background',
                     type: 'None'
                 }];
+                var baseLayer = scope.map.storyMap.get('baselayer');
+                if (baseLayer) {
+                  scope.map.baseLayer = baseLayer.get('title');
+                }
                 // TODO on storyMap or on storyMap.getMap() ?
                 scope.map.storyMap.on('change:baselayer', function() {
                   scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
