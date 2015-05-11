@@ -99,7 +99,7 @@
             options = options || {};
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
-                new storytools.mapstory.MapConfig.MapConfig().read(config, self);
+                stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
