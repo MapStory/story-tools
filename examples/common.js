@@ -169,6 +169,8 @@
             //this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
         };
         this.saveMap = function() {
+            var config = this.storyMap.getState();
+return;
             var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
             stMapConfigStore.saveConfig(config);
             stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
@@ -185,7 +187,7 @@
         });
         this.getNamedLayers = function() {
             return this.storyMap.getStoryLayers().getArray().filter(function(lyr) {
-                return angular.isString(lyr.get('name')) && lyr.get('group') !== 'background';
+                return angular.isString(lyr.get('name'));
             });
         };
         this.addMemoryLayer = function(options) {
