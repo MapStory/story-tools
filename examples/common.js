@@ -91,8 +91,8 @@
     })];
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap) {
-        this.storyMap = new StoryMap();
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder) {
+        this.storyMap = new StoryMap({target: 'map'});
         var self = this;
         var projCfg = {
             units: 'm',
@@ -104,10 +104,10 @@
         ol.proj.addProjection(new ol.proj.Projection(projCfg));
         projCfg.code = 'EPSG:900913';
         ol.proj.addProjection(new ol.proj.Projection(projCfg));
-        this.map = new ol.Map({target: 'map'});
-        this.overlay = new ol.FeatureOverlay({
+        //this.map = new ol.Map({target: 'map'});
+        /*this.overlay = new ol.FeatureOverlay({
             map: this.map
-        });
+        });*/
         this.storyPinLayerManager = new StoryPinLayerManager();
         this.defaultMap = function() {
             this.map.setView(new ol.View({center: [0,0], zoom: 3}));
@@ -117,66 +117,9 @@
                 layer: 'sat'
             });
         };
-        this.animateCenterAndZoom = function(center, zoom) {
-            var view = this.map.getView();
-            this.map.beforeRender(ol.animation.pan({
-                duration: 500,
-                source: view.getCenter()
-            }));
-            view.setCenter(center);
-            this.map.beforeRender(ol.animation.zoom({
-                resolution: view.getResolution(),
-                duration: 500
-            }));
-            view.setZoom(zoom);
-        };
-        this.setAllowPan = function(allowPan) {
-            this.map.getInteractions().forEach(function(i) {
-                if (i instanceof ol.interaction.KeyboardPan ||
-                  i instanceof ol.interaction.DragPan) {
-                    i.setActive(allowPan);
-                }
-            });
-        };
-        this.setAllowZoom = function(allowZoom) {
-            var zoomCtrl;
-            this.map.getControls().forEach(function(c) {
-                if (c instanceof ol.control.Zoom) {
-                    zoomCtrl = c;
-                }
-            });
-            if (!allowZoom) {
-                this.map.removeControl(zoomCtrl);
-            } else {
-                this.map.addControl(new ol.control.Zoom());
-            }
-            this.map.getInteractions().forEach(function(i) {
-                if (i instanceof ol.interaction.DoubleClickZoom ||
-                  i instanceof ol.interaction.PinchZoom ||
-                  i instanceof ol.interaction.DragZoom ||
-                  i instanceof ol.interaction.MouseWheelZoom) {
-                    i.setActive(allowZoom);
-                }
-            });
-        };
-        this.setBaseLayer = function(cfg, baseLayer) {
-            this.baseLayer = cfg;
-            this.map.getLayers().forEach(function(lyr) {
-                if (lyr.get('group') === 'background') {
-                    this.map.removeLayer(lyr);
-                }
-            }, this);
-            if (baseLayer === undefined) {
-                baseLayer = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(cfg);
-            }
-            if (baseLayer !== undefined) {
-                baseLayer.set('group', 'background');
-                this.map.getLayers().insertAt(0, baseLayer);
-            }
-        };
         this.loadMap = function(options) {
             options = options || {};
-            this.map.getLayers().clear();
+            //this.map.getLayers().clear();
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 new storytools.mapstory.MapConfig.MapConfig().read(config, self);
@@ -184,6 +127,8 @@
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
+                    stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
+                    /*self.storyMap.loadFromConfig(data);
                     var config = new storytools.mapstory.MapConfig.MapConfig().read(data, self);
                     for (var i=0, ii=config.map.layers.length; i<ii; ++i) {
                       var cfg = config.map.layers[i];
@@ -197,7 +142,7 @@
                 center: config.map.center,
                 zoom: config.map.zoom,
                 projection: config.map.projection
-            }));
+            }));*/
 
                 }).error(function(data, status) {
                     if (status === 401) {
@@ -209,17 +154,19 @@
                 if (annotationsURL.slice(-1) === '/') {
                     annotationsURL = annotationsURL.slice(0, -1);
                 }
-                var annotationsLoad = $http.get(annotationsURL);
+// TODO move to storyMap
+                /*var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
                     self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
-                });
+                });*/
             } else {
                 this.defaultMap();
             }
             this.currentMapOptions = options;
             // @todo how to make on top?
-            this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
+// TODO move to storyMap
+            //this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
         };
         this.saveMap = function() {
             var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
@@ -238,7 +185,7 @@
         });
         this.getNamedLayers = function() {
             return this.storyMap.getStoryLayers().getArray().filter(function(lyr) {
-                return angular.isString(lyr.get('name'));
+                return angular.isString(lyr.get('name')) && lyr.get('group') !== 'background';
             });
         };
         this.addMemoryLayer = function(options) {
@@ -391,7 +338,7 @@
         };
     });
 
-    module.directive('layerList', function() {
+    module.directive('layerList', function(stStoryMapBuilder) {
         return {
             restrict: 'E',
             scope: {
@@ -429,14 +376,18 @@
                     title: 'No background',
                     type: 'None'
                 }];
-                scope.map.map.getLayers().on('change:length', function() {
+                // TODO on storyMap or on storyMap.getMap() ?
+                scope.map.storyMap.on('change:baselayer', function() {
+                  scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
+                });
+                scope.map.storyMap.getStoryLayers().on('change:length', function() {
                     scope.layers = scope.map.getNamedLayers();
                 });
                 scope.removeLayer = function(lyr) {
-                    scope.map.map.removeLayer(lyr);
+                    scope.map.storyMap.removeStoryLayer(lyr);
                 };
                 scope.onChange = function(baseLayer) {
-                    scope.map.setBaseLayer(baseLayer);
+                    stStoryMapBuilder.setBaseLayer(scope.map.storyMap, baseLayer);
                 };
             }
         };
