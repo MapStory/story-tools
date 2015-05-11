@@ -115,24 +115,22 @@
                 if (annotationsURL.slice(-1) === '/') {
                     annotationsURL = annotationsURL.slice(0, -1);
                 }
-// TODO move to storyMap
-                /*var annotationsLoad = $http.get(annotationsURL);
+                var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
-                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
-                });*/
+                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
+                });
             } else {
                 stStoryMapBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
             // @todo how to make on top?
-// TODO move to storyMap
-            //this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
+            this.storyMap.getMap().addLayer(this.storyPinLayerManager.storyPinsLayer);
         };
         this.saveMap = function() {
             var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
-            stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
+            stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), this.storyPinLayerManager.storyPins);
         };
         $rootScope.$on('$locationChangeSuccess', function() {
             var path = $location.path();
@@ -148,43 +146,6 @@
             return this.storyMap.getStoryLayers().getArray().filter(function(lyr) {
                 return angular.isString(lyr.get('name'));
             });
-        };
-        this.addMemoryLayer = function(options) {
-            // url to geojson
-            if (options.url) {
-                $http.get(options.url).success(function(data) {
-                    var layer = new ol.layer.Vector({
-                        id: options.url,
-                        name: options.url,
-                        server: memoryServer,
-                        source: new ol.source.GeoJSON({
-                            object: data,
-                            projection: 'EPSG:3857'
-                        }),
-                        layerInfo: {
-                            geomType: data.features[0].geometry.type.toLowerCase(),
-                            attributes: Object.keys(data.features[0].properties)
-                        }
-                    });
-                    self.map.addLayer(layer);
-                    self.map.getView().fitExtent(layer.getSource().getExtent(), self.map.getSize());
-                });
-            } else {
-                // generated vector layer
-                var layer = new ol.layer.Vector({
-                    id: options.id,
-                    name: options.id,
-                    server: memoryServer,
-                    source: new ol.source.Vector({
-                        features: options.features
-                    }),
-                    layerInfo: {
-                        geomType: options.geomType,
-                        attributes: options.attributes
-                    }
-                });
-                this.map.addLayer(layer);
-            }
         };
         this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
             if (fitExtent === undefined) {
@@ -340,7 +301,6 @@
                 if (baseLayer) {
                   scope.map.baseLayer = baseLayer.get('title');
                 }
-                // TODO on storyMap or on storyMap.getMap() ?
                 scope.map.storyMap.on('change:baselayer', function() {
                   scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
                 });
