@@ -213,18 +213,17 @@
             };
             return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
               self.storyMap.addStoryLayer(a);
-              self.map.addLayer(a.getLayer());
               if (fitExtent === true) {
                 a.get('latlonBBOX');
                 var extent = ol.proj.transformExtent(
                   a.get('latlonBBOX'),
                   'EPSG:4326',
-                  self.map.getView().getProjection()
+                  self.storyMap.getMap().getView().getProjection()
                 );
                 // prevent getting off the earth
                 extent[1] = Math.max(-20037508.34, Math.min(extent[1], 20037508.34));
                 extent[3] = Math.max(-20037508.34, Math.min(extent[3], 20037508.34));
-                self.map.getView().fitExtent(extent, self.map.getSize());
+                self.storyMap.getMap().getView().fitExtent(extent, self.storyMap.getMap().getSize());
               }
             });
         };
