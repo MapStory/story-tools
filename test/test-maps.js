@@ -180,4 +180,31 @@ describe("test maps", function() {
             expect(ids()).toEqual([1,3,4]);
         });
     });
+
+    describe('MapConfig', function() {
+
+       beforeEach(function() {
+              // window.angular.mock.module is work around browserify conflict
+              window.angular.mock.module('storytools.edit.ogc');
+  
+              inject(function($injector) {
+                  StoryMap = $injector.get('StoryMap');
+                  stStoryMapBuilder = $injector.get('stStoryMapBuilder');
+                  stLayerBuilder = $injector.get('stLayerBuilder');
+                  $timeout = $injector.get('$timeout');
+              });
+        });
+
+        it('should transform to Interval object', function(done) {
+            var data = JSON.parse('{"id":214,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","geomType":"point","attributes": ["attr1", "attr2"],"timeAttribute":"attr1","resolutions":[0,10, 20],"bbox": [0,100,100,200],"latlonBBOX":[-10,-10,10,10],"times":{"start": 631152000000, "end": 1230768000000, "duration": "P1Y"},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}');
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.getStoryLayers().on('change:length', function() {
+              expect(storyMap.getStoryLayers().item(0).get('times').interval).toBe(31536000000);
+              done();
+            });
+            stStoryMapBuilder.modifyStoryMap(storyMap, data);
+            $timeout.flush();
+        });
+    });
+
 });
