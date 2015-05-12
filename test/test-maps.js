@@ -205,6 +205,127 @@ describe("test maps", function() {
             stStoryMapBuilder.modifyStoryMap(storyMap, data);
             $timeout.flush();
         });
+
+        it('should convert extent, zoom and projection', function() {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 215);
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            var config = storyMap.getState();
+            var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[]},"id":215}';
+            expect(JSON.stringify(config)).toBe(expected);
+        });
+
+        it('should convert a tiled WMS layer', function(done) {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 216); 
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            stLayerBuilder.buildEditableLayer({
+              type: 'WMS',
+              id: 'foo',
+              name: 'x',
+              title: 'My layer',
+              geomType: 'point',
+              timeAttribute: 'attr1',
+              times: ['2001', '2002', '2003'],
+              url: 'http://myserver',
+              latlonBBOX: [-90,-180,90,180],
+              bbox: [0,0,1,1],
+              resolutions: [100,50,10],
+              attributes: ['foo','bar']
+            }, storyMap.getMap()).then(function(sl) {
+              storyMap.addStoryLayer(sl);
+              expect(sl.getLayer() instanceof ol.layer.Tile).toBe(true);
+              expect(sl.getLayer().getSource() instanceof ol.source.TileWMS).toBe(true);
+              var config = storyMap.getState();
+              var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"WMS","id":"foo","name":"x","title":"My layer","geomType":"point","timeAttribute":"attr1","times":["2001","2002","2003"],"url":"http://myserver","latlonBBOX":[-90,-180,90,180],"bbox":[0,0,1,1],"resolutions":[100,50,10],"attributes":["foo","bar"]}]},"id":216}';
+              expect(JSON.stringify(config)).toBe(expected);
+              done();
+            });
+            $timeout.flush();
+        });
+
+        it('should convert an untiled WMS layer', function(done) {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 217);
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            stLayerBuilder.buildEditableLayer({
+                type: 'WMS',
+                singleTile: true,
+                title: 'My layer',
+                id: 'foo',
+                name: 'x',
+                geomType: 'point',
+                timeAttr: 'attr1',
+                times: ['2001', '2002', '2003'],
+                url: 'http://myserver',
+                latlonBBOX: [-90,-180,90,180],
+                bbox: [0,0,1,1],
+                resolutions: [100,50,10],
+                attributes: ['foo','bar']
+            }, storyMap.getMap()).then(function(sl) {
+                storyMap.addStoryLayer(sl);
+                expect(sl.getLayer() instanceof ol.layer.Image).toBe(true);
+                expect(sl.getLayer().getSource() instanceof ol.source.ImageWMS).toBe(true);
+                var config = storyMap.getState();
+                var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"WMS","singleTile":true,"title":"My layer","id":"foo","name":"x","geomType":"point","timeAttr":"attr1","times":["2001","2002","2003"],"url":"http://myserver","latlonBBOX":[-90,-180,90,180],"bbox":[0,0,1,1],"resolutions":[100,50,10],"attributes":["foo","bar"]}]},"id":217}';
+                expect(JSON.stringify(config)).toBe(expected);
+                done();
+            });
+            $timeout.flush();
+        });
+
+        it('should convert a vector layer', function(done) {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 227);
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            stLayerBuilder.buildEditableLayer({
+                type: 'VECTOR',
+                id: 'foo',
+                title: 'My layer',
+                url: '/geoserver/wfs',
+                geomType: 'point',
+                timeAttr: 'attr1',
+                typeName: 'foo',
+                times: ['2001', '2002', '2003'],
+                latlonBBOX: [-90,-180,90,180],
+                bbox: [0,0,1,1],
+                features: [],
+                resolutions: [100,50,10],
+                attributes: ['foo','bar']
+            }, storyMap.getMap()).then(function(sl) {
+                storyMap.addStoryLayer(sl);
+                expect(sl.getLayer() instanceof ol.layer.Vector).toBe(true);
+                var config = storyMap.getState();
+                var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"VECTOR","id":"foo","title":"My layer","url":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"],"latlonBBOX":[-90,-180,90,180],"bbox":[0,0,1,1],"features":[],"resolutions":[100,50,10],"attributes":["foo","bar"]}]},"id":227}';
+                expect(JSON.stringify(config)).toBe(expected);
+                done();
+            });
+            $timeout.flush();
+        });
+
+        it('should convert an OSM layer', function() {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 218);
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            stStoryMapBuilder.setBaseLayer(storyMap, {
+                type: 'OSM'
+            });
+            var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"OSM","group":"background","visibility":true}]},"id":218}';
+            expect(JSON.stringify(storyMap.getState())).toBe(expected);
+        });
+
+        it('should convert an MapQuest layer', function() {
+            var storyMap = new StoryMap({target: 'foo'});
+            storyMap.set('id', 219);
+            storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+            stStoryMapBuilder.setBaseLayer(storyMap, {
+                type: 'MapQuest',
+                layer: 'sat'
+            });
+            var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"MapQuest","layer":"sat","group":"background","visibility":true}]},"id":219}';
+            expect(JSON.stringify(storyMap.getState())).toBe(expected);
+        });
+
     });
 
 });
