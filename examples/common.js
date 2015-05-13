@@ -142,11 +142,6 @@
                 self.loadMap({url: path});
             }
         });
-        this.getNamedLayers = function() {
-            return this.storyMap.getStoryLayers().getArray().filter(function(lyr) {
-                return angular.isString(lyr.get('name'));
-            });
-        };
         this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
             if (fitExtent === undefined) {
                 fitExtent = true;
@@ -305,7 +300,7 @@
                   scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
                 });
                 scope.map.storyMap.getStoryLayers().on('change:length', function() {
-                    scope.layers = scope.map.getNamedLayers();
+                    scope.layers = scope.map.storyMap.getStoryLayers().getArray();
                 });
                 scope.removeLayer = function(lyr) {
                     scope.map.storyMap.removeStoryLayer(lyr);

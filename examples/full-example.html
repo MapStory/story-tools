@@ -163,7 +163,7 @@
                     </div>
                     <div ng-show="selected.style" class="floating col-lg-4 ng-hide">
                         <accordion close-others="true">
-                            <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in map.getNamedLayers()" is-open="accordianOpen" ng-init="accordianOpen = $first">
+                            <accordion-group heading="{{layer.get('name')}}" ng-repeat="layer in layers" is-open="accordianOpen" ng-init="accordianOpen = $first">
                                 <!-- to reduce watchers, add ng-if=accordianOpen -->
                                 <style-editor class="minheight" layer="layer" on-change="styleChanged"></style-editor>
                             </accordion-group>
