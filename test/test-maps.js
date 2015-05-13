@@ -1,5 +1,5 @@
 var maps = require('../lib/core/time/maps.js');
-require('../lib/ng/edit/ogc/module.js');
+require('../lib/ng/core/ogc/module.js');
 
 describe("test maps", function() {
     it("readCapabilitiesTimeDimensions works", function() {
@@ -59,7 +59,7 @@ describe("test maps", function() {
 
         beforeEach(function() {
             // window.angular.mock.module is work around browserify conflict
-            window.angular.mock.module('storytools.edit.ogc');
+            window.angular.mock.module('storytools.core.ogc');
 
             inject(function($injector) {
                 StoryLayer = $injector.get('StoryLayer');
@@ -132,7 +132,7 @@ describe("test maps", function() {
 
         beforeEach(function() {
             // window.angular.mock.module is work around browserify conflict
-            window.angular.mock.module('storytools.edit.ogc');
+            window.angular.mock.module('storytools.core.ogc');
                 
             inject(function($injector) {
                 StoryLayer = $injector.get('StoryLayer');
@@ -185,11 +185,13 @@ describe("test maps", function() {
 
        beforeEach(function() {
               // window.angular.mock.module is work around browserify conflict
-              window.angular.mock.module('storytools.edit.ogc');
+              window.angular.mock.module('storytools.core.ogc');
   
               inject(function($injector) {
                   StoryMap = $injector.get('StoryMap');
+                  EditableStoryMap = $injector.get('EditableStoryMap');
                   stStoryMapBuilder = $injector.get('stStoryMapBuilder');
+                  stStoryMapBaseBuilder = $injector.get('stStoryMapBaseBuilder');
                   stLayerBuilder = $injector.get('stLayerBuilder');
                   $timeout = $injector.get('$timeout');
               });
@@ -207,7 +209,7 @@ describe("test maps", function() {
         });
 
         it('should convert extent, zoom and projection', function() {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 215);
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
             var config = storyMap.getState();
@@ -216,10 +218,10 @@ describe("test maps", function() {
         });
 
         it('should convert a tiled WMS layer', function(done) {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 216); 
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
-            stLayerBuilder.buildEditableLayer({
+            stLayerBuilder.buildLayer({
               type: 'WMS',
               id: 'foo',
               name: 'x',
@@ -245,10 +247,10 @@ describe("test maps", function() {
         });
 
         it('should convert an untiled WMS layer', function(done) {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 217);
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
-            stLayerBuilder.buildEditableLayer({
+            stLayerBuilder.buildLayer({
                 type: 'WMS',
                 singleTile: true,
                 title: 'My layer',
@@ -275,10 +277,10 @@ describe("test maps", function() {
         });
 
         it('should convert a vector layer', function(done) {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 227);
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
-            stLayerBuilder.buildEditableLayer({
+            stLayerBuilder.buildLayer({
                 type: 'VECTOR',
                 id: 'foo',
                 title: 'My layer',
@@ -289,14 +291,13 @@ describe("test maps", function() {
                 times: ['2001', '2002', '2003'],
                 latlonBBOX: [-90,-180,90,180],
                 bbox: [0,0,1,1],
-                features: [],
                 resolutions: [100,50,10],
                 attributes: ['foo','bar']
             }, storyMap.getMap()).then(function(sl) {
                 storyMap.addStoryLayer(sl);
                 expect(sl.getLayer() instanceof ol.layer.Vector).toBe(true);
                 var config = storyMap.getState();
-                var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"VECTOR","id":"foo","title":"My layer","url":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"],"latlonBBOX":[-90,-180,90,180],"bbox":[0,0,1,1],"features":[],"resolutions":[100,50,10],"attributes":["foo","bar"]}]},"id":227}';
+                var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"VECTOR","id":"foo","title":"My layer","url":"/geoserver/wfs","geomType":"point","timeAttr":"attr1","typeName":"foo","times":["2001","2002","2003"],"latlonBBOX":[-90,-180,90,180],"bbox":[0,0,1,1],"resolutions":[100,50,10],"attributes":["foo","bar"]}]},"id":227}';
                 expect(JSON.stringify(config)).toBe(expected);
                 done();
             });
@@ -304,10 +305,10 @@ describe("test maps", function() {
         });
 
         it('should convert an OSM layer', function() {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 218);
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
-            stStoryMapBuilder.setBaseLayer(storyMap, {
+            stStoryMapBaseBuilder.setBaseLayer(storyMap, {
                 type: 'OSM'
             });
             var expected = '{"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"type":"OSM","group":"background","visibility":true}]},"id":218}';
@@ -315,10 +316,10 @@ describe("test maps", function() {
         });
 
         it('should convert an MapQuest layer', function() {
-            var storyMap = new StoryMap({target: 'foo'});
+            var storyMap = new EditableStoryMap({target: 'foo'});
             storyMap.set('id', 219);
             storyMap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
-            stStoryMapBuilder.setBaseLayer(storyMap, {
+            stStoryMapBaseBuilder.setBaseLayer(storyMap, {
                 type: 'MapQuest',
                 layer: 'sat'
             });

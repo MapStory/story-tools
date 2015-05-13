@@ -6,7 +6,7 @@
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
-        'storytools.edit.ogc',
+        'storytools.core.ogc',
         'colorpicker.module',
         'ui.bootstrap'
     ]);
