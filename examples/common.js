@@ -6,6 +6,7 @@
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
+        'storytools.edit.ogc',
         'colorpicker.module',
         'ui.bootstrap'
     ]);
@@ -53,8 +54,8 @@
             path: '/geoserver/',
             absolutePath: 'http://mapstory.org/geoserver/',
             canStyleWMS: false,
-            timeEndpoint: function(layer) {
-                return '/maps/time_info.json?layer=' + layer.get('name');
+            timeEndpoint: function(name) {
+                return '/maps/time_info.json?layer=' + name;
             }
         },
         {
@@ -90,103 +91,24 @@
     })];
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore) {
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder) {
+        this.storyMap = new StoryMap({target: 'map'});
         var self = this;
-        var projCfg = {
-            units: 'm',
-            extent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
-            global: true,
-            worldExtent: [-180, -85, 180, 85]
-        };
-        projCfg.code = 'EPSG:3857';
-        ol.proj.addProjection(new ol.proj.Projection(projCfg));
-        projCfg.code = 'EPSG:900913';
-        ol.proj.addProjection(new ol.proj.Projection(projCfg));
-        this.map = new ol.Map({target: 'map'});
-        this.overlay = new ol.FeatureOverlay({
-            map: this.map
-        });
         this.storyPinLayerManager = new StoryPinLayerManager();
-        this.defaultMap = function() {
-            this.map.setView(new ol.View({center: [0,0], zoom: 3}));
-            this.setBaseLayer({
-                title: 'Satellite Imagery',
-                type: 'MapQuest',
-                layer: 'sat'
-            });
-        };
-        this.animateCenterAndZoom = function(center, zoom) {
-            var view = this.map.getView();
-            this.map.beforeRender(ol.animation.pan({
-                duration: 500,
-                source: view.getCenter()
-            }));
-            view.setCenter(center);
-            this.map.beforeRender(ol.animation.zoom({
-                resolution: view.getResolution(),
-                duration: 500
-            }));
-            view.setZoom(zoom);
-        };
-        this.setAllowPan = function(allowPan) {
-            this.map.getInteractions().forEach(function(i) {
-                if (i instanceof ol.interaction.KeyboardPan ||
-                  i instanceof ol.interaction.DragPan) {
-                    i.setActive(allowPan);
-                }
-            });
-        };
-        this.setAllowZoom = function(allowZoom) {
-            var zoomCtrl;
-            this.map.getControls().forEach(function(c) {
-                if (c instanceof ol.control.Zoom) {
-                    zoomCtrl = c;
-                }
-            });
-            if (!allowZoom) {
-                this.map.removeControl(zoomCtrl);
-            } else {
-                this.map.addControl(new ol.control.Zoom());
-            }
-            this.map.getInteractions().forEach(function(i) {
-                if (i instanceof ol.interaction.DoubleClickZoom ||
-                  i instanceof ol.interaction.PinchZoom ||
-                  i instanceof ol.interaction.DragZoom ||
-                  i instanceof ol.interaction.MouseWheelZoom) {
-                    i.setActive(allowZoom);
-                }
-            });
-        };
-        this.setBaseLayer = function(cfg, baseLayer) {
-            this.baseLayer = cfg;
-            this.map.getLayers().forEach(function(lyr) {
-                if (lyr.get('group') === 'background') {
-                    this.map.removeLayer(lyr);
-                }
-            }, this);
-            if (baseLayer === undefined) {
-                baseLayer = new storytools.mapstory.MapConfig.MapConfig().createBaseLayer(cfg);
-            }
-            if (baseLayer !== undefined) {
-                baseLayer.set('group', 'background');
-                this.map.getLayers().insertAt(0, baseLayer);
-            }
-        };
         this.loadMap = function(options) {
             options = options || {};
-            this.map.getLayers().clear();
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
-                new storytools.mapstory.MapConfig.MapConfig().read(config, self);
+                stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
-                    new storytools.mapstory.MapConfig.MapConfig().read(data, self);
+                    stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
-                        self.defaultMap();
+                        stStoryMapBuilder.defaultMap(self.storyMap);
                     }
                 });
                 var annotationsURL = options.url.replace('/data','/annotations');
@@ -196,19 +118,19 @@
                 var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
-                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.map.getView().getProjection());
+                    self.storyPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
                 });
             } else {
-                this.defaultMap();
+                stStoryMapBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
             // @todo how to make on top?
-            this.map.addLayer(this.storyPinLayerManager.storyPinsLayer);
+            this.storyMap.getMap().addLayer(this.storyPinLayerManager.storyPinsLayer);
         };
         this.saveMap = function() {
-            var config = new storytools.mapstory.MapConfig.MapConfig().write(this);
+            var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
-            stAnnotationsStore.saveAnnotations(this.mapid, this.storyPinLayerManager.storyPins);
+            stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), this.storyPinLayerManager.storyPins);
         };
         $rootScope.$on('$locationChangeSuccess', function() {
             var path = $location.path();
@@ -220,48 +142,6 @@
                 self.loadMap({url: path});
             }
         });
-        this.getNamedLayers = function() {
-            return this.map.getLayers().getArray().filter(function(lyr) {
-                return angular.isString(lyr.get('name'));
-            });
-        };
-        this.addMemoryLayer = function(options) {
-            // url to geojson
-            if (options.url) {
-                $http.get(options.url).success(function(data) {
-                    var layer = new ol.layer.Vector({
-                        id: options.url,
-                        name: options.url,
-                        server: memoryServer,
-                        source: new ol.source.GeoJSON({
-                            object: data,
-                            projection: 'EPSG:3857'
-                        }),
-                        layerInfo: {
-                            geomType: data.features[0].geometry.type.toLowerCase(),
-                            attributes: Object.keys(data.features[0].properties)
-                        }
-                    });
-                    self.map.addLayer(layer);
-                    self.map.getView().fitExtent(layer.getSource().getExtent(), self.map.getSize());
-                });
-            } else {
-                // generated vector layer
-                var layer = new ol.layer.Vector({
-                    id: options.id,
-                    name: options.id,
-                    server: memoryServer,
-                    source: new ol.source.Vector({
-                        features: options.features
-                    }),
-                    layerInfo: {
-                        geomType: options.geomType,
-                        attributes: options.attributes
-                    }
-                });
-                this.map.addLayer(layer);
-            }
-        };
         this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
             if (fitExtent === undefined) {
                 fitExtent = true;
@@ -277,180 +157,51 @@
             }
             var url = server.path + workspace + '/' + name + '/wms';
             var id = workspace + ":" + name;
-            var layer;
             var options = {
-                id: id,
-                name: name,
-                title: title || name,
-                server: server,
-                url: url,
-                layerInfo: {},
-                useOldAsInterimTiles: true
+              id: id,
+              name: name,
+              title: title || name,
+              url: url,
+              path: server.path,
+              canStyleWMS: server.canStyleWMS,
+              timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
+              type: (asVector === true) ? 'VECTOR': 'WMS'
             };
-            if (asVector === true) {
-                options.style = defaultStyle;
-                layer = new ol.layer.Vector(options);
-            } else {
-                layer = new ol.layer.Tile(options);
-            }
-            return load.call(self, layer, styleName).then(function() {
-                self.map.addLayer(layer);
-                if (fitExtent === true) {
-                    self.map.getView().fitExtent(layer.getExtent(), self.map.getSize());
-                }
-            });
-        };
-        this.getFeatures = function(layer, wfsUrl, start) {
-            var name = layer.get('layerInfo').typeName, self = this;
-            wfsUrl += '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
-                name + '&outputFormat=application/json' +
-                '&srsName=' + self.map.getView().getProjection().getCode();
-            $http.get(wfsUrl).success(function(response) {
-                var features = new ol.format.GeoJSON().readFeatures(response);
-                layer.setSource(new ol.source.Vector());
-                if (start) {
-                    layer.set('features', features);
-                    storytools.core.time.maps.filterVectorLayer(layer, {start: start, end: start});
-                } else {
-                    layer.getSource().addFeatures(features);
-                }
-            });
-        };
-        this.describeFeatureType = function(layer, url) {
-            if (url) {
-                for (var i=0, ii=servers.length; i<ii; ++i) {
-                    if (servers[i].absolutePath) {
-                        if (url.indexOf(servers[i].absolutePath) !== -1) {
-                            url = url.replace(servers[i].absolutePath, servers[i].path);
-                        }
-                    }
-                }
-            }
-            var id = layer.get('id');
-            var self = this;
-            return $http({
-                method: 'GET',
-                url: url ? url : layer.get('server').path + 'wfs',
-                params: {
-                    'SERVICE': 'WFS',
-                    'VERSION': '1.0.0',
-                    'REQUEST': 'DescribeFeatureType',
-                    'TYPENAME': id
-                }
-            }).success(function(data) {
-                var wfs = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
-                var layerInfo = wfs.parseResult(data);
-                if (layerInfo.timeAttribute === null) {
-                    getTimeAttribute(layer);
-                }
-                var parts = id.split(':');
-                layerInfo.typeName = id;
-                layerInfo.featurePrefix = parts[0];
-                layer.set('layerInfo', angular.extend(layer.get('layerInfo') || {}, layerInfo));
-            });
-        };
-        function getStyleName(layer, styleName) {
-            var promise;
-            if (layer.get('server').canStyleWMS && styleName === undefined) {
-                // get the style name if editable and not already known
-                promise = $http({
-                    method: 'GET',
-                    url: layer.get('server').path + 'rest/layers/' + layer.get('id') + '.json'
-                }).success(function(response) {
-                    layer.get('layerInfo').styleName = response.layer.defaultStyle.name;
-                });
-            } else {
-                promise = $q.when('');
-            }
-            return promise;
-        }
-        function parseCapabilities(layer, response, styleName) {
-            var parser = new ol.format.WMSCapabilities();
-            var caps = parser.read(response);
-            var found = storytools.core.time.maps.readCapabilitiesTimeDimensions(caps);
-            var name = layer.get('name');
-            var url = layer.get('url');
-            var start;
-            var extent = ol.proj.transformExtent(
-                caps.Capability.Layer.Layer[0].EX_GeographicBoundingBox,
-                'EPSG:4326',
-                self.map.getView().getProjection()
+            return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
+              self.storyMap.addStoryLayer(a);
+              if (fitExtent === true) {
+                a.get('latlonBBOX');
+                var extent = ol.proj.transformExtent(
+                  a.get('latlonBBOX'),
+                  'EPSG:4326',
+                  self.storyMap.getMap().getView().getProjection()
                 );
-            layer.setExtent(extent);
-            if (name in found) {
-                angular.extend(layer.get('layerInfo') || {}, {times: found[name]});
-                start = found[name].start || found[name][0];
-            }
-            if (layer instanceof ol.layer.Tile) {
-                var params = {
-                    'LAYERS': name,
-                    'STYLES': styleName,
-                    'VERSION': '1.1.0',
-                    'TILED': true
-                };
-                if (start) {
-                    params.TIME = isoDate(start);
-                }
-                // @todo use urls for subdomain loading
-                layer.setSource(new ol.source.TileWMS({
-                    url: url,
-                    params: params,
-                    serverType: 'geoserver'
-                }));
-            } else if (layer instanceof ol.layer.Vector) {
-                angular.extend(layer.get('layerInfo') || {}, {wfsUrl: url});
-                self.getFeatures.call(self, layer, url, start);
-            }
-        }
-        function loadCapabilities(layer, styleName) {
-            var getcaps = layer.get('url') + '?request=GetCapabilities';
-            return $http.get(getcaps).success(function(response) {
-                parseCapabilities(layer, response, styleName);
+                // prevent getting off the earth
+                extent[1] = Math.max(-20037508.34, Math.min(extent[1], 20037508.34));
+                extent[3] = Math.max(-20037508.34, Math.min(extent[3], 20037508.34));
+                self.storyMap.getMap().getView().fitExtent(extent, self.storyMap.getMap().getSize());
+              }
             });
-        }
-        function getTimeAttribute(layer) {
-            var promise;
-            if (layer.get('layerInfo').timeAttribute) {
-                promise = $q.when('');
-            }
-            else if (layer.get('server') && layer.get('server').timeEndpoint) {
-                var url = layer.get('server').timeEndpoint(layer);
-                $http.get(url).success(function(data) {
-                    angular.extend(layer.get('layerInfo') || {}, {timeAttribute: data.attribute});
-                    if (data.endAttribute) {
-                        // @todo verify this with sample from mapstory that has endAttribute
-                        angular.extend(layer.get('layerInfo') || {}, {endTimeAttribute: data.endAttribute});
-                    }
-                });
-            } else {
-                // @todo make sure we have time attribute _somehow_
-                $log.warn('layer does not have timeEndpoint - time playback not enabled!');
-                promise = $q.when('');
-            }
-            return promise;
-        }
-        function load(layer, styleName) {
-            return $q.all(loadCapabilities(layer, styleName), this.describeFeatureType(layer), getStyleName(layer, styleName));
-        }
+        };
     }
 
     module.service('styleUpdater', function($http, ol3StyleConverter) {
         return {
-            updateStyle: function(layer) {
-                var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(layer.style);
+            updateStyle: function(storyLayer) {
+                var style = storyLayer.get('style'), layer = storyLayer.getLayer();
+                var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(style);
                 if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
-                        return ol3StyleConverter.generateStyle(layer.style, feature, resolution);
+                        return ol3StyleConverter.generateStyle(style, feature, resolution);
                     });
                 } else {
-                    var layerInfo = layer.get('layerInfo');
                     // this case will happen if canStyleWMS is false for the server
-                    if (layerInfo.styleName) {
+                    if (storyLayer.get('styleName')) {
                         if (isComplete) {
                             var sld = new storytools.edit.SLDStyleConverter.SLDStyleConverter();
-                            var xml = sld.generateStyle(layer.style, layer.getSource().getParams().LAYERS, true);
+                            var xml = sld.generateStyle(style, layer.getSource().getParams().LAYERS, true);
                             $http({
-                                url: '/gslocal/rest/styles/' + layerInfo.styleName + '.xml',
+                                url: '/gslocal/rest/styles/' + storyLayer.get('styleName') + '.xml',
                                 method: "PUT",
                                 data: xml,
                                 headers: {'Content-Type': 'application/vnd.ogc.sld+xml; charset=UTF-8'}
@@ -503,7 +254,7 @@
         };
     });
 
-    module.directive('layerList', function() {
+    module.directive('layerList', function(stStoryMapBuilder) {
         return {
             restrict: 'E',
             scope: {
@@ -541,14 +292,21 @@
                     title: 'No background',
                     type: 'None'
                 }];
-                scope.map.map.getLayers().on('change:length', function() {
-                    scope.layers = scope.map.getNamedLayers();
+                var baseLayer = scope.map.storyMap.get('baselayer');
+                if (baseLayer) {
+                  scope.map.baseLayer = baseLayer.get('title');
+                }
+                scope.map.storyMap.on('change:baselayer', function() {
+                  scope.map.baseLayer = scope.map.storyMap.get('baselayer').get('title');
+                });
+                scope.map.storyMap.getStoryLayers().on('change:length', function() {
+                    scope.layers = scope.map.storyMap.getStoryLayers().getArray();
                 });
                 scope.removeLayer = function(lyr) {
-                    scope.map.map.removeLayer(lyr);
+                    scope.map.storyMap.removeStoryLayer(lyr);
                 };
                 scope.onChange = function(baseLayer) {
-                    scope.map.setBaseLayer(baseLayer);
+                    stStoryMapBuilder.setBaseLayer(scope.map.storyMap, baseLayer);
                 };
             }
         };

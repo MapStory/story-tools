@@ -12,7 +12,7 @@
 
         var timeControlsManager = new TimeControlsManager({
             mode: map.mode,
-            map: map.map,
+            storyMap: map.storyMap,
             pinsLayerManager: map.storyPinLayerManager
         });
         $scope.map = map;
