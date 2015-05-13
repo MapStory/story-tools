@@ -206,11 +206,11 @@
                     </div>
                     <div ng-show="selected.debug" class="floating ng-hide col-lg-8" style="max-height: 75%; overflow: auto; background:white">
                         <div class="panel">
-                            <div ng-repeat="lyr in map.map.getLayers().getArray()">
+                            <div ng-repeat="lyr in map.storyMap.getStoryLayers().getArray()">
                                 <h4>ID: {{ lyr.get('id') }}</h4>
                                 <pre>title = {{ lyr.get('title') | json }}</pre>
-                                <pre>times = {{ lyr.get('layerInfo').times | json }}</pre>
-                                <pre>layerInfo = {{ lyr.get('layerInfo') | json }}</pre>
+                                <pre>times = {{ lyr.get('times') | json }}</pre>
+                                <pre>layerInfo = {{ lyr.getProperties() | json }}</pre>
                             </div>
                         </div>
                     </div>
