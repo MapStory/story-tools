@@ -25,7 +25,6 @@
         <script src="../dist/story-tools-edit-ng.js"></script>
         <script src="../dist/ows.js"></script>
         <script src="../dist/story-tools-mapstory.js"></script>
-        <script  src="common.js"></script>
         <script  src="composer.js"></script>
         <script src="http://localhost:35729/livereload.js"></script>
         <style type="text/css">
@@ -118,7 +117,7 @@
             }
         </style>
     </head>
-    <body ng-controller="exampleController as example">
+    <body ng-controller="composerController as composer">
         <div id="container" ng-init="selected = {layers:true}">
             <div id="header" class="navbar navbar-default">
                 <ul class="nav navbar-nav nav-pills" id="tl-nav">
