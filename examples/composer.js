@@ -2,7 +2,7 @@
 
 (function() {
 
-    var module = angular.module('fullExample', [
+    var module = angular.module('composer', [
         'storytools.examples.common'
     ]);
 
