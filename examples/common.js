@@ -167,7 +167,7 @@
               timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
-            return stLayerBuilder.buildEditableLayer(options, self.map).then(function(a) {
+            return stLayerBuilder.buildEditableLayer(options, self.storyMap.getMap()).then(function(a) {
               self.storyMap.addStoryLayer(a);
               if (fitExtent === true) {
                 a.get('latlonBBOX');
