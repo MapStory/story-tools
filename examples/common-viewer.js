@@ -4,7 +4,7 @@
         'storytools.core.time',
         'storytools.core.mapstory',
         'storytools.core.pins',
-        'storytools.edit.ogc',
+        'storytools.core.ogc',
         'ui.bootstrap'
     ]);
 
@@ -38,7 +38,7 @@
     });
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder) {
+        StoryPinLayerManager, stMapConfigStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder, stStoryMapBaseBuilder) {
         this.storyMap = new StoryMap({target: 'map'});
         var self = this;
         this.storyPinLayerManager = new StoryPinLayerManager();
@@ -53,11 +53,11 @@
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
-                        stStoryMapBuilder.defaultMap(self.storyMap);
+                        stStoryMapBaseBuilder.defaultMap(self.storyMap);
                     }
                 });
             } else {
-                stStoryMapBuilder.defaultMap(this.storyMap);
+                stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
             // @todo how to make on top?

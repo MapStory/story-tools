@@ -91,24 +91,24 @@
     })];
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stLayerBuilder, StoryMap, stBaseLayerBuilder, stStoryMapBuilder) {
-        this.storyMap = new StoryMap({target: 'map'});
+        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stBaseLayerBuilder, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
+        this.storyMap = new EditableStoryMap({target: 'map'});
         var self = this;
         this.storyPinLayerManager = new StoryPinLayerManager();
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
-                stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
+                stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
                 this.storyPinLayerManager.pinsChanged(annotations, 'add', true);
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
-                    stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
+                    stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, data);
                 }).error(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
-                        stStoryMapBuilder.defaultMap(self.storyMap);
+                        stStoryMapBaseBuilder.defaultMap(self.storyMap);
                     }
                 });
                 var annotationsURL = options.url.replace('/data','/annotations');
@@ -121,7 +121,7 @@
                     self.storyPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
                 });
             } else {
-                stStoryMapBuilder.defaultMap(this.storyMap);
+                stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
             // @todo how to make on top?
@@ -167,7 +167,7 @@
               timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
               type: (asVector === true) ? 'VECTOR': 'WMS'
             };
-            return stLayerBuilder.buildEditableLayer(options, self.storyMap.getMap()).then(function(a) {
+            return stEditableLayerBuilder.buildEditableLayer(options, self.storyMap.getMap()).then(function(a) {
               self.storyMap.addStoryLayer(a);
               if (fitExtent === true) {
                 a.get('latlonBBOX');
