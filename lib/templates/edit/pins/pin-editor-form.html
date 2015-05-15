@@ -1,7 +1,7 @@
 <form name="pinForm" class="form form-horizontal pin-editor-form">
     <div class="form-group">
         <label for="storyPinTitle">StoryPin Title</label>
-        <input name="title" ng-required="true"  ng-model="storyPin.title" class="form-control" type="text" id="storyPinTitle" placeholder="Title">
+        <input name="title" ng-required="true" ng-model="storyPin.title" class="form-control" type="text" id="storyPinTitle" placeholder="Title">
     </div>
     <div class="form-group">
         <label for="storyPinAbstract">Content</label>
@@ -34,6 +34,7 @@
         <label>End Time</label>
         <st-date-time-field date-time="storyPin.end_time"></st-date-time-field>
     </div>
+    <div ng-if="pinForm.$error.range" class="ng-invalid">Start must be before End</div>
 
     <table ng-if="showPointCoordinates()" class="table table-bordered table-condensed table-hover" style="background-color: white">
         <tbody>
