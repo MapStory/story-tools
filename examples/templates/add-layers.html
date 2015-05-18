@@ -9,6 +9,6 @@
     <div class="checkbox">
         <label for="vector"><input ng-model="asVector" type="checkbox" id="vector">As vector</label>
     </div>
-    <button type="submit" class="btn btn-primary">Add</button>
+    <button type="submit" ng-disabled="!layerName" class="btn btn-primary">Add</button>
     <span ng-if="loading">Loading...</span>
 </form>
