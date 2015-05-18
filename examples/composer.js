@@ -217,16 +217,16 @@
                     scope.loading = true;
                     MapManager.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
                         // pass
-                    }, function(problem) {
+                    }, function(problems) {
                         var msg = 'Something went wrong:';
-                        if (problem.status == 404) {
+                        if (problems[0].status == 404) {
                             msg = 'Cannot find the specified layer:';
                         }
-                        msg += problem.data;
+                        msg += problems[0].data;
                         $modal.open({
                             template: msg
                         });
-                        $log.warn(msg);
+                        $log.warn(problems);
                     }).finally(function() {
                         scope.loading = false;
                     });
