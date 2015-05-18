@@ -359,6 +359,12 @@
                 }
             });
         };
-
+        // strip features from properties to avoid circular dependencies in debug
+        $scope.layerProperties = function(lyr) {
+            var props = lyr.getProperties();
+            var features = delete props.features;
+            props.featureCount = (features || []).length;
+            return props;
+        };
     });
 })();

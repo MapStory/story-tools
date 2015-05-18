@@ -213,7 +213,7 @@
                                 <h4>ID: {{ lyr.get('id') }}</h4>
                                 <pre>title = {{ lyr.get('title') | json }}</pre>
                                 <pre>times = {{ lyr.get('times') | json }}</pre>
-                                <pre>layerInfo = {{ lyr.getProperties() | json }}</pre>
+                                <pre>layerInfo = {{ layerProperties(lyr)|json }}</pre>
                             </div>
                         </div>
                     </div>
