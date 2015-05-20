@@ -85,7 +85,9 @@
                 var config = stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
-                StoryPinLayerManager.pinsChanged(annotations, 'add', true);
+                if (annotations) {
+                    StoryPinLayerManager.pinsChanged(annotations, 'add', true);
+                }
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, data);
@@ -172,6 +174,13 @@
             updateStyle: function(storyLayer) {
                 var style = storyLayer.get('style'), layer = storyLayer.getLayer();
                 var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(style);
+                if (style.typeName === 'heatmap') {
+                    // @todo - this is only one-way and completely naive
+                    var params = angular.copy(style);
+                    params.source = layer.getSource();
+                    storyLayer.setLayer(new ol.layer.Heatmap(params));
+                    return;
+                }
                 if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
                         return ol3StyleConverter.generateStyle(style, feature, resolution);
