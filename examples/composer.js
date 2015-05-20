@@ -235,7 +235,7 @@
             }
         };
     });
-    module.directive('layerList', function(stStoryMapBaseBuilder, MapManager) {
+    module.directive('layerList', function(stStoryMapBaseBuilder, stEditableStoryMapBuilder, MapManager) {
         return {
             restrict: 'E',
             scope: {
@@ -285,6 +285,9 @@
                 });
                 scope.removeLayer = function(lyr) {
                     MapManager.storyMap.removeStoryLayer(lyr);
+                };
+                scope.modifyLayer = function(lyr) {
+                    stEditableStoryMapBuilder.modifyStoryLayer(MapManager.storyMap, lyr);
                 };
                 scope.onChange = function(baseLayer) {
                     stStoryMapBaseBuilder.setBaseLayer(MapManager.storyMap, baseLayer);
