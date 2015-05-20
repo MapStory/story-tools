@@ -344,7 +344,7 @@
         };
 
         $scope.saveMap = function() {
-            MapManager.storyMap.saveMap();
+            MapManager.saveMap();
         };
         $scope.newMap = function() {
             $location.path('/new');
