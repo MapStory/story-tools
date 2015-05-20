@@ -10,6 +10,8 @@
         'ui.bootstrap'
     ]);
 
+    module.constant('iconCommonsHost', 'http://mapstory.dev.boundlessgeo.com');
+
     module.run(function() {
         // install a watchers debug loop
         (function() {
