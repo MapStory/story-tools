@@ -3,6 +3,6 @@
         {{stModel[property]||'number'}} <span class="caret"></span>
     </button>
     <div class="dropdown-menu" role="menu">
-        <input no-close size="3" type="number" min="0" max="{{max}}" step="1" value="10" name="{{ property }}" ng-model="stModel[property]"/>
+        <input no-close size="3" type="number" min="{{min}}" max="{{max}}" step="{{step}}" value="10" name="{{ property }}" ng-model="stModel[property]"/>
     </div>
 </div>
