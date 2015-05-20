@@ -275,10 +275,10 @@
                 }];
                 var baseLayer = MapManager.storyMap.get('baselayer');
                 if (baseLayer) {
-                    MapManager.storyMap.baseLayer = baseLayer.get('title');
+                    scope.baseLayer = baseLayer.get('title');
                 }
                 MapManager.storyMap.on('change:baselayer', function() {
-                    MapManager.storyMap.baseLayer = MapManager.storyMap.get('baselayer').get('title');
+                    scope.baseLayer = MapManager.storyMap.get('baselayer').get('title');
                 });
                 MapManager.storyMap.getStoryLayers().on('change:length', function() {
                     scope.layers = MapManager.storyMap.getStoryLayers().getArray();

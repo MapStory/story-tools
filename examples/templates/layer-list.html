@@ -8,7 +8,7 @@
 <div data-dropdown style="position:relative">
     <label>Background:</label>
     <button type="button" class="dropdown-toggle btn">
-        {{map.baseLayer||'Select Base Layer'}}<span class="caret"></span>
+        {{baseLayer||'Select Base Layer'}}<span class="caret"></span>
     </button>
     <ul class="dropdown-menu scrollable-combo {{css}}" role="menu">
         <li ng-repeat="baseLayer in baseLayers" ng-click="onChange(baseLayer)">{{baseLayer.title}}</li>
