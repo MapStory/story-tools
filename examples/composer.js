@@ -169,17 +169,16 @@
         };
     }
 
-    module.service('styleUpdater', function($http, ol3StyleConverter) {
+    module.service('styleUpdater', function($http, ol3StyleConverter, stEditableStoryMapBuilder) {
         return {
             updateStyle: function(storyLayer) {
                 var style = storyLayer.get('style'), layer = storyLayer.getLayer();
                 var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(style);
                 if (style.typeName === 'heatmap') {
-                    // @todo - this is only one-way and completely naive
-                    var params = angular.copy(style);
-                    params.source = layer.getSource();
-                    storyLayer.setLayer(new ol.layer.Heatmap(params));
+                    stEditableStoryMapBuilder.modifyStoryLayer(storyLayer, 'HEATMAP');
                     return;
+                } else if (style.typeName !== 'heatmap' && layer instanceof ol.layer.Heatmap) {
+                    stEditableStoryMapBuilder.modifyStoryLayer(storyLayer, 'VECTOR');
                 }
                 if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
@@ -296,7 +295,7 @@
                     MapManager.storyMap.removeStoryLayer(lyr);
                 };
                 scope.modifyLayer = function(lyr) {
-                    stEditableStoryMapBuilder.modifyStoryLayer(MapManager.storyMap, lyr);
+                    stEditableStoryMapBuilder.modifyStoryLayer(lyr);
                 };
                 scope.onChange = function(baseLayer) {
                     stStoryMapBaseBuilder.setBaseLayer(MapManager.storyMap, baseLayer);
