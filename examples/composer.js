@@ -358,6 +358,9 @@
             $location.path('/new');
         };
         $scope.styleChanged = function(layer) {
+            layer.on('change:type', function(evt) {
+              styleUpdater.updateStyle(evt.target);
+            });
             styleUpdater.updateStyle(layer);
         };
         $scope.showLoadMapDialog = function() {
