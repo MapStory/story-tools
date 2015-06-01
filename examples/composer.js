@@ -87,7 +87,9 @@
                 var config = stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id);
-                StoryPinLayerManager.pinsChanged(annotations, 'add', true);
+                if (annotations) {
+                    StoryPinLayerManager.pinsChanged(annotations, 'add', true);
+                }
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, data);
@@ -169,11 +171,17 @@
         };
     }
 
-    module.service('styleUpdater', function($http, ol3StyleConverter) {
+    module.service('styleUpdater', function($http, ol3StyleConverter, stEditableStoryMapBuilder) {
         return {
             updateStyle: function(storyLayer) {
                 var style = storyLayer.get('style'), layer = storyLayer.getLayer();
                 var isComplete = new storytools.edit.StyleComplete.StyleComplete().isComplete(style);
+                if (style.typeName === 'heatmap') {
+                    stEditableStoryMapBuilder.modifyStoryLayer(storyLayer, 'HEATMAP');
+                    return;
+                } else if (style.typeName !== 'heatmap' && layer instanceof ol.layer.Heatmap) {
+                    stEditableStoryMapBuilder.modifyStoryLayer(storyLayer, 'VECTOR');
+                }
                 if (isComplete && layer instanceof ol.layer.Vector) {
                     layer.setStyle(function(feature, resolution) {
                         return ol3StyleConverter.generateStyle(style, feature, resolution);
@@ -289,7 +297,7 @@
                     MapManager.storyMap.removeStoryLayer(lyr);
                 };
                 scope.modifyLayer = function(lyr) {
-                    stEditableStoryMapBuilder.modifyStoryLayer(MapManager.storyMap, lyr);
+                    stEditableStoryMapBuilder.modifyStoryLayer(lyr);
                 };
                 scope.onChange = function(baseLayer) {
                     stStoryMapBaseBuilder.setBaseLayer(MapManager.storyMap, baseLayer);
@@ -352,6 +360,9 @@
             $location.path('/new');
         };
         $scope.styleChanged = function(layer) {
+            layer.on('change:type', function(evt) {
+              styleUpdater.updateStyle(evt.target);
+            });
             styleUpdater.updateStyle(layer);
         };
         $scope.showLoadMapDialog = function() {
