@@ -116,6 +116,9 @@
         this.saveMap = function() {
             var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
+            if (this.storyMap.get('id') === undefined) {
+              this.storyMap.set('id', config.id);
+            }
             stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), StoryPinLayerManager.storyPins);
         };
         $rootScope.$on('$locationChangeSuccess', function() {
