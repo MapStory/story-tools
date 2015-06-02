@@ -86,7 +86,7 @@
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
-                var annotations = stAnnotationsStore.loadAnnotations(options.id);
+                var annotations = stAnnotationsStore.loadAnnotations(options.id, this.storyMap.getMap().getView().getProjection());
                 if (annotations) {
                     StoryPinLayerManager.pinsChanged(annotations, 'add', true);
                 }
