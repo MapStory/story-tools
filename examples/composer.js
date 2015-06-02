@@ -293,6 +293,7 @@
                 MapManager.storyMap.on('change:baselayer', function() {
                     scope.baseLayer = MapManager.storyMap.get('baselayer').get('title');
                 });
+                scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 MapManager.storyMap.getStoryLayers().on('change:length', function() {
                     scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 });
