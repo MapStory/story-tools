@@ -61,7 +61,7 @@ describe('test storyPins', function() {
             expect(sp.id).toBe(24);
             expect(sp.getGeometry().getCoordinates()[0]).toBe(-90);
             expect(sp.getGeometry().getCoordinates()[1]).toBe(45);
-            expect(sp.start_time).toBe(1000000 * 1000);
+            expect(sp.start_time).toBe(1000000);
             expect(sp.end_time).toBe(null);
         });
         it('works with projection', function() {

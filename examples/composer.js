@@ -86,7 +86,7 @@
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
-                var annotations = stAnnotationsStore.loadAnnotations(options.id);
+                var annotations = stAnnotationsStore.loadAnnotations(options.id, this.storyMap.getMap().getView().getProjection());
                 if (annotations) {
                     StoryPinLayerManager.pinsChanged(annotations, 'add', true);
                 }
@@ -116,6 +116,9 @@
         this.saveMap = function() {
             var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
+            if (this.storyMap.get('id') === undefined) {
+              this.storyMap.set('id', config.id);
+            }
             stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), StoryPinLayerManager.storyPins);
         };
         $rootScope.$on('$locationChangeSuccess', function() {
@@ -290,6 +293,7 @@
                 MapManager.storyMap.on('change:baselayer', function() {
                     scope.baseLayer = MapManager.storyMap.get('baselayer').get('title');
                 });
+                scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 MapManager.storyMap.getStoryLayers().on('change:length', function() {
                     scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 });
