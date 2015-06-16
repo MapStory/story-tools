@@ -5,18 +5,20 @@ describe("test maps", function() {
     it("readCapabilitiesTimeDimensions works", function() {
         function makeCaps(config) {
             return {
-                Capability: {
-                    Layer: {
-                        Layer: Object.getOwnPropertyNames(config).map(function(lyr) {
-                            return {Name: lyr, Dimension: [{name: 'time', values: config[lyr]}]};
-                        })
+                value: {
+                    capability: {
+                        layer: {
+                            layer: Object.getOwnPropertyNames(config).map(function(lyr) {
+                                return {name: lyr, dimension: {}, extent: [{value: config[lyr]}]};
+                            })
+                        }
                     }
                 }
             };
         }
         function expectData(args) {
             return expect(maps.readCapabilitiesTimeDimensions(makeCaps(args)));
-        };
+        }
         function read(values) {
             return maps.readCapabilitiesTimeDimensions(makeCaps({data:values})).data;
         }
