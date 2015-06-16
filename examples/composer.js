@@ -106,15 +106,6 @@
                 var annotationsLoad = $http.get(annotationsURL);
                 $q.all([mapLoad, annotationsLoad]).then(function(values) {
                     var geojson = values[1].data;
-                    // TODO when we transform old mapstories, we should be doing this in the transform step instead
-                    for (var i=0, ii=geojson.features.length; i<ii; ++i) {
-                      if (geojson.features[i].properties.start_time) {
-                        geojson.features[i].properties.start_time *= 1000;
-                      }
-                      if (geojson.features[i].properties.end_time) {
-                        geojson.features[i].properties.end_time *= 1000;
-                      }
-                    }
                     StoryPinLayerManager.loadFromGeoJSON(geojson, self.storyMap.getMap().getView().getProjection());
                 });
             } else {
