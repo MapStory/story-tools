@@ -1,7 +1,7 @@
-<form name="editorForm" class="well">
-    <div class="style-type-header">
+<form name="editorForm">
+    <div class="style-type-header" ng-if="control.default">
         <div class="btn-group" data-dropdown>
-            <button type="button" class="btn btn-primary dropdown-toggle">
+            <button type="button" class="btn btn-default dropdown-toggle">
                 Style: {{currentEditor.displayName}}<span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
@@ -9,6 +9,15 @@
             </ul>
         </div>
     </div>
+    <carousel interval="-1" no-wrap="false" ng-if="control.carousel">
+      <slide ng-repeat="styleType in styleTypes" active="slide.active">
+          <div class="item {{styleType.displayName|lowercase}}" data-slide-number="{{$index}}">
+              <div class="slide-title">{{styleType.displayName}}</div>
+          </div>
+      </slide>
+        <div align="center" class="left carousel-control" carousel-prev on-prev="setActiveStyle"><span class="glyphicon glyphicon-chevron-left"></span></div>
+        <div align="center" class="right carousel-control" carousel-next on-next="setActiveStyle"><span class="glyphicon glyphicon-chevron-right"></span></div>
+    </carousel>
     <div>
         <style-type-editor ng-if="layer"></style-type-editor>
         <rules-editor ng-if="activeStyle.rules"></rules-editor>

@@ -13,7 +13,7 @@
         'ui.bootstrap'
     ]);
 
-    module.constant('iconCommonsHost', 'http://mapstory.dev.boundlessgeo.com');
+    module.constant('iconCommonsHost', 'http://localhost:8000');
 
     module.run(function() {
         // install a watchers debug loop
@@ -112,6 +112,40 @@
                 stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
+
+
+              var element = document.getElementById('popup');
+
+            var popup = new ol.Overlay({
+                element: element,
+                positioning: 'bottom-center',
+                stopEvent: false
+            });
+            self.storyMap.getMap().addOverlay(popup);
+
+            // display popup on click
+            self.storyMap.getMap().on('click', function(evt) {
+                var feature = self.storyMap.getMap().forEachFeatureAtPixel(evt.pixel,
+                    function(feature, layer) {
+                        return feature;
+                    });
+                if (feature) {
+                    var geometry = feature.getGeometry();
+                    var coord = geometry.getCoordinates();
+                    $(element).popover('destroy');
+                    popup.setPosition(coord);
+                    $(element).popover({
+                        'placement': 'right',
+                        'html': true,
+                        'title': feature.get('title'),
+                        'content': feature.get('content')
+                    });
+                    $(element).popover('show');
+                } else {
+                    $(element).popover('destroy');
+                }
+            });
+
         };
         this.saveMap = function() {
             var config = this.storyMap.getState();
@@ -231,11 +265,13 @@
                     MapManager.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
                         // pass
                     }, function(problems) {
-                        var msg = 'Something went wrong:';
+                        var msg = '<div class="alert alert-danger"><h3>Something went wrong</h3>';
                         if (problems[0].status == 404) {
                             msg = 'Cannot find the specified layer:';
                         }
-                        msg += problems[0].data;
+                        var statusText = "<b>Status:</b> " + problems[0].statusText + "<br/>";
+                        var url = "<b>Resource: </b>" + problems[0].config.url + "<br/>";
+                        msg += statusText + url + "</div>";
                         $modal.open({
                             template: msg
                         });
