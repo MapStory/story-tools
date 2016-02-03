@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: core/time/utils.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: core/time/utils.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var moment = require('vis/node_modules/moment');
+
+/**
+ * Get the number of milliseconds from the provided arg.
+ * @param arg - either Date, range (returns start), string or number
+ * @returns milliseconds or null if nothing provided
+ */
+getTime = function(arg) {
+    var type = typeof arg;
+    if (type === 'number') {
+        return arg;
+    }
+    if (arg instanceof Date) {
+        return arg.getTime();
+    }
+    if (type === 'string') {
+        return Date.parse(arg);
+    }
+    /*jshint eqnull:true */
+    if (arg == null) {
+        return null;
+    }
+    if (isRangeLike(arg)) {
+        /*jshint eqnull:true */
+        return getTime(arg.start != null ? arg.start : arg.end);
+    }
+    throw new Error('cannot call getTime with ' + type + ", : " + arg);
+};
+
+isRangeLike = function(object) {
+    /*jshint eqnull:true */
+    return object != null &amp;&amp; (object.hasOwnProperty('start') || object.hasOwnProperty('end'));
+};
+
+exports.isRangeLike = isRangeLike;
+
+exports.createRange = function(start, end) {
+    if (arguments.length === 1) {
+        var other = start;
+        if (isRangeLike(other)) {
+            start = other.start;
+            end = other.end;
+        } else {
+            end = start;
+        }
+    }
+    /*jshint eqnull:true */
+    if (start != null &amp;&amp; end != null &amp;&amp; start > end) {
+        throw new Error('start > end');
+    }
+    return new Range(getTime(start), getTime(end));
+};
+
+exports.rangesEqual = function(a, b) {
+    return getTime(a.start) === getTime(b.start) &amp;&amp;
+        getTime(a.end) === getTime(b.end);
+};
+
+function rangeContains(range, time) {
+    /*jshint eqnull:true */
+    if (time == null) {
+        throw new Error('invalid time argument');
+    }
+    /*jshint eqnull:true */
+    return ((range.start != null ? time >= range.start : true) &amp;&amp;
+           (range.end != null ? time &lt; range.end : true)) ||
+           range.start === range.end &amp;&amp; time === range.start;
+}
+
+exports.parseISODuration = function(duration) {
+    var values = exports.isoDurationToMoment(duration);
+    return moment.duration(values).asMilliseconds();
+};
+
+exports.Interval = function(start, end, duration) {
+    if (typeof start === 'object') {
+        var opts = start;
+        start = opts.start;
+        end = opts.end;
+        duration = opts.duration;
+    }
+    if (start === end) {
+        throw new Error('interval should have width');
+    }
+    Range.call(this, start, end);
+    this.duration = duration;
+    this.interval = exports.parseISODuration(this.duration);
+    this.offset = exports.createOffsetter(this);
+};
+
+function Range(start, end) {
+    if (isNaN(start) || isNaN(end)) {
+        throw new Error('invalid start and/or end');
+    }
+    this.start = start;
+    this.end = end;
+}
+/**
+ * extend this Range by another. This algorithm will consider an open-ended
+ * range to represent a minimum of start and maximum of end.
+ * @param {type} other
+ * @returns {undefined}
+ */
+Range.prototype.extend = function(other) {
+    /*jshint eqnull:true */
+    if (!isRangeLike(other)) {
+        other = exports.createRange(other);
+    }
+    var start = getTime(other.start);
+    var end = getTime(other.end);
+    if (start == null) {
+        start = end;
+    }
+    if (end == null) {
+        end = start;
+    }
+    if (start != null) {
+        if (this.start == null) {
+            this.start = start;
+        } else {
+            this.start = Math.min(this.start, start);
+        }
+    }
+    if (end != null) {
+        if (this.end == null) {
+            this.end = end;
+        } else {
+            this.end = Math.max(this.end, end);
+        }
+    }
+};
+Range.prototype.intersects = function(other) {
+    if (isRangeLike(other)) {
+        /*jshint eqnull:true */
+        var es = other.start == null ? Number.MIN_VALUE : other.start;
+        var ee = other.end == null ? Number.MAX_VALUE : other.end;
+        // intersection if (any)
+        // effective end in this range
+        // effective start in this range
+        // effective start before and effective end after
+        return rangeContains(this, es) ||
+            rangeContains(this, ee) ||
+            es &lt;= this.start &amp;&amp; ee >= this.end;
+    } else {
+        return rangeContains(this, getTime(other));
+    }
+};
+Range.prototype.toString = function() {
+    return new Date(this.start).toUTCString() + " : " + new Date(this.end).toUTCString();
+};
+Range.prototype.center = function() {
+    return Math.floor(this.start + (this.end - this.start) / 2);
+};
+Range.prototype.width = function() {
+    return this.end - this.start;
+};
+Range.prototype.isEmpty = function() {
+    /*jshint eqnull:true */
+    return this.end == null &amp;&amp; this.start == null;
+};
+exports.Range = Range;
+
+
+
+/**
+ * Compute the overall range of provided args. Args may be an array of:
+ * date or long, range, object with property/function yielding range for the
+ * object.
+ * @param {type} args
+ * @returns range will have start/end even if the same time.
+ */
+exports.computeRange = function(args, rangeGetter) {
+    var range = new Range(null, null);
+    exports.visitRanges(args, rangeGetter, function(arg, r) {
+        range.extend(r);
+    });
+    /*jshint eqnull:true */
+    if (range.start == null) {
+        range.start = range.end;
+    }
+    if (range.end == null) {
+        range.end = range.start;
+    }
+    return range;
+};
+
+exports.visitRanges = function(objects, rangeGetter, visitor) {
+    var getRange;
+    if (typeof rangeGetter == 'string') {
+        getRange = function(object) {
+            return object[rangeGetter];
+        };
+    } else if (typeof rangeGetter == 'function') {
+        getRange = rangeGetter;
+    } else {
+        getRange = function(object) {
+            return isRangeLike(object) ? object : exports.createRange(object);
+        };
+    }
+    for (var i = 0, ii = objects.length; i &lt; ii; i++) {
+        var object = objects[i];
+        visitor(object, getRange(object));
+    }
+};
+
+/** for the given what, find the index in the items that what is closest
+ * to. items must be sorted. The lowest closest value possible is returned.
+ */
+exports.binarySearch = function(items, what) {
+    var start = 0;
+    var stop = items.length - 1;
+    var mid = stop + start / 2 | 0;
+    var val;
+    if (what &lt; items[0]) {
+        return 0;
+    }
+    if (what > items[stop]) {
+        return items.length - 1;
+    }
+    while ((val = items[mid]) !== what &amp;&amp; start &lt; stop) {
+        if (what > val) {
+            if (what &lt; items[mid + 1]) {
+                return mid;
+            }
+        } else if (what &lt; val) {
+            if (what > items[mid - 1]) {
+                return mid - 1;
+            }
+            stop = mid - 1;
+        }
+        mid = stop + start / 2 | 0;
+    }
+    return mid;
+};
+
+exports.find = function(items, what) {
+    if (what &lt; items[0]) {
+        return 0;
+    }
+    for (var i = 0, ii = items.length - 1; i &lt; ii; i++) {
+        if (what >= items[i] &amp;&amp; what &lt; items[i + 1]) {
+            return i;
+        }
+    }
+    return items.length - 1;
+};
+
+exports.Events = function() {
+    var topics = {};
+
+    // @todo introduce setting topics with arguments and logging/exception
+    // on un-fired event
+
+    function event(id) {
+        var callbacks, method,
+                topic = id &amp;&amp; topics[ id ];
+        if (!topic) {
+            callbacks = jQuery.Callbacks();
+            topic = {
+                publish: callbacks.fire,
+                subscribe: callbacks.add,
+                unsubscribe: callbacks.remove
+            };
+            if (id) {
+                topics[ id ] = topic;
+            }
+        }
+        return topic;
+    }
+
+    return {
+        event: event
+    };
+};
+
+exports.pickInterval = function(range) {
+    var intervals = [
+        moment.duration(1, 'seconds').asMilliseconds(),
+        moment.duration(1, 'minutes').asMilliseconds(),
+        moment.duration(1, 'hours').asMilliseconds(),
+        moment.duration(1, 'days').asMilliseconds(),
+        moment.duration(1, 'weeks').asMilliseconds(),
+        moment.duration(1, 'months').asMilliseconds(),
+        moment.duration(1, 'years').asMilliseconds()
+    ];
+    return intervals[Math.max(exports.find(intervals, range.width()) - 1, 0)];
+};
+
+exports.getTime = getTime;
+
+/**
+ * Read an iso duration into a moment.js object.
+ * @param {string} duration
+ * @returns {object} with moment.js info
+ */
+exports.isoDurationToMoment = function(duration) {
+    if (duration.charAt(0) != 'P') {
+        throw new Error('expected P as starting duration : ' + duration);
+    }
+    var pattern = /(\d+)(\w)/g;
+    var date = null, time = null, values = {};
+    duration = duration.substring(1);
+    if (duration.indexOf('T') >= 0) {
+        var parts = duration.split('T');
+        date = parts[0];
+        time = parts[1];
+    } else {
+        date = duration;
+    }
+    var mapping = {
+        'Y': 'years',
+        'M': 'months',
+        'W': 'weeks',
+        'D': 'days',
+        'H': 'hours',
+        'm': 'minutes',
+        'S': 'seconds'
+    };
+    function parse(chunk, time) {
+        function read(amount, part) {
+            if (time &amp;&amp; part == 'M') {
+                part = 'm';
+            }
+            var mappedTo = mapping[part];
+            if (typeof mappedTo == 'undefined') {
+                throw Error('unknown duration specifier : ' + part);
+            }
+            values[mappedTo] = parseFloat(amount);
+        }
+        var next;
+        while ((next = pattern.exec(chunk)) !== null) {
+            read(next[1], next[2]);
+        }
+    }
+    if (date !== null) {
+        parse(date, false);
+    }
+    if (time !== null) {
+        parse(time, true);
+    }
+    return values;
+};
+
+/**
+ * Get a function for the provided duration that computes a new timestamp based on a
+ * provided date and optional multiplier (negative for reverse).
+ * @param {string} iso duration
+ * @returns {function} offsetter(timestamp, multiplier=1)
+ */
+exports.createOffsetter = function(intervalOrDuration) {
+    var duration = typeof intervalOrDuration === 'string' ? intervalOrDuration: intervalOrDuration.duration;
+    var values = exports.isoDurationToMoment(duration);
+    // as of writing, moment assumes y=365d and m=30d resulting in slow
+    // day of month shifts that break ticks from matching
+    // so we take care of this using a more accurate approach
+    // ** the current approach breaks down if the day of month is greater than
+    // 28 and day of month will no longer be retained (will shift)
+    if ('years' in values || 'months' in values) {
+        var years = values.years;
+        var months = values.months;
+        values.years = 0;
+        values.months = 0;
+        var millis = moment.duration(values).asMilliseconds();
+        return function(ts, mult) {
+            mult = mult || 1;
+            var d = new Date(ts);
+            /*jshint eqnull:true */
+            var y = d.getUTCFullYear();
+            if (years != null) {
+                y += mult * years;
+            }
+            var m = d.getUTCMonth();
+            if (months != null) {
+                m += mult * months;
+            }
+            d.setUTCFullYear(y, m);
+            return d.getTime() + (mult * millis);
+        };
+    } else {
+        var offset = moment.duration(values).asMilliseconds();
+        return function(ts, mult) {
+            mult = mult || 1;
+            return ts + (mult * offset);
+        };
+    }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>directive</h3><ul><li><a href="storytools.core.time.directives.stPlaybackControls.html">stPlaybackControls</a></li><li><a href="storytools.core.time.directives.stPlaybackSettings.html">stPlaybackSettings</a></li></ul><h3>Namespaces</h3><ul><li><a href="storytools.core.time.directives.html">storytools.core.time.directives</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Annotations">Annotations</a></li><li><a href="global.html#binarySearch">binarySearch</a></li><li><a href="global.html#computeRange">computeRange</a></li><li><a href="global.html#computeVectorRange">computeVectorRange</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createOffsetter">createOffsetter</a></li><li><a href="global.html#getTime">getTime</a></li><li><a href="global.html#isoDurationToMoment">isoDurationToMoment</a></li><li><a href="global.html#loadFromGeoJSON">loadFromGeoJSON</a></li><li><a href="global.html#readCapabilitiesTimeDimensions">readCapabilitiesTimeDimensions</a></li><li><a href="global.html#TimeController">TimeController</a></li><li><a href="global.html#TimeLine">TimeLine</a></li><li><a href="global.html#TimeModel">TimeModel</a></li><li><a href="global.html#TimeSlider">TimeSlider</a></li><li><a href="global.html#visitAllLayerFeatureTimes">visitAllLayerFeatureTimes</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> 
+    using <a href="https://github.com/allenhwkim/angular-jsdoc">Angular-JSDoc template </a> 
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+<script>
+  // scroll to the current document navigation
+  var href=window.location.href.match(/\/([^\/]+$)/)[1];
+  if (currentNav = document.querySelector("nav a[href='"+href+"']"))
+    currentNav.scrollIntoView(true);
+  // scroll to the top of the document
+  if (window.location.hash == "")
+    document.querySelector("body").scrollIntoView(true);
+  // adjust the width of main section by navigation width
+  // var navWidth = document.querySelector('nav').getBoundingClientRect().width;
+  // var mainWidth = document.querySelector('#main').getBoundingClientRect().width;
+  // document.querySelector('#main').style.width = (mainWidth - navWidth)+'px';
+</script>
+</body>
+</html>

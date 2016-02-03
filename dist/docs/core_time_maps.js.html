@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: core/time/maps.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: core/time/maps.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*jshint loopfunc: true */
+var utils = require('./utils');
+var moment = require('vis/node_modules/moment');
+
+/**
+ * Read the provide ol3 WMS capabilities document
+ * @param {type} caps
+ * @returns an object of name->[date|interval]|interval-range mappings
+ */
+exports.readCapabilitiesTimeDimensions = function(caps, openlayers2) {
+    var dimensions = {};
+    function readRange(subparts) {
+        if (subparts.length &lt; 2) {
+            throw new Error('expected 2 parts for range : ' + subparts);
+        }
+        var range = utils.createRange(subparts[0], subparts[1]);
+        if (subparts.length == 3) {
+            range.duration = subparts[2];
+            range = new utils.Interval(range);
+        }
+        return range;
+    }
+    function readPart(part) {
+        var subparts = part.split('/');
+        if (subparts.length == 1) {
+            return Date.parse(subparts[0]);
+        } else {
+            return readRange(subparts);
+        }
+    }
+    function parse(dimension) {
+        var dims = openlayers2 ? dimension : dimension.split(',');
+        if (dims.length == 1) {
+            var read = readPart(dims[0]);
+            return typeof read === 'number' ? [read] : read;
+        }
+        return dims.map(readPart);
+    }
+    if (openlayers2 === true) {
+        if (caps.dimensions &amp;&amp; caps.dimensions.time) {
+            dimensions = parse(caps.dimensions.time.values);
+        } else {
+            dimensions = undefined;
+        }
+    } else {
+        // @todo need to make layer scanning recursive?
+        caps.value.capability.layer.layer.forEach(function(lyr) {
+            if (lyr.dimension) {
+              dimensions[lyr.name] = parse(lyr.extent[0].value);
+            }
+        });
+    }
+    return dimensions;
+};
+
+function TileLoadListener(tileStatusCallback) {
+    var tilesLoading = {};
+    var deferred = $.Deferred(),
+        cancelled = false;
+    function remainingTiles() {
+        var t = 0;
+        for (var i in tilesLoading) {
+            t += tilesLoading[i];
+        }
+        return t;
+    }
+    var listener = {
+        deferred: deferred,
+        cancel: function() {
+            cancelled = true;
+            for (var s in tilesLoading) {
+                tilesLoading[s] = 0;
+            }
+            if (deferred) {
+                deferred.reject(); // notify we've aborted but w/out error
+            }
+            if (tileStatusCallback) {
+                tileStatusCallback(0);
+            }
+        },
+        tileQueued: function(source) {
+            if (cancelled) {
+                return;
+            }
+            var key;
+            if (source instanceof ol.source.TileWMS) {
+                key = source.getUrls()[0];
+            } else if (source instanceof ol.source.ImageWMS) {
+                key = source.getUrl();
+            }
+            tilesLoading[key] = (tilesLoading[key] || 0) + 1;
+            if (tileStatusCallback) {
+                tileStatusCallback(remainingTiles());
+            }
+        },
+        tileLoaded: function(event, source) {
+            if (cancelled) {
+                return;
+            }
+            var key;
+            if (source instanceof ol.source.TileWMS) {
+                key = source.getUrls()[0];
+            } else if (source instanceof ol.source.ImageWMS) {
+                key = source.getUrl();
+            }
+            tilesLoading[key] -= 1;
+            var remaining = remainingTiles();
+            if (tileStatusCallback) {
+                tileStatusCallback(remaining);
+            }
+            if (remaining === 0 &amp;&amp; deferred) {
+                deferred.resolve();
+            }
+        }
+    };
+    // workaround for when the tiles are cached and no events are triggered
+    // this adds a constant (small) additional delay to the current play rate
+    // under optimal (cached) conditions
+    // @todo can this safely be shortened?
+    window.setTimeout(function() {
+        if (Object.keys(tilesLoading).length === 0) {
+            listener.cancel();
+        }
+    },100);
+    return listener;
+}
+
+function filterVectorLayer(storyLayer, range) {
+    var timeAttr = storyLayer.get('timeAttribute'), l_features = storyLayer.get('features');
+    if (timeAttr === undefined || l_features === undefined) {
+        return;
+    }
+    range = utils.createRange(range);
+    // loop over all original features and filter them
+    var features = [];
+    var layer = storyLayer.getLayer();
+    visitAllLayerFeatureTimes(storyLayer, function(f,r) {
+        if (range.intersects(r)) {
+            features.push(f);
+        }
+    });
+    layer.getSource().clear(true);
+    layer.getSource().addFeatures(features);
+}
+
+/**
+ * Call the provided visitor function on the specified features using the
+ * configuration provided in the layer. The visitor function will be called
+ * with the feature, and start and end time, if any. The features visited will
+ * be, in order of priority: the provided (optional) features argument, the
+ * layer property 'features', the layer's source features.
+ * @param {StoryLayer} story layer
+ * @param {function} visitor function(feature, start, end)
+ * @param {array} features (opitonal)
+ */
+function visitAllLayerFeatureTimes(storyLayer, visitor, features) {
+    var startAtt = storyLayer.get('timeAttribute');
+    var endAtt = storyLayer.get('endTimeAttribute');
+    var rangeGetter;
+    var layer = storyLayer.getLayer();
+    features = features || storyLayer.get('features') || layer.getSource().getFeatures();
+    if (endAtt) {
+        rangeGetter = function(f) {
+            var start = f.get(startAtt);
+            var end = f.get(endAtt);
+            return utils.createRange(start, end);
+        };
+    } else {
+        rangeGetter = function(f) {
+            var start = f.get(startAtt);
+            return utils.createRange(start, start);
+        };
+    }
+    utils.visitRanges(features, rangeGetter, visitor);
+}
+
+/**
+ * Compute the range of the provided features using the layer's configured
+ * timeattributes. If the optional features array is omitted, the features
+ * will come from the layer.
+ * @param {StoryLayer} storyLayer
+ * @param {array} features (optional)
+ * @returns {storytools.core.time.Range} range of features
+ */
+exports.computeVectorRange = function(storyLayer, features) {
+    var startAtt = storyLayer.get('timeAttribute');
+    var endAtt = storyLayer.get('endTimeAttribute');
+    var layer = storyLayer.getLayer();
+    features = features || storyLayer.get('features') || layer.getSource().getFeatures();
+    return utils.computeRange(features, function(f) {
+        return utils.createRange(f.get(startAtt), f.get(endAtt));
+    });
+};
+
+exports.filterVectorLayer = filterVectorLayer;
+
+exports.MapController = function(options, timeControls) {
+    var loadListener = null,
+        tileStatusCallback = options.tileStatusCallback,
+        storyMap = options.storyMap;
+    function layerAdded(layer) {
+        var source, image;
+        var loaded = function(event) {
+            // grab the active loadListener to avoid phantom onloads
+            // when listener is cancelled
+            var currentListener = loadListener;
+            if (currentListener) {
+                currentListener.tileLoaded(event, source);
+            }
+        };
+        var loadstart = function() {
+            // grab the active loadListener to avoid phantom onloads
+            // when listener is cancelled
+            var currentListener = loadListener;
+            if (currentListener) {
+                currentListener.tileQueued(source);
+            }
+        };
+        if (layer instanceof ol.layer.Tile &amp;&amp; layer.getSource() instanceof ol.source.TileWMS) {
+            source = layer.getSource();
+            source.on('tileloadstart', loadstart);
+            source.on('tileloadend', loaded);
+            // @todo handle onerror and cancel deferred with an example
+            // to stop automatic playback
+            source.on('tileloaderror', loaded);
+        } else if (layer instanceof ol.layer.Image &amp;&amp; layer.getSource() instanceof ol.source.ImageWMS) {
+            source = layer.getSource();
+            source.on('imageloadstart', loadstart);
+            source.on('imageloadend', loaded);
+            source.on('imageloaderror', loaded);
+        }
+    }
+    function createLoadListener() {
+        if (loadListener !== null) {
+            loadListener.cancel();
+        }
+        loadListener = new TileLoadListener(tileStatusCallback);
+        return loadListener;
+    }
+    function updateLayers(range) {
+        var storyLayers = storyMap.getStoryLayers();
+        var time = new Date(range.start).toISOString();
+        if (range.start != range.end) {
+            time += "/" + new Date(range.end).toISOString();
+        }
+        for (var i = 0; i &lt; storyLayers.getLength(); i++) {
+            var storyLayer = storyLayers.item(i), layer = storyLayer.getLayer();
+            if ((layer instanceof ol.layer.Tile &amp;&amp; layer.getSource() instanceof ol.source.TileWMS) ||
+              (layer instanceof ol.layer.Image &amp;&amp; layer.getSource() instanceof ol.source.ImageWMS)) {
+                if (storyLayer.get('times')) {
+                    layer.getSource().updateParams({TIME: time});
+                }
+            } else if (layer instanceof ol.layer.Vector) {
+                filterVectorLayer(storyLayer, range);
+            }
+        }
+        // this is a non-story layer - not part of the main collection
+        filterVectorLayer(storyMap.storyPinsLayer, range);
+        if (storyLayers.getLength() > 1) {
+            timeControls.defer(createLoadListener().deferred);
+        }
+    }
+    var me = this;
+    me.layers = {};
+    storyMap.getStoryLayers().on('add', function(ev) {
+        var lyr = ev.element, id = lyr.get('id');
+        if (me.layers[id] !== true) {
+            layerAdded(lyr.getLayer());
+            me.layers[id] = true;
+        }
+    });
+    storyMap.getStoryLayers().forEach(function(lyr) {
+        var id = lyr.get('id');
+        if (id !== undefined &amp;&amp; me.layers[id] !== true) {
+            layerAdded(lyr.getLayer());
+            me.layers[id] = true;
+        }
+    });
+    timeControls.on('rangeChange', updateLayers);
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>directive</h3><ul><li><a href="storytools.core.time.directives.stPlaybackControls.html">stPlaybackControls</a></li><li><a href="storytools.core.time.directives.stPlaybackSettings.html">stPlaybackSettings</a></li></ul><h3>Namespaces</h3><ul><li><a href="storytools.core.time.directives.html">storytools.core.time.directives</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Annotations">Annotations</a></li><li><a href="global.html#binarySearch">binarySearch</a></li><li><a href="global.html#computeRange">computeRange</a></li><li><a href="global.html#computeVectorRange">computeVectorRange</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createOffsetter">createOffsetter</a></li><li><a href="global.html#getTime">getTime</a></li><li><a href="global.html#isoDurationToMoment">isoDurationToMoment</a></li><li><a href="global.html#loadFromGeoJSON">loadFromGeoJSON</a></li><li><a href="global.html#readCapabilitiesTimeDimensions">readCapabilitiesTimeDimensions</a></li><li><a href="global.html#TimeController">TimeController</a></li><li><a href="global.html#TimeLine">TimeLine</a></li><li><a href="global.html#TimeModel">TimeModel</a></li><li><a href="global.html#TimeSlider">TimeSlider</a></li><li><a href="global.html#visitAllLayerFeatureTimes">visitAllLayerFeatureTimes</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> 
+    using <a href="https://github.com/allenhwkim/angular-jsdoc">Angular-JSDoc template </a> 
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+<script>
+  // scroll to the current document navigation
+  var href=window.location.href.match(/\/([^\/]+$)/)[1];
+  if (currentNav = document.querySelector("nav a[href='"+href+"']"))
+    currentNav.scrollIntoView(true);
+  // scroll to the top of the document
+  if (window.location.hash == "")
+    document.querySelector("body").scrollIntoView(true);
+  // adjust the width of main section by navigation width
+  // var navWidth = document.querySelector('nav').getBoundingClientRect().width;
+  // var mainWidth = document.querySelector('#main').getBoundingClientRect().width;
+  // document.querySelector('#main').style.width = (mainWidth - navWidth)+'px';
+</script>
+</body>
+</html>

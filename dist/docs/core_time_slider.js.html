@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: core/time/slider.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: core/time/slider.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Visual feedback of complete story line. Allow dragging of range, click
+ * to position.
+ *
+ * Playback Modes
+ * - fixed cumulative (min fixed at 0, max adjusts with tick)
+ * - fixed range playback (range fixed, window adjusts with tick)
+ * - fixed instant (like fixed range but range of 0)
+ * - open range playback (fully adjustable min/max, window adjusts with tick)
+ *
+ * Internal model
+ * - 0-N where N is either the number of instants or the total number of extents
+ *
+ * @param {type} id
+ * @param {type} model
+ * @returns {TimeSlider}
+ */
+exports.TimeSlider = function(id, model) {
+    var slider = $("#" + id);
+    var initialized = false;
+    var singleSlider;
+
+    function init(model) {
+        var options = {
+            step: 1,
+            start: [0, 0],
+            animate: false,
+            connect: true,
+            range: {
+                min: 0,
+                max: model.getSteps() - 1
+            },
+            behaviour: 'drag-snap'
+        };
+        singleSlider = false;
+
+        /*if (model.fixed) {
+            // @todo need model interval
+        }*/
+
+        if (model.mode === 'cumulative') {
+            singleSlider = true;
+            options.connect = 'lower';
+        } else if (model.mode === 'instant') {
+            singleSlider = true;
+            options.connect = false;
+        } else if (model.mode === 'range') {
+            if (model.fixed) {
+                // ideally we'd support snap but it breaks fixed
+                options.behaviour = 'drag-fixed';
+            }
+        } else {
+            throw "invalid model mode : " + model.mode;
+        }
+
+        if (initialized) {
+            // have to update values based on current state
+            var range = getSliderRangeInternal();
+            if (singleSlider) {
+                options.start = range[0];
+            } else {
+                if (range[0] === range[1]) {
+                    range[1] += 1;
+                }
+                options.start = range;
+            }
+        } else if (singleSlider) {
+            options.start = 0;
+        }
+        slider.noUiSlider(options, initialized);
+        if (!initialized) {
+            slider.bind('slide', function(ev) {
+                var range = getRange();
+                slider.trigger('rangeChanged', range);
+            });
+        }
+        initialized = true;
+    }
+
+    init(model);
+
+    function getSliderRangeInternal() {
+        var range = slider.val();
+        if (! Array.isArray(range)) {
+            range = parseInt(range, 10);
+            range = [model.mode === 'cumulative' ? 0 : range, range];
+        } else {
+            range = range.map(function(i) { return parseInt(i, 10); });
+        }
+        return range;
+    }
+
+    function getRange() {
+        var range = getSliderRangeInternal();
+        return model.getRangeAt(range[0], range[1]);
+    }
+
+    function width() {
+        var range = getSliderRangeInternal();
+        return range[1] - range[0];
+    }
+
+    function isAtEnd(left) {
+        var range = getSliderRangeInternal();
+        if (left) {
+            return range[0] === 0;
+        }
+        return range[1] === model.getSteps()-1;
+    }
+
+    function setValue(val) {
+        // normalize nouislider.val to handle array
+        if (singleSlider) {
+            slider.val(val[1]);
+        } else {
+            slider.val(val);
+        }
+    }
+
+    this.slider = slider;
+    this.on = function() {
+        slider.on.apply(slider, arguments);
+    };
+    this.getSliderRangeInternal = getSliderRangeInternal;
+    this.center = function(index) {
+        var half = Math.floor(width() / 2);
+        setValue([index - half, index + half]);
+    };
+    this.move = function(amt) {
+        var vals  = getSliderRangeInternal();
+        vals[0] += amt;
+        vals[1] += amt;
+        setValue(vals);
+        return isAtEnd(amt &lt; 0);
+    };
+    this.grow = function(amt) {
+        var vals = getSliderRangeInternal();
+        vals[1] += amt;
+        setValue(vals);
+        return isAtEnd(false);
+    };
+    this.growTo = function(where) {
+        var vals = getSliderRangeInternal();
+        vals[1] = where;
+        setValue(vals);
+        return isAtEnd(false);
+    };
+    this.jump = function(to) {
+        setValue([to, to + width()]);
+    };
+    this.getRange = getRange;
+    this.update = init;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>directive</h3><ul><li><a href="storytools.core.time.directives.stPlaybackControls.html">stPlaybackControls</a></li><li><a href="storytools.core.time.directives.stPlaybackSettings.html">stPlaybackSettings</a></li></ul><h3>Namespaces</h3><ul><li><a href="storytools.core.time.directives.html">storytools.core.time.directives</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Annotations">Annotations</a></li><li><a href="global.html#binarySearch">binarySearch</a></li><li><a href="global.html#computeRange">computeRange</a></li><li><a href="global.html#computeVectorRange">computeVectorRange</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createOffsetter">createOffsetter</a></li><li><a href="global.html#getTime">getTime</a></li><li><a href="global.html#isoDurationToMoment">isoDurationToMoment</a></li><li><a href="global.html#loadFromGeoJSON">loadFromGeoJSON</a></li><li><a href="global.html#readCapabilitiesTimeDimensions">readCapabilitiesTimeDimensions</a></li><li><a href="global.html#TimeController">TimeController</a></li><li><a href="global.html#TimeLine">TimeLine</a></li><li><a href="global.html#TimeModel">TimeModel</a></li><li><a href="global.html#TimeSlider">TimeSlider</a></li><li><a href="global.html#visitAllLayerFeatureTimes">visitAllLayerFeatureTimes</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> 
+    using <a href="https://github.com/allenhwkim/angular-jsdoc">Angular-JSDoc template </a> 
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+<script>
+  // scroll to the current document navigation
+  var href=window.location.href.match(/\/([^\/]+$)/)[1];
+  if (currentNav = document.querySelector("nav a[href='"+href+"']"))
+    currentNav.scrollIntoView(true);
+  // scroll to the top of the document
+  if (window.location.hash == "")
+    document.querySelector("body").scrollIntoView(true);
+  // adjust the width of main section by navigation width
+  // var navWidth = document.querySelector('nav').getBoundingClientRect().width;
+  // var mainWidth = document.querySelector('#main').getBoundingClientRect().width;
+  // document.querySelector('#main').style.width = (mainWidth - navWidth)+'px';
+</script>
+</body>
+</html>
