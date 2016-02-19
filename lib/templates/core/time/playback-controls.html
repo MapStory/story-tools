@@ -1,6 +1,6 @@
-<button class="btn btn-primary" ng-click="play()">{{ playText}}</button>
-<button class="btn" ng-click="prev()">&lt;&lt;</button>
-<button class="btn" ng-click="next()">&gt;&gt;</button>
-<button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }">{{ loopText}}</button>
-Start: {{ currentRange.start|isodate }}
-End: {{ currentRange.end|isodate }}
+<button class="btn" ng-click="play()"><i class="glyphicon glyphicon-{{ playbackState }}"></i></button>
+<button class="btn" ng-click="prev()"><i class="glyphicon glyphicon-fast-backward"></i></button>
+<button class="btn" ng-click="next()"><i class="glyphicon glyphicon-fast-forward"></i></button>
+<button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }"><i class="glyphicon glyphicon-repeat"></i></button>
+<small>Start: {{ currentRange.start|isodate }} End: {{ currentRange.end|isodate }}</small>
+<button class="btn no-border" ng-click=toggleTimeLine()><i class="glyphicon glyphicon-time"></i></button>

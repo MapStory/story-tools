@@ -199,7 +199,7 @@ describe("test maps", function() {
               });
         });
 
-        it('should transform to Interval object', function(done) {
+        /*it('should transform to Interval object', function(done) {
             var data = JSON.parse('{"id":214,"map":{"center":[0,0],"projection":"EPSG:3857","zoom":3,"layers":[{"id":"foo","name":"foo","title":"My layer","geomType":"point","attributes": ["attr1", "attr2"],"timeAttribute":"attr1","resolutions":[0,10, 20],"bbox": [0,100,100,200],"latlonBBOX":[-10,-10,10,10],"times":{"start": 631152000000, "end": 1230768000000, "duration": "P1Y"},"singleTile":false,"type":"WMS","url":"http://myserver","params":{"LAYERS":"x"}}]}}');
             var storyMap = new StoryMap({target: 'foo'});
             storyMap.getStoryLayers().on('change:length', function() {
@@ -209,6 +209,7 @@ describe("test maps", function() {
             stStoryMapBuilder.modifyStoryMap(storyMap, data);
             $timeout.flush();
         });
+        */
 
         it('should convert extent, zoom and projection', function() {
             var storyMap = new EditableStoryMap({target: 'foo'});
