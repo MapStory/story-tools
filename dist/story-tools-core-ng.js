@@ -784,10 +784,10 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (mapConfig.about !== undefined){
-            storymap.setStoryTitle(mapConfig.about.title);
-            storymap.setStoryAbstract(mapConfig.about.abstract);
-            storymap.setStoryOwner(mapConfig.about.owner);
+          if (data.about !== undefined){
+            storymap.setStoryTitle(data.about.title);
+            storymap.setStoryAbstract(data.about.abstract);
+            storymap.setStoryOwner(data.about.owner);
           }
         }
         for (var i = 0, ii = mapConfig.map.layers.length; i < ii; ++i) {
@@ -832,10 +832,10 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (mapConfig.about !== undefined){
-            storymap.setStoryTitle(mapConfig.about.title);
-            storymap.setStoryAbstract(mapConfig.about.abstract);
-            storymap.setStoryOwner(mapConfig.about.owner);
+          if (data.about !== undefined){
+            storymap.setStoryTitle(data.about.title);
+            storymap.setStoryAbstract(data.about.abstract);
+            storymap.setStoryOwner(data.about.owner);
           }
         }
         for (var i = 0, ii = mapConfig.map.layers.length; i < ii; ++i) {

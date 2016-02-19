@@ -42,7 +42,7 @@
     });
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder) {
+        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager) {
         this.storyMap = new StoryMap({target: 'map'});
         var self = this;
         this.loadMap = function(options) {
@@ -50,6 +50,16 @@
             if (options.id) {
                 var config = stMapConfigStore.loadConfig(options.id);
                 stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
+
+                var annotationsURL = "/maps/" + options.id + "/annotations";
+                if (annotationsURL.slice(-1) === '/') {
+                    annotationsURL = annotationsURL.slice(0, -1);
+                }
+                var annotationsLoad = $http.get(annotationsURL);
+                $q.all([annotationsLoad]).then(function(values) {
+                    var pins_geojson = values[0].data;
+                    StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
+                });
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
@@ -59,6 +69,17 @@
                         stStoryMapBaseBuilder.defaultMap(self.storyMap);
                     }
                 });
+
+                var annotationsURL = options.url.replace('/data','/annotations');
+                if (annotationsURL.slice(-1) === '/') {
+                    annotationsURL = annotationsURL.slice(0, -1);
+                }
+                var annotationsLoad = $http.get(annotationsURL);
+                $q.all([mapLoad, annotationsLoad]).then(function(values) {
+                    var pins_geojson = values[1].data;
+                    StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
+                });
+
             } else {
                 stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
