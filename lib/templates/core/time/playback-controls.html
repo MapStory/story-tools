@@ -1,6 +1,7 @@
 <button class="btn" ng-click="play()"><i class="glyphicon glyphicon-{{ playbackState }}"></i></button>
+<div id="slider"></div>
 <button class="btn" ng-click="prev()"><i class="glyphicon glyphicon-fast-backward"></i></button>
 <button class="btn" ng-click="next()"><i class="glyphicon glyphicon-fast-forward"></i></button>
 <button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }"><i class="glyphicon glyphicon-repeat"></i></button>
-<small>Start: {{ currentRange.start|isodate }} End: {{ currentRange.end|isodate }}</small>
+<small>{{ currentRange.start|isodate }}/{{ currentRange.end|isodate }}</small>
 <button class="btn no-border" ng-click=toggleTimeLine()><i class="glyphicon glyphicon-time"></i></button>
