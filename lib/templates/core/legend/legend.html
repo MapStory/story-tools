@@ -1,0 +1,23 @@
+<div>
+    <div id=legend-btn-border class=map-btn-border tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Toggle Legend">
+        <div id=legend-btn ng-click=toggleLegend()><i class="glyphicon glyphicon-list-alt"></i></div>
+    </div>
+    <div id=legend-container class=panel>
+        <div id=legend-panel class="panel collapse legend-panel-body">
+            <div id=legend-title-heading class=panel-heading>
+                <div class="legend-panel-title pull-left" id=legend-title-text translate=legend_title>Legend
+                </div>
+                <i class="glyphicon glyphicon-remove legend-panel-title pull-right" ng-click=toggleLegend()></i></div>
+            <div class="panel in legend-panel-body"
+                 ng-repeat="layer in mapManager.storyMap.getStoryLayers().getArray();">
+                <div class="panel-heading
+     legend-item-header" data-toggle=collapse data-target="{{'#' + layer.get('name') + 'legend'}}">
+                    {{layer.get('title')}}
+                </div>
+                <div class="panel-collapse legend-item in legend-panel-body" id="{{layer.get('name') + 'legend'}}">
+                    <img ng-src={{getLegendUrl(layer)}}></div>
+            </div>
+        </div>
+    </div>
+</div>
