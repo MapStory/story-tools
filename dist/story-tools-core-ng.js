@@ -1452,6 +1452,7 @@
                 timeControlsManager.timeControls = storytools.core.time.create({
                     annotations: annotations,
                     storyMap: MapManager.storyMap,
+                    storyLayers: MapManager.storyMap.getStoryLayers().getArray(),
                     data: range,
                     mode: MapManager.storyMap.mode,
                     tileStatusCallback: function(remaining) {
@@ -1469,6 +1470,7 @@
                 var range = computeTicks(MapManager.storyMap);
                 if (range.length) {
                     return {
+                        storyLayers: MapManager.storyMap.getStoryLayers().getArray(),
                         data: range
                     };
                 }
@@ -1480,6 +1482,7 @@
                 var range = computeTicks(MapManager.storyMap);
                 if (range.length) {
                     return {
+                        storyLayers: MapManager.storyMap.getStoryLayers().getArray(),
                         annotations: pinsLayer.get("features"),
                         data: range
                     };

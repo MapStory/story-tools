@@ -456,7 +456,7 @@ exports.TimeLine = function(id, model) {
     var offset = new Date().getTimezoneOffset() * 60 * 1000;
 
     function init(model) {
-        var elements = [], options;
+        var elements = [], groups = [], options;
         var range = model.getRange();
         if (range.isEmpty()) {
             range = utils.createRange(Date.now());
@@ -475,6 +475,28 @@ exports.TimeLine = function(id, model) {
                 type: type
             };
         });
+
+        groups = $.map(model.storyLayers, function(lyr, i) {
+            var id = lyr.get('id');
+            var title = lyr.get('title');
+            var times = lyr.get('times');
+
+            for (var j = 0; j < times.length; j++) {
+                elements.push({
+                    id: id + ':' + i + ':' + j,
+                    group: id,
+                    content: "",
+                    start: times[j],
+                    type: 'box'
+                });
+            }
+
+            return {
+                id: id,
+                content: title
+            };
+        });
+
         options = {
             min: range.start,
             max: range.end,
@@ -487,10 +509,12 @@ exports.TimeLine = function(id, model) {
         };
         if (timeline === null) {
             timeline = new Timeline(dom.get(0), elements, options);
+            timeline.setGroups(groups);
             timeline.setCurrentTime(range.start);
         } else {
             timeline.setOptions(options);
             timeline.setItems(elements);
+            timeline.setGroups(groups);
         }
     }
     init(model);
@@ -830,6 +854,7 @@ exports.TimeModel = function(options, boxes, annotations) {
         boxModel = new BoxModel(boxes);
 
     this.annotations = annotations;
+    this.storyLayers = [];
     this.fixed = false;
     this.mode = 'instant';
 
@@ -843,6 +868,11 @@ exports.TimeModel = function(options, boxes, annotations) {
         if (opts.hasOwnProperty('annotations')) {
             this.annotations.update(opts.annotations);
         }
+
+        if (opts.hasOwnProperty('storyLayers')) {
+            this.storyLayers = opts.storyLayers;
+        }
+
         // @todo is the best name for this
         if (opts.hasOwnProperty('data')) {
             boxModel.setRange(opts.data);
