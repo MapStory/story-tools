@@ -1,4 +1,82 @@
 (function() {
+      'use strict';
+
+    /**
+     * @namespace storytools.core.legend.directives
+     */
+  var module = angular.module('storytools.core.legend.directives', []);
+
+  var legendOpen = false;
+
+  module.directive('stLegend',
+      ["$rootScope", "MapManager", function($rootScope, MapManager) {
+        return {
+          restrict: 'C',
+          replace: true,
+          templateUrl: 'legend/legend.html',
+          // The linking function will add behavior to the template
+          link: function(scope, element) {
+            scope.mapManager = MapManager;
+
+            var openLegend = function() {
+              angular.element(document.getElementById('legend-container'))[0].style.visibility = 'visible';
+              angular.element(document.getElementById('legend-panel'))[0].style.display = 'block';
+              legendOpen = true;
+            };
+            var closeLegend = function() {
+              angular.element(document.getElementById('legend-panel'))[0].style.display = 'none';
+              legendOpen = false;
+
+              //the timeout is so the transition will finish before hiding the div
+              setTimeout(function() {
+                angular.element('#legend-container')[0].style.visibility = 'hidden';
+              }, 350);
+            };
+
+            scope.toggleLegend = function() {
+              if (legendOpen === false) {
+                console.log(angular.element(document.getElementsByClassName('legend-item')));
+                //if (angular.element(document.getElementsByClassName('.legend-item')).length > 0) {
+                  openLegend();
+                //}
+              } else {
+                closeLegend();
+              }
+            };
+
+            scope.getLegendUrl = function(layer) {
+              var url = null;
+              var server = '/geoserver/wms';
+              var layer_name = layer.get('typeName') || layer.get('id');
+              url = server + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' +
+                  layer_name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' +
+                  'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
+              return url;
+            };
+
+            scope.$on('layer-added', function() {
+              if (legendOpen === false) {
+                openLegend();
+              }
+            });
+
+            scope.$on('layerRemoved', function() {
+              //close the legend if the last layer is removed
+              if (legendOpen === true && angular.element('.legend-item').length == 1) {
+                closeLegend();
+              }
+            });
+          }
+        };
+      }]);
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.legend', [
+        'storytools.core.legend.directives'
+    ]);
+})();
+(function() {
     'use strict';
 
     var module = angular.module('storytools.core.mapstory', [
@@ -1209,115 +1287,166 @@
 })();
 
 (function() {
-    'use strict';
+  'use strict';
 
-    /**
-     * @namespace storytools.core.time.directives
-     */
-    var module = angular.module('storytools.core.time.directives', []);
+  /**
+   * @namespace storytools.core.time.directives
+   */
+  var module = angular.module('storytools.core.time.directives', []);
 
-    /**
-     * @ngdoc directive
-     * @name stPlaybackControls
-     * @memberOf storytools.core.time.directives
-     * @description
-     * Directive that presents playback controls to manipulate the provided
-     * TimeController instance.
-     *
-     * @param {TimeController} time-controls attribute
-     */
-    module.directive('stPlaybackControls', function() {
-        return {
-            restrict: 'E',
-            templateUrl: 'time/playback-controls.html',
-            scope: {
-                timeControls: '='
-            },
-            link: function (scope, elem) {
-                scope.playbackState = "play";
-                scope.loopText = "Enable Loop";
-                scope.loop = false;
-                scope.showTimeLine = false;
-                scope.next = function () {
-                    scope.timeControls.next();
-                };
-                scope.prev = function () {
-                    scope.timeControls.prev();
-                };
-                scope.$watch('timeControls', function (neu, old) {
-                    if (neu !== old) {
-                        neu.on('stateChange', function () {
-                            var started = scope.timeControls.isStarted();
-                            scope.started = started;
-                            scope.playbackState = started ? "pause" : "play";
-                            scope.$apply();
-                        });
-                        neu.on('rangeChange', function (range) {
-                            scope.currentRange = range;
-                            scope.$apply();
-                        });
-                    }
-                });
-                scope.play = function () {
-                    var tc = scope.timeControls;
-                    var started = tc.isStarted();
-                    if (started) {
-                        tc.stop();
-                    } else {
-                        tc.start();
-                    }
-                };
-                scope.toggleLoop = function () {
-                    var tc = scope.timeControls;
-                    scope.loop = tc.loop = !tc.loop;
-                    scope.loopText = tc.loop ? 'Disable Loop' : 'Enable Loop';
-                };
-
-                scope.toggleTimeLine = function () {
-                    var tc = scope.timeControls;
-                    scope.showTimeLine = tc.showTimeLine = !tc.showTimeLine;
-                    var element = $('#timeline');
-
-                    if(tc.showTimeLine) {
-                        element.show( "slow" );
-
-                    } else {
-                        element.hide("slow");
-                    }
-                };
-            }
+  /**
+   * @ngdoc directive
+   * @name stPlaybackControls
+   * @memberOf storytools.core.time.directives
+   * @description
+   * Directive that presents playback controls to manipulate the provided
+   * TimeController instance.
+   *
+   * @param {TimeController} time-controls attribute
+   */
+  module.directive('stPlaybackControls', function() {
+    return {
+      restrict: 'E',
+      templateUrl: 'time/playback-controls.html',
+      scope: {
+        timeControls: '='
+      },
+      link: function(scope, elem) {
+        scope.playbackState = "Play";
+        scope.loopText = "Enable Loop";
+        scope.loop = false;
+        scope.showTimeLine = false;
+        scope.next = function() {
+          scope.timeControls.next();
         };
-    });
-
-    /**
-     * @ngdoc directive
-     * @name stPlaybackSettings
-     * @memberOf storytools.core.time.directives
-     * @description
-     * Directive that presents playback settings that manipulate the provided
-     * TimeController instance.
-     *
-     * @param {TimeController} time-controls attribute
-     * @param {object} playbackOptions (will go away)
-     */
-    module.directive('stPlaybackSettings', function () {
-        return {
-            restrict: 'E',
-            templateUrl: 'time/playback-settings.html',
-            scope: {
-                timeControls: '=',
-                // @todo remove once timeControls properly exposes access to this
-                playbackOptions: '='
-            },
-            link: function (scope, elem) {
-                scope.optionsChanged = function () {
-                    if (scope.timeControls) {
-                        scope.timeControls.update(scope.playbackOptions);
-                    }
-                };
-            }
+        scope.prev = function() {
+          scope.timeControls.prev();
         };
-    });
+        scope.$watch('timeControls', function(neu, old) {
+          if (neu !== old) {
+            neu.on('stateChange', function() {
+              var started = scope.timeControls.isStarted();
+              scope.started = started;
+              scope.playbackState = started ? "Pause" : "Play";
+              scope.$apply();
+            });
+            neu.on('rangeChange', function(range) {
+              scope.currentRange = range;
+              scope.$apply();
+            });
+          }
+        });
+        scope.play = function() {
+          var tc = scope.timeControls;
+          var started = tc.isStarted();
+          if (started) {
+            tc.stop();
+          } else {
+            tc.start();
+          }
+        };
+
+        /**
+         * Check if window is in full screen mode.
+         * @return {Boolean} full screen mode
+         */
+        scope.isInFullScreen = function() {
+
+
+          if (document.fullScreenElement !== undefined) {
+            return !!document.fullScreenElement;
+          }
+
+
+          if (document.mozFullScreen !== undefined) {
+            return !!document.mozFullScreen;
+          }
+
+
+          if (document.webkitIsFullScreen !== undefined) {
+            return !!document.webkitIsFullScreen;
+          }
+
+
+          if (window.fullScreen !== undefined) {
+            return !!window.fullScreen;
+          }
+
+
+          if (window.navigator.standalone !== undefined) {
+            return !!window.navigator.standalone;
+          }
+        };
+
+        scope.toggleFullScreen = function() {
+          var elem = document.getElementById('story-viewer');
+
+          if (!this.isInFullScreen()) {
+            if (elem.mozRequestFullScreen) {
+              elem.mozRequestFullScreen();
+            } else {
+              elem.webkitRequestFullScreen();
+            }
+          } else {
+            if (document.mozCancelFullScreen) {
+              document.mozCancelFullScreen();
+            } else {
+              document.webkitCancelFullScreen();
+            }
+          }
+        };
+
+        scope.toggleLoop = function() {
+          var tc = scope.timeControls;
+          scope.loop = tc.loop = !tc.loop;
+          scope.loopText = tc.loop ? 'Disable Loop' : 'Enable Loop';
+        };
+
+        scope.toggleTimeLine = function() {
+          var tc = scope.timeControls;
+          scope.showTimeLine = tc.showTimeLine = !tc.showTimeLine;
+          var element = $('#timeline');
+
+          if (tc.showTimeLine) {
+            element.show("slow");
+
+          } else {
+            element.hide("slow");
+          }
+        };
+      }
+    };
+  });
+
+  /**
+   * @ngdoc directive
+   * @name stPlaybackSettings
+   * @memberOf storytools.core.time.directives
+   * @description
+   * Directive that presents playback settings that manipulate the provided
+   * TimeController instance.
+   *
+   * @param {TimeController} time-controls attribute
+   * @param {object} playbackOptions (will go away)
+   */
+  module.directive('stPlaybackSettings', function() {
+    return {
+      restrict: 'E',
+      templateUrl: 'time/playback-settings.html',
+      scope: {
+        timeControls: '=',
+        // @todo remove once timeControls properly exposes access to this
+        playbackOptions: '='
+      },
+      link: function(scope, elem) {
+        scope.optionsChanged = function() {
+          if (scope.timeControls) {
+            scope.timeControls.update(scope.playbackOptions);
+          }
+        };
+      }
+    };
+  });
 })();
 (function() {
     'use strict';

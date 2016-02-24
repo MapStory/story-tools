@@ -1,7 +1,16 @@
-<button class="btn" ng-click="play()"><i class="glyphicon glyphicon-{{ playbackState }}"></i></button>
-<div id="slider"></div>
-<button class="btn" ng-click="prev()"><i class="glyphicon glyphicon-fast-backward"></i></button>
-<button class="btn" ng-click="next()"><i class="glyphicon glyphicon-fast-forward"></i></button>
-<button class="btn" ng-click="toggleLoop()" ng-class="{ 'btn-success' : loop }"><i class="glyphicon glyphicon-repeat"></i></button>
-<small>{{ currentRange.start|isodate }}/{{ currentRange.end|isodate }}</small>
-<button class="btn no-border" ng-click=toggleTimeLine()><i class="glyphicon glyphicon-time"></i></button>
+<button class="btn" ng-click="play()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="{{ playbackState }}"><i class="glyphicon glyphicon-{{ playbackState | lowercase }}"></i></button>
+<div id="slider" tooltip-placement=top tooltip-append-to-body=true tooltip="{{ currentRange.start|isodate }}"></div>
+<button class="btn" ng-click="prev()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Previous"><i class="glyphicon glyphicon-fast-backward"></i></button>
+<button class="btn" ng-click="next()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Next"><i class="glyphicon glyphicon-fast-forward"></i></button>
+<button class="btn" ng-click="toggleLoop()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Repeat" ng-class="{ 'btn-success' : loop }"><i class="glyphicon glyphicon-repeat"></i></button>
+<button class="btn no-border" ng-click="toggleTimeLine()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Toggle Timeline"><i class="glyphicon glyphicon-time"></i></button>
+<button class="btn no-border" data-toggle="collapse" data-target="#playback-settings" class="collapsed" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Playback Settings"><i class="glyphicon glyphicon-cog"></i></button>
+<button class="btn no-border" ng-click="toggleFullScreen()" tooltip-placement=top tooltip-append-to-body=true
+         tooltip="Toggle Fullscreen"><i class="glyphicon glyphicon-fullscreen"></i></button>
+
