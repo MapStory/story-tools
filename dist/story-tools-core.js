@@ -479,7 +479,7 @@ exports.TimeLine = function(id, model) {
         groups = $.map(model.storyLayers, function(lyr, i) {
             var id = lyr.get('id');
             var title = lyr.get('title');
-            var times = lyr.get('times');
+            var times = lyr.get('times') || [];
 
             for (var j = 0; j < times.length; j++) {
                 elements.push({
