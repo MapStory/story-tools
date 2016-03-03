@@ -828,6 +828,7 @@
 
     function StoryPinLayerManager() {
         this.storyPins = [];
+        this.map = null;
     }
     StoryPinLayerManager.prototype.pinsChanged = function(pins, action) {
         var i;
@@ -858,8 +859,8 @@
                 return storytools.core.utils.createRange(p.start_time, p.end_time);
             }
         });
-        this.storyPinsLayer.set('times', times);
-        this.storyPinsLayer.set('features', this.storyPins);
+        this.map.storyPinsLayer.set('times', times);
+        this.map.storyPinsLayer.set('features', this.storyPins);
     };
     StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection) {
         if (geojson && geojson.features) {
