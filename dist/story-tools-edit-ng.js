@@ -1456,22 +1456,22 @@
         shape: 'circle',
         graphic: null,
         graphicType: null,
-        fillColor: '#FF0000',
+        fillColor: '#f59620',
         fillOpacity: 100,
         rotationAttribute: null,
         rotationUnits: 'degrees'
     };
 
     var defaultStroke = {
-        strokeColor: '#000000',
+        strokeColor: '#f59620',
         strokeWidth: 1,
         strokeStyle: 'solid',
-        strokeOpacity: 100
+        strokeOpacity: 70
     };
 
     var defaultLabel = {
         attribute: null,
-        fillColor: '#000000',
+        fillColor: '#f59620',
         fontFamily: 'Serif',
         fontSize: 10,
         fontStyle: 'normal',
