@@ -66,7 +66,8 @@ exports.MapConfigTransformer = function(data) {
                          }
                          layerConfig.id = layer.name;
                          layerConfig.name = layer.name;
-                         layerConfig.title = layer.title;
+                         layerConfig.title = layer.titleAlias || layer.title;
+                         layerConfig.maskings = layer.maskings;
                          // TODO not sure if this is the best place to do this?
                          layerConfig.url = source.url.replace('http://mapstory.org/geoserver/', '/geoserver/');
                      }
