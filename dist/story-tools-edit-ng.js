@@ -993,9 +993,9 @@
         };
     }]);
 
-    module.factory('iconCommonsSearch', ["$http", "$modal", "$injector", function($http, $modal, $injector) {
+    module.factory('iconCommonsSearch', ["$http", "$modal", "$injector", "$location", function($http, $modal, $injector, $location) {
         var iconCommonsHost = $injector.has('iconCommonsHost') ?
-            $injector.get('iconCommonsHost') : 'http://localhost:8000';
+            $injector.get('iconCommonsHost') : $location.protocol() + '://' + $location.host();
         function fixHrefs(stuff) {
             var toFix = stuff.icons || stuff;
             for (var i = 0, ii = toFix.length; i < ii; i++) {
