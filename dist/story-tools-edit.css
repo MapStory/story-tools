@@ -94,9 +94,13 @@
 .modal-dialog.modal-lg {
   width: 50%;
 }
+.icon-commons-search {
+  overflow-y: hidden;
+}
 .icon-commons-search .icon-list {
   height: 384px;
   overflow-y: auto;
+  margin-top: 10px;
 }
 .icon-commons-search .icon-list ul {
   list-style-type: none;
@@ -114,6 +118,9 @@
   width: 100px;
   border: 1px solid #ccc;
   padding: 10px;
+}
+.icon-commons-search .tab-content {
+  margin-top: 10px;
 }
 .color-select .colorpicker.dropdown {
   display: block !important;

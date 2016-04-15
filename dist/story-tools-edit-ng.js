@@ -1457,7 +1457,7 @@
         graphic: null,
         graphicType: null,
         fillColor: '#f59620',
-        fillOpacity: 100,
+        fillOpacity: 70,
         rotationAttribute: null,
         rotationUnits: 'degrees'
     };
@@ -1466,7 +1466,7 @@
         strokeColor: '#f59620',
         strokeWidth: 1,
         strokeStyle: 'solid',
-        strokeOpacity: 70
+        strokeOpacity: 100
     };
 
     var defaultLabel = {
