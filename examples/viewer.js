@@ -6,6 +6,7 @@
         'storytools.core.time',
         'storytools.core.mapstory',
         'storytools.core.pins',
+        'storytools.core.boxes',
         'storytools.core.ogc',
         'storytools.core.legend',
         'ui.bootstrap'
@@ -43,10 +44,11 @@
     });
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager) {
+        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
         this.storyMap = new StoryMap({target: 'map'});
         var self = this;
         StoryPinLayerManager.map = self.storyMap;
+        StoryBoxLayerManager.map = self.storyMap;
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
@@ -57,10 +59,20 @@
                 if (annotationsURL.slice(-1) === '/') {
                     annotationsURL = annotationsURL.slice(0, -1);
                 }
+
+                var boxesURL = "/maps/" + options.id + "/boxes";
+                if (boxesURL.slice(-1) === '/') {
+                    boxesURL = boxesURL.slice(0, -1);
+                }
+
                 var annotationsLoad = $http.get(annotationsURL);
-                $q.all([annotationsLoad]).then(function(values) {
+                var boxesLoad = $http.get(boxesURL);
+                $q.all([annotationsLoad, boxesLoad]).then(function(values) {
                     var pins_geojson = values[0].data;
                     StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
+
+                    var boxes_geojson = values[1].data;
+                    StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection());
                 });
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
@@ -76,10 +88,20 @@
                 if (annotationsURL.slice(-1) === '/') {
                     annotationsURL = annotationsURL.slice(0, -1);
                 }
+
+                var boxesURL = options.url.replace('/data','/boxes');
+                if (boxesURL.slice(-1) === '/') {
+                    boxesURL = boxesURL.slice(0, -1);
+                }
+
                 var annotationsLoad = $http.get(annotationsURL);
-                $q.all([mapLoad, annotationsLoad]).then(function(values) {
+                var boxesLoad = $http.get(boxesURL);
+                $q.all([mapLoad, annotationsLoad, boxesLoad]).then(function(values) {
                     var pins_geojson = values[1].data;
                     StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
+
+                    var boxes_geojson = values[2].data;
+                    StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection());
                 });
 
             } else {

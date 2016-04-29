@@ -43,7 +43,8 @@ exports.TimeLine = function(id, model) {
     var offset = new Date().getTimezoneOffset() * 60 * 1000;
 
     function init(model) {
-        var elements = [], options;
+        var story_pin_label = 'Story Pin';
+        var elements = [], layer_groups = [], groups = [{id: story_pin_label, title: story_pin_label, time: []}], options;
         var range = model.getRange();
         if (range.isEmpty()) {
             range = utils.createRange(Date.now());
@@ -59,25 +60,54 @@ exports.TimeLine = function(id, model) {
                 end: end,
                 content: ann.content || ann.title,
                 title: ann.title,
-                type: type
+                type: type,
+                group: story_pin_label
             };
         });
+
+        layer_groups = $.map(model.storyLayers, function(lyr, i) {
+            var id = lyr.get('id');
+            var title = lyr.get('title');
+            var times = lyr.get('times') || [];
+
+            for (var j = 0; j &lt; times.length; j++) {
+                elements.push({
+                    id: id + ':' + i + ':' + j,
+                    group: id,
+                    content: "",
+                    start: times[j],
+                    type: 'box'
+                });
+            }
+
+            return {
+                id: id,
+                content: title
+            };
+        });
+
+        groups = groups.concat(layer_groups);
+
+        var height = $( document ).height() * 0.35;
+
         options = {
             min: range.start,
             max: range.end,
             start: range.start,
             end: range.end,
-            height: 138,
-            maxHeight: 138,
+            height: (height &lt; 300)? 138: height,
+            maxHeight: 400,
             showCurrentTime: false,
             showCustomTime: true
         };
         if (timeline === null) {
             timeline = new Timeline(dom.get(0), elements, options);
+            timeline.setGroups(groups);
             timeline.setCurrentTime(range.start);
         } else {
             timeline.setOptions(options);
             timeline.setItems(elements);
+            timeline.setGroups(groups);
         }
     }
     init(model);
@@ -131,7 +161,7 @@ exports.TimeLine = function(id, model) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>directive</h3><ul><li><a href="storytools.core.time.directives.stPlaybackControls.html">stPlaybackControls</a></li><li><a href="storytools.core.time.directives.stPlaybackSettings.html">stPlaybackSettings</a></li></ul><h3>Namespaces</h3><ul><li><a href="storytools.core.time.directives.html">storytools.core.time.directives</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Annotations">Annotations</a></li><li><a href="global.html#binarySearch">binarySearch</a></li><li><a href="global.html#computeRange">computeRange</a></li><li><a href="global.html#computeVectorRange">computeVectorRange</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createOffsetter">createOffsetter</a></li><li><a href="global.html#getTime">getTime</a></li><li><a href="global.html#isoDurationToMoment">isoDurationToMoment</a></li><li><a href="global.html#loadFromGeoJSON">loadFromGeoJSON</a></li><li><a href="global.html#readCapabilitiesTimeDimensions">readCapabilitiesTimeDimensions</a></li><li><a href="global.html#TimeController">TimeController</a></li><li><a href="global.html#TimeLine">TimeLine</a></li><li><a href="global.html#TimeModel">TimeModel</a></li><li><a href="global.html#TimeSlider">TimeSlider</a></li><li><a href="global.html#visitAllLayerFeatureTimes">visitAllLayerFeatureTimes</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>directive</h3><ul><li><a href="storytools.core.time.directives.stPlaybackControls.html">stPlaybackControls</a></li><li><a href="storytools.core.time.directives.stPlaybackSettings.html">stPlaybackSettings</a></li></ul><h3>Namespaces</h3><ul><li><a href="storytools.core.legend.directives.html">storytools.core.legend.directives</a></li><li><a href="storytools.core.time.directives.html">storytools.core.time.directives</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Annotations">Annotations</a></li><li><a href="global.html#binarySearch">binarySearch</a></li><li><a href="global.html#computeRange">computeRange</a></li><li><a href="global.html#computeVectorRange">computeVectorRange</a></li><li><a href="global.html#create">create</a></li><li><a href="global.html#createOffsetter">createOffsetter</a></li><li><a href="global.html#getTime">getTime</a></li><li><a href="global.html#isoDurationToMoment">isoDurationToMoment</a></li><li><a href="global.html#loadFromGeoJSON">loadFromGeoJSON</a></li><li><a href="global.html#readCapabilitiesTimeDimensions">readCapabilitiesTimeDimensions</a></li><li><a href="global.html#TimeController">TimeController</a></li><li><a href="global.html#TimeLine">TimeLine</a></li><li><a href="global.html#TimeModel">TimeModel</a></li><li><a href="global.html#TimeSlider">TimeSlider</a></li><li><a href="global.html#visitAllLayerFeatureTimes">visitAllLayerFeatureTimes</a></li></ul>
 </nav>
 
 <br clear="both">

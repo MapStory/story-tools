@@ -21,7 +21,7 @@
     "watch-dev": "gulp watch --bundle"
   },
   "dependencies": {
-    "vis": "3.5.0",
+    "vis": "4.9.0",
     "amdefine": ">=0.1.0"
   },
   "devDependencies": {
@@ -51,6 +51,7 @@
     "gulp-ng-annotate": "~0.4.3",
     "gulp-minify-html": "~0.1.8",
     "gulp-shell": "~0.2.11",
-    "angular-jsdoc": "~0.3.1"
+    "angular-jsdoc": "~0.3.1",
+    "babelify":  "~6.0.0"
   }
 }
