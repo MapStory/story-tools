@@ -19,6 +19,7 @@ function Box(options) {
     this.speed = options.speed;  // interval, seconds
     this.title = options.title || '';
     this.id = options.id || new Date().getUTCMilliseconds();
+    this.zoom = options.zoom || null;
     this._offset = 0;
     if (this.range === null) {
         if(this.data) {
@@ -281,7 +282,7 @@ function TimeController(model, slider, timeline, controls) {
     function schedule() {
         if (started) {
             // @todo respect playback interval options...
-            var wait = 1000;
+            var wait = model.interval;
             $.when.apply($, deferred).then(function() {
                 if (started) {
                     timeout = window.setTimeout(move, wait, 1);
@@ -791,6 +792,23 @@ function filterVectorLayer(storyLayer, range) {
     layer.getSource().addFeatures(features);
 }
 
+
+function filterVectorBoxLayer(storyLayer, range) {
+    var timeAttr = storyLayer.get('timeAttribute'), l_features = storyLayer.get('features');
+    if (timeAttr === undefined || l_features === undefined) {
+        return;
+    }
+    range = utils.createRange(range);
+    // loop over all original features and filter them
+    var features = [];
+    visitAllLayerFeatureTimes(storyLayer, function(f,r) {
+        if (range.intersects(r)) {
+            features.push(f);
+        }
+    });
+
+    return features;
+}
 /**
  * Call the provided visitor function on the specified features using the
  * configuration provided in the layer. The visitor function will be called
@@ -809,14 +827,22 @@ function visitAllLayerFeatureTimes(storyLayer, visitor, features) {
     features = features || storyLayer.get('features') || layer.getSource().getFeatures();
     if (endAtt) {
         rangeGetter = function(f) {
-            var start = f.get(startAtt);
-            var end = f.get(endAtt);
-            return utils.createRange(start, end);
+            if(f.range){
+                return f.range;
+            }else {
+                var start = f.get(startAtt);
+                var end = f.get(endAtt);
+                return utils.createRange(start, end);
+            }
         };
     } else {
         rangeGetter = function(f) {
-            var start = f.get(startAtt);
-            return utils.createRange(start, start);
+            if(f.range){
+                return f.range;
+            }else {
+                var start = f.get(startAtt);
+                return utils.createRange(start, start);
+            }
         };
     }
     utils.visitRanges(features, rangeGetter, visitor);
@@ -841,6 +867,7 @@ exports.computeVectorRange = function(storyLayer, features) {
 };
 
 exports.filterVectorLayer = filterVectorLayer;
+exports.filterVectorBoxLayer = filterVectorBoxLayer;
 
 exports.MapController = function(options, timeControls) {
     var loadListener = null,
@@ -885,6 +912,22 @@ exports.MapController = function(options, timeControls) {
         loadListener = new TileLoadListener(tileStatusCallback);
         return loadListener;
     }
+
+    function updateCenterAndZoom(range){
+        var currentBoxes = filterVectorBoxLayer(storyMap.storyBoxesLayer, range);
+
+        if(currentBoxes && currentBoxes.length > 0) {
+            var currentBox = currentBoxes[0];
+            console.log(currentBox);
+            console.log(new Date(currentBox.range.start).toISOString());
+            console.log(new Date(currentBox.range.end).toISOString());
+
+            if (currentBox.center) {
+                storyMap.animatePanAndBounce(currentBox.center, currentBox.zoom);
+            }
+        }
+    }
+
     function updateLayers(range) {
         var storyLayers = storyMap.getStoryLayers();
         var time = new Date(range.start).toISOString();
@@ -904,7 +947,7 @@ exports.MapController = function(options, timeControls) {
         }
         // this is a non-story layer - not part of the main collection
         filterVectorLayer(storyMap.storyPinsLayer, range);
-        if (storyLayers.getLength() > 1) {
+        if (storyLayers.getLength() >= 1) {
             timeControls.defer(createLoadListener().deferred);
         }
     }
@@ -924,6 +967,7 @@ exports.MapController = function(options, timeControls) {
             me.layers[id] = true;
         }
     });
+    timeControls.on('rangeChange', updateCenterAndZoom);
     timeControls.on('rangeChange', updateLayers);
 };
 
@@ -945,6 +989,7 @@ exports.TimeModel = function(options, boxes, annotations) {
     this.storyLayers = [];
     this.fixed = false;
     this.mode = 'instant';
+    this.interval = 1000;
 
     function init(opts) {
         if (opts.hasOwnProperty('fixed')) {
