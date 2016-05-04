@@ -38,7 +38,11 @@
         this.map.storyBoxesLayer.set('times', times);
         this.map.storyBoxesLayer.set('features', this.storyBoxes);
     };
-    StoryBoxLayerManager.prototype.loadFromGeoJSON = function(geojson, projection) {
+    StoryBoxLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
+
+        if (overwrite){
+             this.storyBoxes = [];
+        }
 
         if (geojson && geojson.features) {
             var loaded = boxes.loadFromGeoJSON(geojson, projection);
@@ -49,68 +53,6 @@
     module.service('StoryBoxLayerManager', StoryBoxLayerManager);
 
     module.constant('StoryBox', boxes.Box);
-
-})();
-
-(function() {
-    'use strict';
-
-    var module = angular.module('storytools.core.mapstory', [
-    ]);
-
-    // @todo naive implementation on local storage for now
-    module.service('stMapConfigStore', function() {
-        function path(mapid) {
-            return '/maps/' + mapid;
-        }
-        function get(mapid) {
-            var saved = localStorage.getItem(path(mapid));
-            saved = (saved === null) ? {} : angular.fromJson(saved);
-            return saved;
-        }
-        function set(mapConfig) {
-            localStorage.setItem(path(mapConfig.id), angular.toJson(mapConfig));
-        }
-        function list() {
-            var maps = [];
-            var pattern = new RegExp('/maps/(\\d+)$');
-            Object.getOwnPropertyNames(localStorage).forEach(function(key) {
-                var match = pattern.exec(key);
-                if (match) {
-                    // name/title eventually
-                    maps.push({
-                        id: match[1]
-                    });
-                }
-            });
-            return maps;
-        }
-        function nextId() {
-            var lastId = 0;
-            var existing = list().map(function(m) {
-                return m.id;
-            });
-            existing.sort();
-            if (existing.length) {
-                lastId = parseInt(existing[existing.length - 1]);
-            }
-            return lastId + 1;
-        }
-        return {
-            listMaps: function() {
-                return list();
-            },
-            loadConfig: function(mapid) {
-                return get(mapid);
-            },
-            saveConfig: function(mapConfig) {
-                if (!angular.isDefined(mapConfig.id)) {
-                    mapConfig.id = nextId();
-                }
-                set(mapConfig);
-            }
-        };
-    });
 
 })();
 
@@ -196,6 +138,68 @@
     ]);
 })();
 (function() {
+    'use strict';
+
+    var module = angular.module('storytools.core.mapstory', [
+    ]);
+
+    // @todo naive implementation on local storage for now
+    module.service('stMapConfigStore', function() {
+        function path(mapid) {
+            return '/maps/' + mapid;
+        }
+        function get(mapid) {
+            var saved = localStorage.getItem(path(mapid));
+            saved = (saved === null) ? {} : angular.fromJson(saved);
+            return saved;
+        }
+        function set(mapConfig) {
+            localStorage.setItem(path(mapConfig.id), angular.toJson(mapConfig));
+        }
+        function list() {
+            var maps = [];
+            var pattern = new RegExp('/maps/(\\d+)$');
+            Object.getOwnPropertyNames(localStorage).forEach(function(key) {
+                var match = pattern.exec(key);
+                if (match) {
+                    // name/title eventually
+                    maps.push({
+                        id: match[1]
+                    });
+                }
+            });
+            return maps;
+        }
+        function nextId() {
+            var lastId = 0;
+            var existing = list().map(function(m) {
+                return m.id;
+            });
+            existing.sort();
+            if (existing.length) {
+                lastId = parseInt(existing[existing.length - 1]);
+            }
+            return lastId + 1;
+        }
+        return {
+            listMaps: function() {
+                return list();
+            },
+            loadConfig: function(mapid) {
+                return get(mapid);
+            },
+            saveConfig: function(mapConfig) {
+                if (!angular.isDefined(mapConfig.id)) {
+                    mapConfig.id = nextId();
+                }
+                set(mapConfig);
+            }
+        };
+    });
+
+})();
+
+(function() {
   'use strict';
 
   var module = angular.module('storytools.core.ogc', [
@@ -223,6 +227,8 @@
     this.abstract = "No Information Supplied.";
     this.owner = "";
     this.mode = "instant";
+    this.center = [0,0];
+    this.zoom = 2;
     this.storyLayers_ = new ol.Collection();
     this.animationDuration_ = data.animationDuration || 500;
     this.storyBoxesLayer = new StoryLayer({
@@ -264,8 +270,24 @@
     return this.owner;
   };
 
+  StoryMap.prototype.getCenter = function() {
+    return this.center;
+  };
+
+  StoryMap.prototype.getZoom = function() {
+    return this.zoom;
+  };
+
   StoryMap.prototype.setStoryTitle = function(storyTitle) {
     this.title =  storyTitle;
+  };
+
+  StoryMap.prototype.setCenter = function(center) {
+    this.center =  center;
+  };
+
+  StoryMap.prototype.setZoom = function(zoom) {
+    this.zoom =  zoom;
   };
 
   StoryMap.prototype.setMode = function(playbackMode) {
@@ -845,6 +867,9 @@
             storymap.setStoryAbstract(data.about.abstract);
             storymap.setStoryOwner(data.about.owner);
           }
+
+          storymap.setCenter(mapConfig.map.center);
+          storymap.setZoom(mapConfig.map.zoom);
         }
         for (var i = 0, ii = mapConfig.map.layers.length; i < ii; ++i) {
           var layerConfig = mapConfig.map.layers[i];
@@ -968,7 +993,7 @@
     StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
 
         if (overwrite){
-            //this.storyPins = [];
+            this.storyPins = [];
         }
 
         if (geojson && geojson.features) {

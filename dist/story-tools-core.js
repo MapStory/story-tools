@@ -925,6 +925,8 @@ exports.MapController = function(options, timeControls) {
             if (currentBox.center) {
                 storyMap.animateCenterAndZoom(currentBox.center, currentBox.zoom);
             }
+        }else{
+            storyMap.animateCenterAndZoom(storyMap.getCenter(), storyMap.getZoom());
         }
     }
 
