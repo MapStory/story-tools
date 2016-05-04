@@ -923,7 +923,7 @@ exports.MapController = function(options, timeControls) {
             console.log(new Date(currentBox.range.end).toISOString());
 
             if (currentBox.center) {
-                storyMap.animatePanAndBounce(currentBox.center, currentBox.zoom);
+                storyMap.animateCenterAndZoom(currentBox.center, currentBox.zoom);
             }
         }
     }
@@ -1088,7 +1088,7 @@ StoryPin.prototype.constructor = StoryPin;
 function getTime(props, prop) {
     var val = props[prop];
     if (typeof val != 'undefined') {
-        return val;// *= 1000;
+        return val *= 1000;
     }
     return null;
 }
