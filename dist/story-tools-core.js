@@ -50,7 +50,7 @@ Box.prototype.getDate = function(idx) {
 function getTime(props, prop) {
     var val = props[prop];
     if (typeof val != 'undefined') {
-        return val;// *= 1000;
+        return val *= 1000;
     }
     return null;
 }
