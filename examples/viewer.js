@@ -69,10 +69,10 @@
                 var boxesLoad = $http.get(boxesURL);
                 $q.all([annotationsLoad, boxesLoad]).then(function(values) {
                     var pins_geojson = values[0].data;
-                    StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
+                    StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection(), true);
 
                     var boxes_geojson = values[1].data;
-                    StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection());
+                    StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection(), true);
                 });
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {

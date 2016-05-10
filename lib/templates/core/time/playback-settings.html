@@ -1,24 +1,59 @@
-<div class="radio">
-    <label>
-        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="instant">
-        Instant
-    </label>
+<div style="padding:10px;">
+    <div class="radio-inline">
+        <label >
+            <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="instant">
+            Instant
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label >
+            <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="range">
+            Range
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label >
+            <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="cumulative">
+            Cumulative
+        </label>
+    </div>
+    <div class="checkbox-inline">
+        <label >
+            <input type="checkbox" ng-model="playbackOptions.fixed"  ng-change="optionsChanged()">
+            Fixed Range
+        </label>
+    </div>
 </div>
-<div class="radio">
-    <label>
-        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="range">
-        Range
-    </label>
-</div>
-<div class="radio">
-    <label>
-        <input type="radio" ng-model="playbackOptions.mode" ng-change="optionsChanged()" value="cumulative">
-        Cumulative
-    </label>
-</div>
-<div class="checkbox">
-    <label>
-        <input type="checkbox" ng-model="playbackOptions.fixed"  ng-change="optionsChanged()">
-        Fixed Range
-    </label>
+<div style="padding:10px;">
+
+    <div class="radio-inline">
+        <label>
+            <input type="radio" ng-model="playbackOptions.speed" ng-change="optionsChanged()" value="1500">
+            0.5x
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label>
+            <input type="radio" ng-model="playbackOptions.speed" ng-change="optionsChanged()" value="1000">
+            normal
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label>
+            <input type="radio" ng-model="playbackOptions.speed" ng-change="optionsChanged()" value="500">
+            2x
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label>
+            <input type="radio" ng-model="playbackOptions.speed"  ng-change="optionsChanged()" value="300">
+            4x
+        </label>
+    </div>
+    <div class="radio-inline">
+        <label>
+            <input type="radio" ng-model="playbackOptions.speed"  ng-change="optionsChanged()" value="125">
+            8x
+        </label>
+    </div>
 </div>
