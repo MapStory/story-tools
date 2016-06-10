@@ -289,6 +289,7 @@ exports.SLDStyleConverter = function() {
                         name: layerName,
                         namedStyleOrUserStyle: [{
                                 TYPE_NAME: "SLD_1_0_0.UserStyle",
+                                name: style.name,
                                 featureTypeStyle: [{
                                         rule: []
                                     }]

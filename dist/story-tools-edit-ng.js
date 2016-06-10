@@ -1505,14 +1505,14 @@
 
     var types = [
         {
-            name: 'simple point',
+            name: 'simple-point',
             displayName: 'Simple',
             prototype: {
                 geomType: 'point'
             }
         },
         {
-            name: 'unique point',
+            name: 'unique-point',
             displayName: 'Unique',
             prototype: {
                 geomType: 'point',
@@ -1525,7 +1525,7 @@
             }
         },
         {
-            name: 'class point',
+            name: 'class-point',
             displayName: 'Choropleth',
             prototype: {
                 geomType: 'point',
@@ -1538,7 +1538,7 @@
             }
         },
         {
-            name: 'graduated point',
+            name: 'graduated-point',
             displayName: 'Graduated',
             prototype: {
                 geomType: 'point',
@@ -1560,14 +1560,14 @@
             }
         },
         {
-            name: 'simple line',
+            name: 'simple-line',
             displayName: 'Simple',
             prototype: {
                 geomType: 'line'
             }
         },
         {
-            name: 'unique line',
+            name: 'unique-line',
             displayName: 'Unique',
             prototype: {
                 geomType: 'line',
@@ -1580,14 +1580,14 @@
             }
         },
         {
-            name: 'simple polygon',
+            name: 'simple-polygon',
             displayName: 'Simple',
             prototype: {
                 geomType: 'polygon'
             }
         },
         {
-            name: 'unique polygon',
+            name: 'unique-polygon',
             displayName: 'Unique',
             prototype: {
                 geomType: 'polygon',
@@ -1600,7 +1600,7 @@
             }
         },
         {
-            name: 'class polygon',
+            name: 'class-polygon',
             displayName: 'Choropleth',
             prototype: {
                 geomType: 'polygon',
