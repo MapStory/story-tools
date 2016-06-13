@@ -372,6 +372,8 @@ exports.SLDStyleConverter = function() {
                         };
                     }
                     rule = {
+                        title: styleRule.name,
+                        name: styleRule.name,
                         filter: filter,
                         symbolizer: []
                     };
@@ -413,6 +415,10 @@ exports.SLDStyleConverter = function() {
 exports.StyleComplete = function() {
     return {
         isComplete: function(style) {
+            if (style === undefined) {
+                return false;
+            }
+
             if (style.classify) {
                 if (style.classify.method === "unique") {
                     if (style.classify.attribute === null || style.classify.maxClasses === null || !style.classify.colorPalette) {

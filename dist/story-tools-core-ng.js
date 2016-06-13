@@ -577,6 +577,8 @@
           var parts = name.split(':');
           url = url.replace('/geoserver', '/geoserver/' + parts[0] + '/' + parts[1]);
         }
+        url = url.replace('http:', '');
+
         return $http({
           method: 'GET',
           url: url,
@@ -626,7 +628,7 @@
         var id = storyLayer.get('id');
         return $http({
           method: 'GET',
-          url: storyLayer.get('url'),
+          url: storyLayer.get('url').replace('http:', ''),
           params: {
             'SERVICE': service,
             'VERSION': '1.0.0',
@@ -709,12 +711,12 @@
             source: new ol.source.OSM({
               attributions: [
                 new ol.Attribution({
-                  html: 'Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+                  html: 'Tiles courtesy of <a href="//hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
                 }),
                 ol.source.OSM.ATTRIBUTION
               ],
               crossOrigin: null,
-              url: 'http://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+              url: '//{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
             })
           });
         } else if (data.type === 'OSM') {
@@ -728,10 +730,10 @@
           var layer = new ol.layer.Tile({state: data, title: data.title, group: 'background'});
           var name = data.name;
           var urls = [
-            'http://a.tiles.mapbox.com/v1/mapbox.',
-            'http://b.tiles.mapbox.com/v1/mapbox.',
-            'http://c.tiles.mapbox.com/v1/mapbox.',
-            'http://d.tiles.mapbox.com/v1/mapbox.'
+            '//a.tiles.mapbox.com/v1/mapbox.',
+            '//b.tiles.mapbox.com/v1/mapbox.',
+            '//c.tiles.mapbox.com/v1/mapbox.',
+            '//d.tiles.mapbox.com/v1/mapbox.'
           ];
           var tileUrlFunction = function(tileCoord, pixelRatio, projection) {
             var zxy = tileCoord;
@@ -747,8 +749,8 @@
             attributions: [
               new ol.Attribution({
                 html: /^world/.test(name) ?
-                      "<a href='http://mapbox.com'>MapBox</a> | Some Data &copy; OSM CC-BY-SA | <a href='http://mapbox.com/tos'>Terms of Service</a>" :
-                      "<a href='http://mapbox.com'>MapBox</a> | <a href='http://mapbox.com/tos'>Terms of Service</a>"
+                      "<a href='//mapbox.com'>MapBox</a> | Some Data &copy; OSM CC-BY-SA | <a href='//mapbox.com/tos'>Terms of Service</a>" :
+                      "<a href='//mapbox.com'>MapBox</a> | <a href='//mapbox.com/tos'>Terms of Service</a>"
               })
             ],
             tileGrid: new ol.tilegrid.TileGrid({
@@ -1698,13 +1700,13 @@
         });
     }
 
-    function TimeControlsManager($log, $rootScope, StoryPinLayerManager, StoryBoxLayerManager, MapManager) {
+    function TimeControlsManager($log, $rootScope, StoryPinLayerManager, MapManager) {
         this.timeControls = null;
         var timeControlsManager = this;
 
         function maybeCreateTimeControls(update) {
             $log.debug("Creating TimeControls with boxes: ");
-            $log.debug(StoryBoxLayerManager.storyBoxes);
+           // $log.debug(StoryBoxLayerManager.storyBoxes);
             if (timeControlsManager.timeControls !== null) {
                 if (update) {
                     var values = update();
