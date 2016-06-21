@@ -127,7 +127,7 @@ exports.SLDStyleConverter = function() {
                                     namespaceURI: "http://www.opengis.net/ogc"
                                 },
                                 value: {
-                                    content: style.symbol.rotationAttribute
+                                    content: [style.symbol.rotationAttribute]
                                 }
                             } : {
                                 name: {
@@ -141,7 +141,7 @@ exports.SLDStyleConverter = function() {
                                             namespaceURI: "http://www.opengis.net/ogc"
                                         },
                                         value: {
-                                            content: style.symbol.rotationAttribute
+                                            content: [style.symbol.rotationAttribute]
                                         }
                                     }, {
                                         name: {
@@ -246,7 +246,7 @@ exports.SLDStyleConverter = function() {
                                     namespaceURI: "http://www.opengis.net/ogc"
                                 },
                                 value: {
-                                    content: style.label.attribute
+                                    content: [style.label.attribute]
                                 }
                             }]
                     },
@@ -315,7 +315,7 @@ exports.SLDStyleConverter = function() {
                                                 localPart: "PropertyName"
                                             },
                                             value: {
-                                                content: style.classify.attribute
+                                                content: [style.classify.attribute]
                                             }
                                         }, {
                                             name: {
@@ -343,7 +343,7 @@ exports.SLDStyleConverter = function() {
                                             localPart: "PropertyName"
                                         },
                                         value: {
-                                            content: style.classify.attribute
+                                            content: [style.classify.attribute]
                                         }
                                     },
                                     lowerBoundary: {

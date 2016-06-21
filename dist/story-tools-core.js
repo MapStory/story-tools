@@ -482,8 +482,7 @@ exports.TimeLine = function(id, model) {
             end: range.end,
             height: 138,
             maxHeight: 138,
-            showCurrentTime: false,
-            showCustomTime: true
+            showCurrentTime: false
         };
         if (timeline === null) {
             timeline = new Timeline(dom.get(0), elements, options);

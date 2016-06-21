@@ -309,10 +309,6 @@
                     type: 'MapBox',
                     name: 'natural-earth-1'
                 }, {
-                    title: 'Satellite Imagery',
-                    type: 'MapQuest',
-                    layer: 'sat'
-                }, {
                     title: 'Humanitarian OpenStreetMap',
                     type: 'HOT'
                 }, {
