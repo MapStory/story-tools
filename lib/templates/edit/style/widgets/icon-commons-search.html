@@ -4,10 +4,25 @@
 <div class="modal-body icon-commons-search">
     <tabset type="pills">
         <tab heading="Collections" select="viewCollections()">
-            <input ng-model='_typeAhead' type="text" placeholder="Search By Collection" typeahead="c.name for c in collections | filter:$viewValue | limitTo:10" class="form-control" typeahead-on-select="collectionSelect($item, $model, $label)"/>
+            <input ng-model='_typeAhead' type="text" placeholder="Search By Collection"
+                   typeahead="c.name for c in collections | filter:$viewValue | limitTo:10" class="form-control"
+                   typeahead-on-select="collectionSelect($item, $model, $label)"/>
         </tab>
         <tab heading="Search" select="viewTags()">
-            <input ng-model='_typeAhead' type="text" placeholder="Search By Tag" typeahead-wait-ms='250' typeahead="tag for tag in getTags($viewValue)" class="form-control" typeahead-on-select="tagSelect($item, $model, $label)"/>
+            <input ng-model='_typeAhead' type="text" placeholder="Search By Tag" typeahead-wait-ms='250'
+                   typeahead="tag for tag in getTags($viewValue)" class="form-control" typeahead-on-select="tagSelect($item, $model, $label)"/>
+        </tab>
+        <tab heading="Upload">
+            <form name="icon_form" method="POST" action="/icons/" enctype="multipart/form-data">
+                <div class="form-group">
+                    {% csrf_token %}
+                    <div>Tags: <br><input id="id_tags" name="tags" type="text"></div>
+                    <div>Collection: <br><input id="id_collection" maxlength="128" name="collection" type="text"></div>
+                    <div>SVG File or Zip: <input id="id_svg" name="svg" type="file"></div>
+                    <br>
+                    <input class="btn btn-primary" id="icon_submit_btn" type="submit" value="Upload">
+                </div>
+            </form>
         </tab>
     </tabset>
     <div class="clearfix icon-list">
