@@ -912,24 +912,7 @@ exports.MapController = function(options, timeControls) {
         loadListener = new TileLoadListener(tileStatusCallback);
         return loadListener;
     }
-
-    function updateCenterAndZoom(range){
-        var currentBoxes = filterVectorBoxLayer(storyMap.storyBoxesLayer, range);
-
-        if(currentBoxes && currentBoxes.length > 0) {
-            var currentBox = currentBoxes[0];
-            console.log(currentBox);
-            console.log(new Date(currentBox.range.start).toISOString());
-            console.log(new Date(currentBox.range.end).toISOString());
-
-            if (currentBox.center) {
-                storyMap.animateCenterAndZoom(currentBox.center, currentBox.zoom);
-            }
-        }else{
-            storyMap.animateCenterAndZoom(storyMap.getCenter(), storyMap.getZoom());
-        }
-    }
-
+    
     function updateLayers(range) {
         var storyLayers = storyMap.getStoryLayers();
         var time = new Date(range.start).toISOString();
