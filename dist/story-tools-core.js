@@ -912,7 +912,7 @@ exports.MapController = function(options, timeControls) {
         loadListener = new TileLoadListener(tileStatusCallback);
         return loadListener;
     }
-    
+
     function updateLayers(range) {
         var storyLayers = storyMap.getStoryLayers();
         var time = new Date(range.start).toISOString();
@@ -952,7 +952,6 @@ exports.MapController = function(options, timeControls) {
             me.layers[id] = true;
         }
     });
-    timeControls.on('rangeChange', updateCenterAndZoom);
     timeControls.on('rangeChange', updateLayers);
 };
 
