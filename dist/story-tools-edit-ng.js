@@ -1463,7 +1463,7 @@
     };
 
     var defaultStroke = {
-        strokeColor: '#f59620',
+        strokeColor: '#000000',
         strokeWidth: 1,
         strokeStyle: 'solid',
         strokeOpacity: 100
