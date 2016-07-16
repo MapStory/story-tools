@@ -9,7 +9,7 @@ exports.run = function() {
         livereload: true,
         middleware: function(connect, o) {
             var gsProxy = (function() {
-                var options = url.parse('http://demo.mapstory.org/geoserver');
+                var options = url.parse('http://mapstory.org/geoserver');
                 options.route = '/geoserver';
                 return proxy(options);
             })();
@@ -19,7 +19,7 @@ exports.run = function() {
                 return proxy(options);
             })();
             var mapsProxy = (function() {
-                var options = url.parse('http://demo.mapstory.org/maps');
+                var options = url.parse('http://mapstory.org/maps');
                 options.route = '/maps';
                 return proxy(options);
             })();
