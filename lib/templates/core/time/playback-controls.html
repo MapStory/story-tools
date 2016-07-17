@@ -3,7 +3,8 @@
 <div id="slider" tooltip-placement=top tooltip-append-to-body=true tooltip="{{ currentRange.start|date:'medium' }}"></div>
 <button class="btn" ng-click="prev()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Previous"><i class="glyphicon glyphicon-fast-backward"></i></button>
-<span class="hidden-xs small">{{ currentRange.start|date:'medium' }}</span>
+<span class="hidden-xs small" ng-hide="playbackOptions.mode == 'cumulative'">{{ currentRange.start|date:'medium' }}</span> 
+<span class="hidden-xs small" ng-show="playbackOptions.mode == 'cumulative'">{{ currentRange.end|date:'medium' }}</span>
 <button class="btn" ng-click="next()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Next"><i class="glyphicon glyphicon-fast-forward"></i></button>
 <button class="btn" ng-click="toggleLoop()" tooltip-placement=top tooltip-append-to-body=true
