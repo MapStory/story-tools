@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/MapStory/story-tools.svg?branch=master)](https://travis-ci.org/MapStory/story-tools)
+
 # story-tools
 
 ## Installation
