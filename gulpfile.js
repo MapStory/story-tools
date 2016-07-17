@@ -237,7 +237,7 @@ gulp.task('testsBundle', function() {
     return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);
 });
 
-gulp.task('karma', ['testsBundle'], function() {
+gulp.task('karma', ['testsBundle'], function(done) {
     var server = util.env['server'] ? true : false;
     var conf = {
         configFile: __dirname + '/karma.conf.js',
@@ -248,6 +248,11 @@ gulp.task('karma', ['testsBundle'], function() {
     }
     return karma.start(conf, function(failed) {
         notify(failed > 0 ? failed + ' failures' : 'passing!');
+
+        if (failed > 0) {
+            return done('Karma exited with status code ' + failed);
+        }
+        done();
     });
 });
 
