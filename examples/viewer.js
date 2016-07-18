@@ -45,7 +45,7 @@
 
     function MapManager($http, $q, $log, $rootScope, $location,
         stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
-        this.storyMap = new StoryMap({target: 'map'});
+        this.storyMap = new StoryMap({target: 'map', returnToExtent: false});
         var self = this;
         StoryPinLayerManager.map = self.storyMap;
         StoryBoxLayerManager.map = self.storyMap;
