@@ -1275,6 +1275,22 @@
                 {
                     0: '#00ff00',
                     1: '#ffff00'
+                },
+                {
+                    0: '#fee8c8',
+                    1: '#7f0000'
+                },
+                {
+                    0: '#ece7f2',
+                    1: '#023858'
+                },
+                {
+                    0: '#f7fcb2',
+                    1: '#004529'
+                },
+                {
+                    0: '#f0f0f0',
+                    1: '000000'
                 }
             ],
             // @todo build these statically ahead of time using color-scheme-js
