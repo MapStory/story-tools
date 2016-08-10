@@ -1290,7 +1290,7 @@
                 },
                 {
                     0: '#f0f0f0',
-                    1: '000000'
+                    1: '#000000'
                 }
             ],
             // @todo build these statically ahead of time using color-scheme-js
