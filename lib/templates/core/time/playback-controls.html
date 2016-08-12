@@ -4,15 +4,15 @@
 <button class="btn" ng-click="prev()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Previous"><i class="glyphicon glyphicon-fast-backward"></i></button>
 <span class="hidden-xs small" ng-hide="playbackOptions.mode == 'cumulative'">{{ currentRange.start|date:'medium' }}</span>
-<span class="hidden-xs small" ng-show="playbackOptions.mode == 'cumulative'">{{ currentRange.end|date:'medium' }}</span> 
+<span class="hidden-xs small" ng-show="playbackOptions.mode == 'cumulative'">{{ currentRange.end|date:'medium' }}</span>
 <button class="btn" ng-click="next()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Next"><i class="glyphicon glyphicon-fast-forward"></i></button>
-<button class="btn" ng-click="toggleLoop()" tooltip-placement=top tooltip-append-to-body=true
-         tooltip="Repeat" ng-class="{ 'btn-success' : loop }"><i class="glyphicon glyphicon-repeat"></i></button>
+<button class=btn ng-click=toggleLoop() tooltip-placement=top tooltip-append-to-body=true
+         tooltip="{{loopText}}" ng-class="{ 'btn-warning' : loopChapterEnabled, 'btn-success' : loopStoryEnabled  }">
+         <i ng-class="getLoopButtonGlyph()"></i></button>
 <button class="hidden-xs btn no-border" ng-click="toggleTimeLine()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Toggle Timeline"><i class="glyphicon glyphicon-time"></i></button>
 <button class="btn no-border" data-toggle="collapse" data-target="#playback-settings" class="collapsed" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Playback Settings"><i class="glyphicon glyphicon-cog"></i></button>
 <button class="btn no-border" ng-click="toggleFullScreen()" tooltip-placement=top tooltip-append-to-body=true
          tooltip="Toggle Fullscreen"><i class="glyphicon glyphicon-fullscreen"></i></button>
-
