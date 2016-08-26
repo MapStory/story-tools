@@ -279,6 +279,10 @@
                     title: 'OpenStreetMap',
                     type: 'OSM'
                 }, {
+                    title: 'World Topo Map',
+                    type: 'ESRI',
+                    name: 'world-topo-map'
+                }, {
                     title: 'No background',
                     type: 'None'
                 }];
