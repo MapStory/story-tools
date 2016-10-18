@@ -8,6 +8,7 @@ require('./test-WPSClassify');
 require('./test-styleDirectives.js');
 require('./test-timeDirectives.js');
 require('./test-styleChoices.js');
+require('./test-styleStorageService.js');
 require('./test-StyleComplete.js');
 require('./test-storyPins.js');
 require('./test-timeServices.js');
