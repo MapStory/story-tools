@@ -44,26 +44,6 @@ describe('styleStorageService', function() {
         stStorageService.saveStyle(layer);
         expect(window.config.stylestore[0]['testLayer']).toBe(layer.get('metadata')['style']);
     }));
-
-    it('should write style data to a chapter config if one exists', inject(function(stStorageService) {
-        window.config = {
-          chapter_index: 0,
-          chapters: {
-            0: {
-              map: {
-                layers: [
-                  {
-                    name: 'testLayer'
-                  }
-                ]
-              }
-            }
-          }
-        };
-
-        stStorageService.saveStyle(layer);
-        expect(window.config.chapters[0].map.layers[0].jsonstyle).toBe(layer.get('metadata')['style']);
-    }));
   });
 
   describe('getSavedStyle()', function() {
@@ -76,26 +56,6 @@ describe('styleStorageService', function() {
          }
        });
     });
-
-    it('should return the saved style from the chapter config if it exists', inject(function(stStorageService) {
-        window.config = {
-          chapter_index: 0,
-          chapters: {
-            0: {
-              map: {
-                layers: [
-                  {
-                    name: 'testLayer',
-                    jsonstyle: 'styleTest'
-                  }
-                ]
-              }
-            }
-          }
-        };
-        var style = stStorageService.getSavedStyle(layer);
-        expect(style).toBe('styleTest');
-    }));
 
     it('should return the saved style from the temporary store if it exists', inject(function(stStorageService) {
         window.config = {
