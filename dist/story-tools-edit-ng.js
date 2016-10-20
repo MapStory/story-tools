@@ -1781,7 +1781,7 @@
                 };
                 var style = angular.extend({}, angular.copy(base), styleType.prototype);
                 if ('classify' in style) {
-                    style.rules = styleType.stroke || [];
+                    style.rules = styleType.rules || [];
                 }
                 return style;
             }
