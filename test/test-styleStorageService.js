@@ -1,6 +1,6 @@
 require('../lib/ng/edit/style/services/styleStorageService.js');
 
-describe('test style storage helpers', function() {
+describe('styleStorageService', function() {
 
   beforeEach(function() {
       // window.angular.mock.module is work around browserify conflict
