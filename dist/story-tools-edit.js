@@ -688,16 +688,8 @@ exports.styleStorageService = function() {
       layerName = layer;
     }
     var chapter_index = window.config.chapter_index;
-    // if json style exists in the layer metadata, grab it
-    if (isObject && layer.get('metadata').jsonstyle) {
-      layerStyleJson = layer.get('metadata').jsonstyle;
-    // or if it exists in the temporary style store, grab that one
-    } else if (isDefAndNotNull(window.config.stylestore) &&
-              isDefAndNotNull(chapter_index) &&
-              isDefAndNotNull(window.config.stylestore[chapter_index][layerName])) {
-      layerStyleJson = window.config.stylestore[chapter_index][layerName];
-    // or get it from the chapter config if that exists
-    } else if (isDefAndNotNull(window.config.chapters) &&
+    // get style from the chapter config if that exists
+    if (isDefAndNotNull(window.config.chapters) &&
              isDefAndNotNull(window.config.chapters[chapter_index])) {
       var chapterLayers = window.config.chapters[chapter_index].map.layers;
       for (var i = 0; i < chapterLayers.length; i++) {
@@ -706,6 +698,14 @@ exports.styleStorageService = function() {
           layerStyleJson = chapterLayers[i]['jsonstyle'];
         }
       }
+    // or if it exists in the temporary style store, grab that one
+    } else if (isDefAndNotNull(window.config.stylestore) &&
+              isDefAndNotNull(chapter_index) &&
+              isDefAndNotNull(window.config.stylestore[chapter_index][layerName])) {
+      layerStyleJson = window.config.stylestore[chapter_index][layerName];
+    // or from the layer
+    } else if (isObject && layer.get('metadata').jsonstyle) {
+      layerStyleJson = layer.get('metadata').jsonstyle;
     }
     return layerStyleJson;
   };
