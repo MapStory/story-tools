@@ -10,7 +10,7 @@
         </div>
     </div>
     <carousel interval="-1" no-wrap="false" ng-if="control.carousel">
-      <slide ng-repeat="styleType in styleTypes" active="slide.active">
+      <slide ng-repeat="styleType in styleTypes" active="styleType.active">
           <div class="item {{styleType.displayName|lowercase}}" data-slide-number="{{$index}}">
               <div class="slide-title">{{styleType.displayName}}</div>
           </div>
