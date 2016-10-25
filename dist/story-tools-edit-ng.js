@@ -1271,7 +1271,7 @@
     module.factory('SLDStyleConverter', [storytools.edit.SLDStyleConverter]);
     module.factory('WFSDescribeFeatureType', [storytools.edit.WFSDescribeFeatureType]);
     module.factory('StyleComplete', [storytools.edit.StyleComplete]);
-
+    module.factory('styleStorageService', [storytools.edit.styleStorageService]);
 })();
 
 (function() {
