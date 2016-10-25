@@ -460,8 +460,9 @@
     var module = angular.module('storytools.edit.style.controllers', []);
 
     module.controller('styleEditorController',
-        ["$scope", "stStyleTypes", "stStyleChoices", "stStorageService", "stLayerClassificationService", "stStyleRuleBuilder", function($scope, stStyleTypes, stStyleChoices, stStorageService, stLayerClassificationService, stStyleRuleBuilder) {
+        ["$scope", "stStyleTypes", "stStyleChoices", "stLayerClassificationService", "stStyleRuleBuilder", function($scope, stStyleTypes, stStyleChoices, stLayerClassificationService, stStyleRuleBuilder) {
             var styles = {};
+            var stStorageService = storytools.edit.styleStorageService.styleStorageService();
 
             function promptClassChange() {
                 // @todo should check for rule edits?
@@ -1533,18 +1534,18 @@
         var chapter_index = window.config.chapter_index;
         var style = layer.get('style') || layer.get('metadata').style;
         // or if a temporary style store has been created, overwrite it
-        if (isDefAndNotNull(window.config['stylestore'])) {
-          if (isDefAndNotNull(window.config['stylestore'][chapter_index])) {
-            window.config['stylestore'][chapter_index][layer.get('metadata').name] = style;
+        if (isDefAndNotNull(window.config.stylestore)) {
+          if (isDefAndNotNull(window.config.stylestore[chapter_index])) {
+            window.config.stylestore[chapter_index][layer.get('metadata').name] = style;
           } else {
-            window.config['stylestore'][chapter_index] = {};
-            window.config['stylestore'][chapter_index][layer.get('metadata').name] = style;
+            window.config.stylestore[chapter_index] = {};
+            window.config.stylestore[chapter_index][layer.get('metadata').name] = style;
           }
         // otherwise create a temporary place to store the style
         } else {
-          window.config['stylestore'] = {};
-          window.config['stylestore'][chapter_index] = {};
-          window.config['stylestore'][chapter_index][layer.get('metadata').name] = style;
+          window.config.stylestore = {};
+          window.config.stylestore[chapter_index] = {};
+          window.config.stylestore[chapter_index][layer.get('metadata').name] = style;
         }
       }
 
