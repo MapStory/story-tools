@@ -1,15 +1,9 @@
-require('../lib/ng/edit/style/services/styleStorageService.js');
+require('../lib/edit/style/styleStorageService.js');
+
+var styleStorageService = require('../lib/edit/style/styleStorageService.js').styleStorageService;
+var stStorageService = styleStorageService();
 
 describe('styleStorageService', function() {
-
-  beforeEach(function() {
-      // window.angular.mock.module is work around browserify conflict
-      window.angular.mock.module('storytools.edit.style.styleStorageService');
-
-      inject(function(stStorageService) {
-          this.stStorageService = stStorageService;
-      });
-  });
 
   describe('saveStyle()', function() {
 
@@ -23,15 +17,15 @@ describe('styleStorageService', function() {
        });
     });
 
-    it('should create a temporary store for the style if a chapter config does not exist', inject(function(stStorageService) {
+    it('should create a temporary store for the style if a chapter config does not exist', function() {
         window.config = {
           chapter_index: 0,
         }
         stStorageService.saveStyle(layer);
         expect(window.config.stylestore[0]['testLayer']).toBe(layer.get('metadata')['style']);
-    }));
+    });
 
-    it('should overwrite a temporary store if one already exists', inject(function(stStorageService) {
+    it('should overwrite a temporary store if one already exists', function() {
         window.config = {
           chapter_index: 0,
           stylestore: {
@@ -43,7 +37,7 @@ describe('styleStorageService', function() {
         expect(window.config.stylestore[0]['testLayer']).toBe('oldstyle');
         stStorageService.saveStyle(layer);
         expect(window.config.stylestore[0]['testLayer']).toBe(layer.get('metadata')['style']);
-    }));
+    });
   });
 
   describe('getSavedStyle()', function() {
@@ -57,7 +51,7 @@ describe('styleStorageService', function() {
        });
     });
 
-    it('should return the saved style from the temporary store if it exists', inject(function(stStorageService) {
+    it('should return the saved style from the temporary store if it exists', function() {
         window.config = {
           chapter_index: 0,
           stylestore: {
@@ -68,9 +62,9 @@ describe('styleStorageService', function() {
         };
         var style = stStorageService.getSavedStyle(layer);
         expect(style).toBe('styleTest');
-    }));
+    });
 
-    it('should return the saved style from the layer metadata if it exists', inject(function(stStorageService) {
+    it('should return the saved style from the layer metadata if it exists', function() {
         layer = new ol.layer.Vector({
           source: new ol.source.Vector(),
           metadata: {
@@ -84,6 +78,6 @@ describe('styleStorageService', function() {
         };
         var style = stStorageService.getSavedStyle(layer);
         expect(style).toBe('styleTest');
-    }));
+    });
   });
 });
