@@ -17,26 +17,6 @@ describe('styleStorageService', function() {
        });
     });
 
-    it('should write style data to a chapter config if one exists', function() {
-        window.config = {
-          chapter_index: 0,
-          chapters: {
-            0: {
-              map: {
-                layers: [
-                  {
-                    name: 'testLayer'
-                  }
-                ]
-              }
-            }
-          }
-        };
-
-        stStorageService.saveStyle(layer);
-        expect(window.config.chapters[0].map.layers[0].jsonstyle).toBe(layer.get('metadata')['style']);
-    });
-
     it('should create a temporary store for the style if a chapter config does not exist', function() {
         window.config = {
           chapter_index: 0,
