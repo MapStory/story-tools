@@ -1631,6 +1631,20 @@
             }
         },
         {
+            name: 'graduated-line',
+            displayName: 'Graduated',
+            prototype: {
+                geomType: 'line',
+                classify: defaultRangeClass
+            },
+            rule: {
+               stroke : {
+                   strokeColor: 'color',
+                   strokeWidth: 'range'
+               }
+            }
+        },
+        {
             name: 'simple-polygon',
             displayName: 'Simple',
             prototype: {
