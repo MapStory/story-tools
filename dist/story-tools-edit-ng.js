@@ -612,6 +612,10 @@
                     // @todo bleck - grabbing the layer from the parent
                     // should be replaced with something more explicit
                     scope.layer = scope.$parent.layer;
+                    if (scope.$parent.activeStyle) {
+                      styleType = scope.$parent.activeStyle.typeName;
+                      scope.hideStrokeWidth = styleType === 'graduated-line' ? true : false;
+                    }
                     scope.$watch(function() {
                         return scope.$parent.layer;
                     }, function(neu) {
@@ -619,6 +623,10 @@
                     });
                     // endbleck
                     scope.model = scope.stModel[property || scope.property];
+                    scope.updateProperty = function(update) {
+                      scope.$parent.activeStyle[([property || scope.property])] = update;
+                      console.log((property || scope.property) + ' updated');
+                    }; 
                     scope.styleChoices = styleChoices;
                     if (linker) {
                         linker(scope, element, attrs);
