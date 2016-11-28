@@ -5218,11 +5218,7 @@ Jsonix.Context = Jsonix
 						typeInfoName = mapping;
 					}
 					if (!this.typeInfos[typeInfoName]) {
-						if (typeInfoName === 'AnySimpleType'){
-							return this.typeInfos['SimpleType'];
-						}else {
-							throw new Error('Type info [' + typeInfoName + '] is not known in this context.');
-						}
+						throw new Error('Type info [' + typeInfoName + '] is not known in this context.');
 					} else {
 						return this.typeInfos[typeInfoName];
 					}
