@@ -701,8 +701,6 @@ exports.styleStorageService = function() {
       var chapterLayers = window.config.chapters[chapter_index].map.layers;
       for (var i = 0; i < chapterLayers.length; i++) {
         if (chapterLayers[i].name === layerName &&
-            isDefAndNotNull(chapterLayers[i]['jsonstyle'])) {
-          layerStyleJson = chapterLayers[i]['jsonstyle'];
             isDefAndNotNull(chapterLayers[i].jsonstyle)) {
           layerStyleJson = chapterLayers[i].jsonstyle;
         }
