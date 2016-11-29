@@ -613,7 +613,7 @@
                     // should be replaced with something more explicit
                     scope.layer = scope.$parent.layer;
                     if (scope.$parent.activeStyle) {
-                      styleType = scope.$parent.activeStyle.typeName;
+                      var styleType = scope.$parent.activeStyle.typeName;
                       scope.hideStrokeWidth = styleType === 'graduated-line' ? true : false;
                     }
                     scope.$watch(function() {

@@ -703,6 +703,8 @@ exports.styleStorageService = function() {
         if (chapterLayers[i].name === layerName &&
             isDefAndNotNull(chapterLayers[i]['jsonstyle'])) {
           layerStyleJson = chapterLayers[i]['jsonstyle'];
+            isDefAndNotNull(chapterLayers[i].jsonstyle)) {
+          layerStyleJson = chapterLayers[i].jsonstyle;
         }
       }
     // or if it exists in the temporary style store, grab that one
