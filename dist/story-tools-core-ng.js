@@ -605,7 +605,7 @@
             parseFloat(layer.latLonBoundingBox.maxy)
           ]);
           var vendorSpecificCapabilities = caps.value.capability.vendorSpecificCapabilities;
-          var tileSets = (vendorSpecificCapabilities)? vendorSpecificCapabilities.tileSet: [];
+          var tileSets = (vendorSpecificCapabilities && vendorSpecificCapabilities.tileSet)? vendorSpecificCapabilities.tileSet: [];
           for (var i=0, ii=tileSets.length; i<ii; ++i) {
             if (tileSets[i].srs === 'EPSG:900913') {
               storyLayer.set('resolutions', tileSets[i].resolutions.split(' '));

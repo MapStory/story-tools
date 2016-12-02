@@ -708,7 +708,7 @@ exports.readCapabilitiesTimeDimensions = function(caps, openlayers2) {
     } else {
         // @todo need to make layer scanning recursive?
         caps.value.capability.layer.layer.forEach(function(lyr) {
-            if (lyr.dimension) {
+            if (lyr.dimension && lyr.extent[0].value) {
                 dimensions[lyr.name] = parse(lyr.extent[0].value);
             }
         });
