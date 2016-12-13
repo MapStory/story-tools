@@ -537,7 +537,7 @@ exports.TimeLine = function(id, model) {
 },{"./utils":9,"vis/lib/timeline/Timeline":26}],5:[function(require,module,exports){
 /*jshint loopfunc: true */
 var utils = require('./utils');
-var moment = require('vis/node_modules/moment');
+var moment = require('moment');
 
 /**
  * Read the provide ol3 WMS capabilities document
@@ -816,7 +816,7 @@ exports.MapController = function(options, timeControls) {
     timeControls.on('rangeChange', updateLayers);
 };
 
-},{"./utils":9,"vis/node_modules/moment":45}],6:[function(require,module,exports){
+},{"./utils":9,"moment":18}],6:[function(require,module,exports){
 var utils = require('./utils');
 var BoxModel = require('./boxes').BoxModel;
 
@@ -1105,7 +1105,7 @@ exports.TimeSlider = function(id, model) {
 };
 
 },{}],9:[function(require,module,exports){
-var moment = require('vis/node_modules/moment');
+var moment = require('moment');
 
 /**
  * Get the number of milliseconds from the provided arg.
@@ -1492,11 +1492,7 @@ exports.createOffsetter = function(intervalOrDuration) {
     }
 };
 
-},{"vis/node_modules/moment":45}],10:[function(require,module,exports){
-'use strict';
-
-var util = require('./util');
-var Queue = require('./Queue');
+},{"moment":18}],10:[function(require,module,exports){
 
 /**
  * DataSet

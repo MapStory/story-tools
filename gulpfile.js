@@ -259,7 +259,7 @@ gulp.task('tdd', ['test'], function() {
 
 gulp.task('test', ['clean', 'karma']);
 
-gulp.task('default', ['clean', 'lint', 'test', 'minify', 'docs']);
+gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 
 gulp.task('develop', ['connect', 'watch']);
 

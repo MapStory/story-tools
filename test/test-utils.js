@@ -1,5 +1,5 @@
 var utils = require('../lib/core/time/utils.js');
-var moment = require('vis/node_modules/moment');
+var moment = require('moment');
 
 /*
 NOTE - numeric values in these tests (and the API) are all milliseconds
