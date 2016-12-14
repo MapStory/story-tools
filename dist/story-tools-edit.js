@@ -450,7 +450,8 @@ exports.WFSDescribeFeatureType = function() {
         var featureNS = schema.targetNamespace;
         var element = schema.complexType[0].complexContent.extension.sequence.element;
         var fields = [];
-        var geometryType, timeAttr;
+        var geometryType;
+        var timeAttributes = [];
         for (var i=0, ii=element.length; i<ii; ++i) {
             var el = element[i];
             if (el.type.namespaceURI === 'http://www.opengis.net/gml') {
@@ -463,16 +464,13 @@ exports.WFSDescribeFeatureType = function() {
                     geometryType = 'point';
                 }
             } else if (el.type.localPart === 'dateTime') {
-                if (timeAttr === undefined) {
-                    timeAttr = el.name;
-                } else {
-                    timeAttr = null;
-                }
+                    timeAttributes.push(el.name);
             }
             fields.push({name: el.name, type: el.type.localPart, typeNS: el.type.namespaceURI});
         }
         return {
-            timeAttribute: timeAttr,
+            timeAttribute: (timeAttributes.length > 0)? timeAttributes[0]: null,
+            timeAttributes: timeAttributes,
             featureNS: featureNS,
             geomType: geometryType,
             attributes: fields
