@@ -257,11 +257,17 @@ gulp.task('tdd', ['test'], function() {
     gulp.watch('test/*', ['karma']);
 });
 
-gulp.task('test', ['clean', 'karma']);
-
 gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 
 gulp.task('develop', ['connect', 'watch']);
+
+gulp.task('test', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], function() {
+    gulp.start('bundleCore');
+    gulp.start('bundleOwsjsLibs');
+    gulp.start('bundleMapstoryLibs');
+    gulp.start('bundleEdit');
+    gulp.start('testsBundle');
+});
 
 gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], function() {
     // enable watch mode and start watchify tasks
