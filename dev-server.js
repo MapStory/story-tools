@@ -18,6 +18,11 @@ exports.run = function() {
                 options.route = '/gslocal';
                 return proxy(options);
             })();
+            var gsProxyStoryscapes = (function() {
+                var options = url.parse('http://storyscapes.geointservices.io/geoserver');
+                options.route = '/gsstoryscapes';
+                return proxy(options);
+            })();
             var mapsProxy = (function() {
                 var options = url.parse('https://mapstory.org/maps');
                 options.route = '/maps';
@@ -38,7 +43,7 @@ exports.run = function() {
                 }
                 return next();
             };
-            return [gsProxy, gsProxyLocal, mapsProxy, assetsProxy, dynamicProxy];
+            return [gsProxy, gsProxyLocal, gsProxyStoryscapes, mapsProxy, assetsProxy, dynamicProxy];
         }
     });
 };

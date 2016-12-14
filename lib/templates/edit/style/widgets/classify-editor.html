@@ -3,7 +3,7 @@
     <div class="controls">
         <attribute-combo filter="{{attributeFilter}}" on-change="changeClassifyProperty" layer="layer" st-model="activeStyle.classify" css="classify-attribute"></attribute-combo>
         <div class="btn-group" ng-if="showMaxClasses">
-            <input class="btn-xs" size="3" type="number" min="2" step="1" max="9" ng-model="activeStyle.classify.maxClasses" ng-change="changeClassifyProperty()"   />
+            <input class="btn-xs" size="3" type="number" min="2" step="1" max="50" ng-model="activeStyle.classify.maxClasses" ng-change="changeClassifyProperty()"   />
         </div>
 
         <div class="btn-group" ng-if="showFixedClasses">

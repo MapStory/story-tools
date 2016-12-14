@@ -5,9 +5,9 @@
     <div class="modal-body">
         <div>
             <label for="msid">From MapStory</label>
-            <input id="msid" type="number" ng-model="choice.mapstoryMapId">
+            <input id="msid" class="form-control" type="number" ng-model="choice.mapstoryMapId">
         </div>
-        <select ng-model="choice.localMapId">
+        <select class="form-control" ng-model="choice.localMapId">
             <option ng-click="null">Local Map</option>
             <option ng-repeat="map in maps" ng-value="{{map.id}}">Map {{map.id}}</option>
         </select>

@@ -1,85 +1,4 @@
 (function() {
-      'use strict';
-
-    /**
-     * @namespace storytools.core.legend.directives
-     */
-  var module = angular.module('storytools.core.legend.directives', []);
-
-  var legendOpen = false;
-
-  module.directive('stLegend',
-      ["$rootScope", "MapManager", function($rootScope, MapManager) {
-        return {
-          restrict: 'C',
-          replace: true,
-          templateUrl: 'legend/legend.html',
-          // The linking function will add behavior to the template
-          link: function(scope, element) {
-            scope.mapManager = MapManager;
-
-            var openLegend = function() {
-              angular.element(document.getElementById('legend-container'))[0].style.visibility = 'visible';
-              angular.element(document.getElementById('legend-panel'))[0].style.display = 'block';
-              legendOpen = true;
-            };
-            var closeLegend = function() {
-              angular.element(document.getElementById('legend-panel'))[0].style.display = 'none';
-              legendOpen = false;
-
-              //the timeout is so the transition will finish before hiding the div
-              setTimeout(function() {
-                angular.element('#legend-container')[0].style.visibility = 'hidden';
-              }, 350);
-            };
-
-            scope.toggleLegend = function() {
-              if (legendOpen === false) {
-                console.log(angular.element(document.getElementsByClassName('legend-item')));
-                //if (angular.element(document.getElementsByClassName('.legend-item')).length > 0) {
-                  openLegend();
-                //}
-              } else {
-                closeLegend();
-              }
-            };
-
-            scope.getLegendUrl = function(layer) {
-              var url = null;
-              var server = '/geoserver/wms';
-              var layer_name = layer.get('typeName') || layer.get('id');
-              url = server + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' +
-                  layer_name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' +
-                  'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
-              if (layer.get('params').STYLES) {
-                url += '&style=' + layer.get('params').STYLES;
-              }
-              return url;
-            };
-
-            scope.$on('layer-added', function() {
-              if (legendOpen === false) {
-                openLegend();
-              }
-            });
-
-            scope.$on('layerRemoved', function() {
-              //close the legend if the last layer is removed
-              if (legendOpen === true && angular.element('.legend-item').length == 1) {
-                closeLegend();
-              }
-            });
-          }
-        };
-      }]);
-}());
-(function() {
-  'use strict';
-   var module = angular.module('storytools.core.legend', [
-        'storytools.core.legend.directives'
-    ]);
-})();
-(function() {
     'use strict';
 
     var module = angular.module('storytools.core.boxes', [
@@ -137,6 +56,136 @@
 
 })();
 
+(function() {
+      'use strict';
+
+    /**
+     * @namespace storytools.core.legend.directives
+     */
+  var module = angular.module('storytools.core.legend.directives', []);
+
+  var legendOpen = false;
+
+  module.directive('stLegend',
+      ["$rootScope", "MapManager", function($rootScope, MapManager) {
+        return {
+          restrict: 'C',
+          replace: true,
+          templateUrl: 'legend/legend.html',
+          // The linking function will add behavior to the template
+          link: function(scope, element) {
+            scope.mapManager = MapManager;
+
+            var openLegend = function() {
+              angular.element(document.getElementById('legend-container'))[0].style.visibility = 'visible';
+              angular.element(document.getElementById('legend-panel'))[0].style.display = 'block';
+              legendOpen = true;
+            };
+            var closeLegend = function() {
+              angular.element(document.getElementById('legend-panel'))[0].style.display = 'none';
+              legendOpen = false;
+
+              //the timeout is so the transition will finish before hiding the div
+              setTimeout(function() {
+                angular.element('#legend-container')[0].style.visibility = 'hidden';
+              }, 350);
+            };
+
+            scope.toggleLegend = function() {
+              if (legendOpen === false) {
+                console.log(angular.element(document.getElementsByClassName('legend-item')));
+                //if (angular.element(document.getElementsByClassName('.legend-item')).length > 0) {
+                  openLegend();
+                //}
+              } else {
+                closeLegend();
+              }
+            };
+
+            scope.getLegendUrl = function(layer) {
+              var url = null;
+              var server = '/geoserver/wms';
+              var layer_name = layer.get('typeName') || layer.get('id');
+              url = server + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' +
+                  layer_name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' +
+                  'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
+              //if (layer.get('params').STYLES) {
+               // url += '&style=' + layer.get('params').STYLES;
+              //}
+              return url;
+            };
+
+            scope.$on('layer-added', function() {
+              if (legendOpen === false) {
+                openLegend();
+              }
+            });
+
+            scope.$on('layerRemoved', function() {
+              //close the legend if the last layer is removed
+              if (legendOpen === true && angular.element('.legend-item').length == 1) {
+                closeLegend();
+              }
+            });
+          }
+        };
+      }]);
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.legend', [
+        'storytools.core.legend.directives'
+    ]);
+})();
+(function() {
+  var module = angular.module('storytools.core.loading.directives', []);
+
+  module.directive('stLoading',
+      function() {
+        return {
+          restrict: 'C',
+          templateUrl: 'loading/loading.html',
+          scope: {
+            spinnerHidden: '='
+          },
+          link: function(scope, element, attrs) {
+            scope.spinnerWidth = 3;
+            scope.spinnerRadius = 28;
+            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
+              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
+            }
+            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
+              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
+            }
+            var loading = element.find('.loading');
+            loading.css('width', scope.spinnerRadius + 'px');
+            loading.css('height', scope.spinnerRadius + 'px');
+            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
+
+            var loadingSpinner = element.find('.loading-spinner');
+            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
+            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
+
+            var mask = element.find('.mask');
+            mask.css('width', (scope.spinnerRadius / 2) + 'px');
+            mask.css('height', (scope.spinnerRadius / 2) + 'px');
+
+            var spinner = element.find('.spinner');
+            spinner.css('width', scope.spinnerRadius + 'px');
+            spinner.css('height', scope.spinnerRadius + 'px');
+
+          }
+        };
+      });
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.loading', [
+        'storytools.core.loading.directives'
+    ]);
+})();
 (function() {
     'use strict';
 
@@ -202,8 +251,7 @@
 (function() {
   'use strict';
 
-  var module = angular.module('storytools.core.ogc', [
-  ]);
+  var module = angular.module('storytools.core.ogc', []);
 
   // @todo - provisional default story pins style
   var defaultStyle = [new ol.style.Style({
@@ -216,6 +264,11 @@
     })
   })];
 
+  var enabled_ = true;
+  //var containerInstance_ = null;
+  //var clickPosition_ = null;
+
+
   function StoryMap(data) {
     ol.Object.call(this, data);
     this.map_ = new ol.Map({target: data.target, pixelRatio: 1});
@@ -223,12 +276,16 @@
       map: this.map_,
       style: defaultStyle
     });
+    this.map_.addOverlay(new ol.Overlay({
+      element: data.overlayElement || document.getElementById('feature-info'),
+      stopEvent: true
+    }));
     this.title = "Default Mapstory";
     this.abstract = "No Information Supplied.";
     this.owner = "";
     this.mode = "instant";
     this.returnToExtent = data.returnToExtent || false;
-    this.center = [0,0];
+    this.center = [0, 0];
     this.zoom = 2;
     this.storyLayers_ = new ol.Collection();
     this.animationDuration_ = data.animationDuration || 500;
@@ -250,6 +307,346 @@
     });
     this.addStoryPinsLayer();
     this.addStoryBoxesLayer();
+    this.featureInfoPerLayer_ = [];
+    // valid values: 'layers', 'layer', 'feature', or ''
+    this.state_ = '';
+    this.selectedItem_ = null;
+    this.selectedItemMedia_ = null;
+    this.selectedLayer_ = null;
+    this.selectedItemProperties_ = null;
+    this.position_ = null;
+
+    function classifyItem(item) {
+      var type = '';
+
+      if (goog.isDefAndNotNull(item)) {
+        if (item.properties) {
+          type = 'feature';
+        } else if (item.features) {
+          type = 'layer';
+        } else if (item.length && item[0].features) {
+          type = 'layers';
+        }
+      }
+      console.log(type);
+      return type;
+    }
+
+    this.show = function(item, position) {
+
+      // if item is not specified, return
+      if (!goog.isDefAndNotNull(item)) {
+        return false;
+      }
+
+      var selectedItemOld = selectedItem_;
+
+      //classify the item parameter as a layer, feature, or layers
+      var type = classifyItem(item);
+
+
+      // when there is nothing in featureInfoPerLayer_, we need to used the passed in item to initialize it
+      // this is done when the user clicks on a single feature (on the map) vice selecting a feature from the pop-up
+      // (such as clicking on overlapping features)
+      if (featureInfoPerLayer_.length === 0) {
+
+        if (type === 'feature') {
+          featureInfoPerLayer_.push({features: [item], layer: selectedLayer_});
+        } else if (type === 'layer') {
+          featureInfoPerLayer_.push(item);
+        } else if (type === 'layers') {
+          featureInfoPerLayer_ = item;
+        } else {
+          throw ({
+            name: 'featureInfoBox',
+            level: 'High',
+            message: 'Expected layers, layer, or feature.',
+            toString: function() {
+              return this.name + ': ' + this.message;
+            }
+          });
+        }
+      }
+
+
+      //set the service's state_ variable (feature, layer, or layers)
+      //the state is 'layer' when the user clicks on multiple (aka overlapping) features in a single layer
+      //the state is 'layers' when the user clicks on multiple (overlapping) features that exist in separate layers
+      //the state is 'feature' when the user finishes creating a feature, they clicked on a single (non-overlapping)
+      //feature, or they select a feature from the deconfliction pop-up
+
+      //we are also going to set the selectedItem_ variable
+      //the selectedItem will be a single feature, a single layer, or a collection of layers
+      //the state is essentially a designation of the selectedItem type
+      if (type === 'feature') {
+        state_ = 'feature';
+        selectedItem_ = item;
+      } else if (type === 'layer') {
+        if (item.features.length === 1) {
+          state_ = 'feature';
+          selectedItem_ = item.features[0];
+        } else {
+          state_ = 'layer';
+          selectedItem_ = item;
+        }
+      } else if (type === 'layers') {
+        if (item.length === 1) {
+          if (item[0].features.length === 1) {
+            state_ = 'feature';
+            selectedItem_ = item[0].features[0];
+          } else {
+            state_ = 'layer';
+            selectedItem_ = item[0];
+          }
+        } else {
+          state_ = 'layers';
+          selectedItem_ = item;
+        }
+      } else {
+        throw ({
+          name: 'featureInfoBox',
+          level: 'High',
+          message: 'Invalid item passed in. Expected layers, layer, or feature.',
+          toString: function() {
+            return this.name + ': ' + this.message;
+          }
+        });
+      }
+      var forceUpdate = true;
+
+      //---- if selected item changed
+      if (selectedItem_ !== selectedItemOld) {
+
+        // -- select the geometry if it is a feature, clear otherwise
+        // -- store the selected layer of the feature
+        if (classifyItem(selectedItem_) === 'feature') {
+
+          selectedLayer_ = self.getSelectedItemLayer().layer;
+
+          // -- update selectedItemProperties_ to contain the props from the newly selected item
+          var tempProps = {};
+          var props = [];
+
+          //if the selectedItem_ is a feature go through and collect the properties in tempProps
+          //if the property is a media property (like photo or video), we need to parse out
+          //the value into an array (since there may be multiple photos or videos)
+          goog.object.forEach(selectedItem_.properties, function(v, k) {
+            tempProps[k] = [k, v];
+          });
+
+          //ensure we only take properties that are defined in the layer schema, the selectedLayer_
+          //may be some other layer so
+          var propName = null;
+          /*  if (goog.isDefAndNotNull(selectedLayer_) && goog.isDefAndNotNull(selectedLayer_.get('metadata').schema)) {
+           for (propName in selectedLayer_.get('metadata').schema) {
+           if (tempProps.hasOwnProperty(propName)) {
+           props.push(tempProps[propName]);
+           }
+           }
+           } else {*/
+          for (propName in tempProps) {
+            if (tempProps.hasOwnProperty(propName)) {
+              props.push(tempProps[propName]);
+            }
+          }
+          // }
+          selectedItemProperties_ = props;
+          console.log('---- selectedItemProperties_: ', selectedItemProperties_);
+
+          // -- update the selectedItemMedia_
+          //selectedItemMedia_ = service_.getSelectedItemMediaByProp(null);
+          //console.log('---- selectedItemMedia_: ', selectedItemMedia_);
+        }
+      }
+
+
+      if (goog.isDefAndNotNull(position)) {
+        position_ = position;
+
+        self.storyMap.getMap().getOverlays().array_[0].setPosition(position);
+      }
+
+
+    };
+
+    this.getSelectedItemLayer = function() {
+      for (var i = 0; i < featureInfoPerLayer_.length; i++) {
+        for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
+          console.log(featureInfoPerLayer_[i].features[j] === selectedItem_);
+          console.log(featureInfoPerLayer_[i].features[j]);
+          console.log(selectedItem_);
+          if (featureInfoPerLayer_[i].features[j].id === selectedItem_.id) {
+            return featureInfoPerLayer_[i];
+          }
+        }
+      }
+      return null;
+    };
+
+    this.showPreviousState = function() {
+      //Note: might want to get position and pass it in again
+      self.show(self.getPreviousState().item);
+    };
+
+    this.getPreviousState = function() {
+
+      var state = null;
+      var item = null;
+
+      if (state_ === 'feature') {
+        var layer = self.getSelectedItemLayer();
+        if (layer) {
+          if (layer.features.length > 1) {
+            state = 'layer';
+            item = layer;
+          } else if (layer.features.length === 1 && featureInfoPerLayer_.length > 1) {
+            item = featureInfoPerLayer_;
+            state = 'layers';
+          }
+        } else {
+          throw ({
+            name: 'featureInfoBox',
+            level: 'High',
+            message: 'Could not find feature!',
+            toString: function() {
+              return this.name + ': ' + this.message;
+            }
+          });
+        }
+      } else if (state_ === 'layer') {
+        if (featureInfoPerLayer_.length > 1) {
+          state = 'layers';
+          item = featureInfoPerLayer_;
+        }
+      }
+
+      if (item !== null) {
+        return {
+          state: state,
+          item: item
+        };
+      }
+
+      return '';
+    };
+
+      this.getState = function() {
+            return state_;
+        };
+
+        this.getSelectedItem = function() {
+            return selectedItem_;
+        };
+
+        this.getMediaUrl = function(mediaItem) {
+            var url = mediaItem;
+            // if the item doesn't start with 'http' then assume the item can be found in the fileservice and so convert it to
+            // a url. This means if the item is, say, at https://mysite.com/mypic.jpg, leave it as is
+            if (goog.isString(mediaItem) && mediaItem.indexOf('http') === -1) {
+                url = configService_.configuration.fileserviceUrlTemplate.replace('{}', mediaItem);
+            }
+            return url;
+        };
+
+        this.getSelectedItemMedia = function() {
+            return selectedItemMedia_;
+        };
+
+        // Warning, returns new array objects, not to be 'watched' / bound. use getSelectedItemMedia instead.
+        this.getSelectedItemMediaByProp = function(propName) {
+            var media = null;
+
+            if (classifyItem(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) &&
+                  goog.isDefAndNotNull(selectedItemProperties_)) {
+
+                goog.object.forEach(selectedItemProperties_, function(prop, index) {
+                    if (service_.isMediaPropertyName(prop[0])) {
+                        if (!goog.isDefAndNotNull(propName) || propName === prop[0]) {
+                            if (!goog.isDefAndNotNull(media)) {
+                                //TODO: media should no longer be objects
+                                media = [];
+                            }
+
+                            goog.object.forEach(prop[1], function(mediaItem) {
+                                media.push(mediaItem);
+                            });
+                        }
+                    }
+                });
+            }
+
+            return media;
+        };
+
+        this.isMediaPropertyName = function(name) {
+            var lower = name.toLowerCase();
+            return lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0 ||
+                  lower.indexOf('audios') === 0 || lower.indexOf('videos') === 0;
+        };
+
+        this.getMediaTypeFromPropertyName = function(name) {
+            var lower = name.toLowerCase();
+            var type = null;
+            if (lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0) {
+                type = 'photos';
+            } else if (lower.indexOf('audios') === 0) {
+                type = 'audios';
+            } else if (lower.indexOf('videos') === 0) {
+                type = 'videos';
+            }
+            return type;
+        };
+
+        this.getMediaUrlThumbnail = function(mediaItem) {
+            var url = mediaItem;
+            if (goog.isDefAndNotNull(mediaItem) && (typeof mediaItem === 'string')) {
+                var ext = mediaItem.split('.').pop().split('/')[0]; // handle cases; /file.ext or /file.ext/endpoint
+                if (supportedVideoFormats_.indexOf(ext) >= 0) {
+                    url = service_.getMediaUrlDefault();
+                } else {
+                    url = service_.getMediaUrl(mediaItem);
+                }
+            }
+            return url;
+        };
+
+        this.getMediaUrlDefault = function() {
+            return '/static/maploom/assets/media-default.png';
+        };
+
+        this.getMediaUrlError = function() {
+            return '/static/maploom/assets/media-error.png';
+        };
+
+        this.getSelectedItemProperties = function() {
+            return selectedItemProperties_;
+        };
+
+        //this method is intended for unit testing only
+        this.setSelectedItemProperties = function(props) {
+            selectedItemProperties_ = props;
+        };
+
+        this.getSelectedLayer = function() {
+            return selectedLayer_;
+        };
+
+        this.getPosition = function() {
+            return position_;
+        };
+
+        this.getEnabled = function() {
+            return enabled_;
+        };
+
+        this.hide = function() {
+            selectedItem_ = null;
+            selectedItemMedia_ = null;
+            selectedItemProperties_ = null;
+            state_ = null;
+            featureInfoPerLayer_ = [];
+            this.map_.getMap().getOverlays().array_[0].setPosition(undefined);
+        };
   }
 
   StoryMap.prototype = Object.create(ol.Object.prototype);
@@ -264,7 +661,7 @@
   };
 
   StoryMap.prototype.setStoryOwner = function(storyOwner) {
-    this.owner =  storyOwner;
+    this.owner = storyOwner;
   };
 
   StoryMap.prototype.getStoryOwner = function() {
@@ -280,23 +677,23 @@
   };
 
   StoryMap.prototype.setStoryTitle = function(storyTitle) {
-    this.title =  storyTitle;
+    this.title = storyTitle;
   };
 
   StoryMap.prototype.setCenter = function(center) {
-    this.center =  center;
+    this.center = center;
   };
 
   StoryMap.prototype.setZoom = function(zoom) {
-    this.zoom =  zoom;
+    this.zoom = zoom;
   };
 
   StoryMap.prototype.setMode = function(playbackMode) {
-    this.mode =  playbackMode;
+    this.mode = playbackMode;
   };
 
   StoryMap.prototype.setStoryAbstract = function(storyAbstract) {
-    this.abstract =  storyAbstract;
+    this.abstract = storyAbstract;
   };
 
 
@@ -348,14 +745,14 @@
     this.addStoryPinsLayer();
   };
 
-  StoryMap.prototype.animatePanAndBounce = function(center, zoom){
+  StoryMap.prototype.animatePanAndBounce = function(center, zoom) {
 
     var duration = 2000;
     var start = +new Date();
 
     var view = this.map_.getView();
 
-    if(view.getCenter() != center){
+    if (view.getCenter() != center) {
 
       var pan = ol.animation.pan({
         duration: this.animationDuration_,
@@ -464,6 +861,13 @@
     this.storyLayers_.remove(storyLayer);
     this.map_.removeLayer(storyLayer.getLayer());
   };
+
+  EditableStoryMap.prototype.toggleStoryLayer = function(storyLayer) {
+    var layer = storyLayer.getLayer();
+    storyLayer.set('visibility', !layer.getVisible());
+    layer.setVisible(!layer.getVisible());
+  };
+
 
   function StoryLayer(data) {
     if (data.times && storytools.core.time.utils.isRangeLike(data.times)) {
@@ -605,8 +1009,8 @@
             parseFloat(layer.latLonBoundingBox.maxy)
           ]);
           var vendorSpecificCapabilities = caps.value.capability.vendorSpecificCapabilities;
-          var tileSets = (vendorSpecificCapabilities)? vendorSpecificCapabilities.tileSet: [];
-          for (var i=0, ii=tileSets.length; i<ii; ++i) {
+          var tileSets = (vendorSpecificCapabilities) ? vendorSpecificCapabilities.tileSet : [];
+          for (var i = 0, ii = tileSets.length; i < ii; ++i) {
             if (tileSets[i].srs === 'EPSG:900913') {
               storyLayer.set('resolutions', tileSets[i].resolutions.split(' '));
               var bbox = tileSets[i].boundingBox;
@@ -692,6 +1096,7 @@
           var layer = storyLayer.getLayer();
           var features = new ol.format.GeoJSON().readFeatures(response);
           storyLayer.set('features', features);
+          layer.set('features', features);
         });
       }
     };
@@ -703,12 +1108,17 @@
         if (data.type === 'MapQuest') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.MapQuest({layer: data.layer})
           });
         } else if (data.type === 'ESRI') {
           return new ol.layer.Tile({
+            state: data,
+            name: data.title,
+            title: data.title,
+            group: 'background',
             source: new ol.source.XYZ({
               attributions: [
                 new ol.Attribution({
@@ -720,9 +1130,10 @@
               'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
             })
           });
-        }else if (data.type === 'HOT') {
+        } else if (data.type === 'HOT') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.OSM({
@@ -739,12 +1150,13 @@
         } else if (data.type === 'OSM') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.OSM()
           });
         } else if (data.type === 'MapBox') {
-          var layer = new ol.layer.Tile({state: data, title: data.title, group: 'background'});
+          var layer = new ol.layer.Tile({state: data, name: data.title, title: data.title, group: 'background'});
           var name = data.name;
           var urls = [
             '//a.tiles.mapbox.com/v1/mapbox.',
@@ -757,9 +1169,9 @@
             if (zxy[1] < 0 || zxy[2] < 0) {
               return "";
             }
-            return urls[Math.round(Math.random()*3)] + name + '/' +
-                  zxy[0].toString()+'/'+ zxy[1].toString() +'/'+
-                  zxy[2].toString() +'.png';
+            return urls[Math.round(Math.random() * 3)] + name + '/' +
+                  zxy[0].toString() + '/' + zxy[1].toString() + '/' +
+                  zxy[2].toString() + '.png';
           };
           layer.setSource(new ol.source.TileImage({
             crossOrigin: null,
@@ -856,10 +1268,10 @@
     };
   }]);
 
-  module.service('stStoryMapBaseBuilder', ["stBaseLayerBuilder", function(stBaseLayerBuilder) {
+  module.service('stStoryMapBaseBuilder', ["$rootScope", "$compile", "$http", "stBaseLayerBuilder", function($rootScope, $compile, $http, stBaseLayerBuilder) {
     return {
       defaultMap: function(storymap) {
-        storymap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+        storymap.getMap().setView(new ol.View({center: [0, 0], zoom: 3}));
         this.setBaseLayer(storymap, {
           title: 'World Topo Map',
           type: 'ESRI',
@@ -873,7 +1285,7 @@
     };
   }]);
 
-  module.service('stStoryMapBuilder', ["stLayerBuilder", "stStoryMapBaseBuilder", function(stLayerBuilder, stStoryMapBaseBuilder) {
+  module.service('stStoryMapBuilder', ["$rootScope", "$compile", "stLayerBuilder", "stStoryMapBaseBuilder", function($rootScope, $compile, stLayerBuilder, stStoryMapBaseBuilder) {
     return {
       modifyStoryMap: function(storymap, data) {
         storymap.clear();
@@ -881,7 +1293,7 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (data.about !== undefined){
+          if (data.about !== undefined) {
             storymap.setStoryTitle(data.about.title);
             storymap.setStoryAbstract(data.about.abstract);
             storymap.setStoryOwner(data.about.owner);
@@ -902,6 +1314,7 @@
             });
           }
         }
+        registerOnMapClick(storymap, $rootScope, $compile);
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -912,7 +1325,7 @@
     };
   }]);
 
-  module.service('stEditableStoryMapBuilder', ["stStoryMapBaseBuilder", "stEditableLayerBuilder", function(stStoryMapBaseBuilder, stEditableLayerBuilder) {
+  module.service('stEditableStoryMapBuilder', ["$rootScope", "$compile", "stStoryMapBaseBuilder", "stEditableLayerBuilder", function($rootScope, $compile, stStoryMapBaseBuilder, stEditableLayerBuilder) {
     return {
       modifyStoryLayer: function(storylayer, newType) {
         var data = storylayer.getProperties();
@@ -921,7 +1334,7 @@
         if (data.type === 'WMS') {
           delete data.features;
         }
-        stEditableLayerBuilder.buildEditableLayer(data, storymap.getMap()).then(function(sl) {
+        return stEditableLayerBuilder.buildEditableLayer(data, storymap.getMap()).then(function(sl) {
           // sequence is important here, first change layer, then the type.
           storylayer.setLayer(sl.getLayer());
           storylayer.set('type', sl.get('type'));
@@ -933,7 +1346,7 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (data.about !== undefined){
+          if (data.about !== undefined) {
             storymap.setStoryTitle(data.about.title);
             storymap.setStoryAbstract(data.about.abstract);
             storymap.setStoryOwner(data.about.owner);
@@ -951,6 +1364,9 @@
             });
           }
         }
+
+        registerOnMapClick(storymap, $rootScope, $compile);
+
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -961,6 +1377,100 @@
       }
     };
   }]);
+
+  var featureInfoPerLayer_ = [];
+  // valid values: 'layers', 'layer', 'feature', or ''
+  var state_ = '';
+  var selectedItem_ = null;
+  var selectedItemMedia_ = null;
+  var selectedLayer_ = null;
+  var selectedItemProperties_ = null;
+  var position_ = null;
+  var containerInstance_ = null;
+
+  function registerOnMapClick(map_, $rootScope, $compile) {
+    map_.getMap().on('singleclick', function(evt) {
+
+      // Overlay clones the element so we need to compile it after it is cloned so that ng knows about it
+      if (!goog.isDefAndNotNull(containerInstance_)) {
+        containerInstance_ = map_.getMap().getOverlays().array_[0].getElement();
+        $compile(containerInstance_)($rootScope);
+
+      }
+
+      self.hide();
+      featureInfoPerLayer_ = [];
+      selectedItem_ = null;
+      selectedItemMedia_ = null;
+      selectedItemProperties_ = null;
+      state_ = null;
+
+      var infoPerLayer = [];
+      // Attempt to find a marker from the planningAppsLayer
+      var view = map_.getMap().getView();
+      var layers = map_.getStoryLayers().getArray();
+      var validRequestCount = 0;
+      var completedRequestCount = 0;
+
+      goog.array.forEach(layers, function(layer, index) {
+        var source = layer.getLayer().getSource();
+        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+          validRequestCount++;
+        }
+      });
+      //This function is called each time a get feature info request returns (call is made below).
+      //when the completedRequestCount == validRequestCount, we can display the popup
+      var getFeatureInfoCompleted = function() {
+        completedRequestCount++;
+
+        if (completedRequestCount === validRequestCount) {
+          if (infoPerLayer.length > 0) {
+            var clickPosition_ = evt.coordinate;
+            self.show(infoPerLayer, clickPosition_);
+          }
+        } else {
+          self.hide();
+          selectedItem_ = null;
+          selectedItemMedia_ = null;
+          selectedItemProperties_ = null;
+          state_ = null;
+          featureInfoPerLayer_ = [];
+        }
+      };
+
+      goog.array.forEach(layers, function(layer, index) {
+        var source = layer.getLayer().getSource();
+
+        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+
+          var url = source.getGetFeatureInfoUrl(evt.coordinate, view.getResolution(), view.getProjection(),
+                {
+                  'INFO_FORMAT': 'application/json',
+                  'FEATURE_COUNT': 5
+                });
+
+          $http.get(url).then(function(response) {
+            var layerInfo = {};
+            layerInfo.features = response.data.features;
+
+            if (layerInfo.features && layerInfo.features.length > 0 && goog.isDefAndNotNull(layers[index])) {
+              layerInfo.layer = layers[index];
+              goog.array.insert(infoPerLayer, layerInfo);
+            }
+
+            getFeatureInfoCompleted();
+          }, function(reject) {
+            getFeatureInfoCompleted();
+          });
+
+        }
+      });
+      getFeatureInfoCompleted();
+    });
+
+
+  }
+
 
 })();
 
@@ -1750,8 +2260,6 @@
         var timeControlsManager = this;
 
         function maybeCreateTimeControls(update) {
-            $log.debug("Creating TimeControls with boxes: ");
-           // $log.debug(StoryBoxLayerManager.storyBoxes);
             if (timeControlsManager.timeControls !== null) {
                 if (update) {
                     var values = update();
@@ -1784,7 +2292,7 @@
         MapManager.storyMap.getStoryLayers().on('change:length', function() {
             maybeCreateTimeControls(function() {
                 var range = computeTicks(MapManager.storyMap);
-                if (range.length) {
+                if (range.length  >= 0) {
                     return {
                         storyLayers: MapManager.storyMap.getStoryLayers().getArray(),
                         data: range

@@ -1,5 +1,35 @@
-<div>
-    <div class="box-bounds-map col-lg-4" style="height: 10em;"></div>
-    <button>Use Current Map Bounds</button>
-    <button>Use Combined Bounds of Selected Layers</button>
-</div>
+    <div class="row">
+
+         <div class="box-bounds-map col-lg-6" style="height:15em;"></div>
+
+
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="minlon">Min. Longitude:</label>
+                <input type="text" class="form-control" id="minlon" ng-model="storyBox.minlon" placeholder="Min. Longitude" value="0.0">
+            </div>
+            <div class="form-group">
+                <label for="minlat">Min. Latitude:</label>
+                <input type="text" class="form-control" id="minlat" ng-model="storyBox.minlat" placeholder="Min. Latitude" value="0.0">
+            </div>
+            <div class="form-group">
+                <label for="zoomLevel">Zoom Level</label>
+                <input class="col-sm-12 form-control" ng-model="storyBox.zoom" id="zoomLevel" type="number" placeholder="Zoom Level">
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="maxlon">Max. Longitude:</label>
+                <input type="text" class="form-control" ng-model="storyBox.maxlon" id="maxlon" placeholder="Max. Longitude" value="0.0">
+            </div>
+            <div class="form-group">
+                <label for="maxlat">Max. Latitude:</label>
+                <input type="text" class="form-control" ng-model="storyBox.maxlat" id="maxlat" placeholder="Max. Latitude" value="0.0">
+            </div>
+        </div>
+
+    </div>
+
+    <button class="btn btn-default" ng-click="updateCoordinates();">Current Map Bounds</button>
+    <button class="btn btn-default" ng-model="storyBox.useLayers">Bounds of Selected Layers</button>
