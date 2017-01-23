@@ -10,6 +10,9 @@ run
     bower install
     gulp develop
 
+If you haven't used or installed Gulp previously, you may also need to run
+`npm install --global gulp-cli` before running `gulp develop`.
+
 ## Accessing the examples
 
 Example index will be available at: http://localhost:8001
