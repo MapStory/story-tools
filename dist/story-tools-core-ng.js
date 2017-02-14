@@ -859,7 +859,12 @@
   module.service('stStoryMapBaseBuilder', ["stBaseLayerBuilder", function(stBaseLayerBuilder) {
     return {
       defaultMap: function(storymap) {
-        storymap.getMap().setView(new ol.View({center: [0,0], zoom: 3}));
+        storymap.getMap().setView(new ol.View({
+          center: [0,0],
+          minZoom: 3,
+          maxZoom: 17,
+          zoom: 3
+        }));
         this.setBaseLayer(storymap, {
           title: 'World Topo Map',
           type: 'ESRI',
