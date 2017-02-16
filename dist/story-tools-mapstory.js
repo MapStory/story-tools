@@ -35,6 +35,11 @@ exports.MapConfigTransformer = function(data) {
                  layerConfig.name = layer.name;
                  layerConfig.title = layer.title;
                  layers.push(layerConfig);
+             } else if (source.ptype === 'gxp_osmsource') {
+                 layerConfig.type = 'OSM';
+                 layerConfig.title = 'OpenStreetMap';
+                 layerConfig.name = 'mapnik';
+                 layers.push(layerConfig);
              } else if (source.ptype === "gx_olsource" || source.ptype === "gxp_wmscsource") {
                  layerConfig.type = (source.ptype === "gx_olsource") ? layer.type.replace('OpenLayers.Layer.', '') : "WMS";
                  if (layerConfig.type === 'OSM') {
