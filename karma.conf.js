@@ -6,7 +6,7 @@ module.exports = function(config) {
     browsers: ['PhantomJS'],
     files: [
         'test/custom_matcher.js',
-        'examples/ol.js',
+        'examples/ol-debug.js',
         'bower_components/jquery/dist/jquery.js',
         'bower_components/angular/angular.js',
         'bower_components/angular-mocks/angular-mocks.js',
