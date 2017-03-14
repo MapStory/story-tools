@@ -122,14 +122,14 @@
         });
     }
 
-    module.service('MapManager', function($injector) {
+    module.service('MapManager', function ($injector) {
         return $injector.instantiate(MapManager);
     });
 
-    module.controller('tileProgressController', function($scope) {
+    module.controller('tileProgressController', function ($scope) {
         $scope.tilesToLoad = 0;
         $scope.tilesLoadedProgress = 0;
-        $scope.$on('tilesLoaded', function(evt, remaining) {
+        $scope.$on('tilesLoaded', function (evt, remaining) {
             $scope.$apply(function () {
                 if (remaining <= 0) {
                     $scope.tilesToLoad = 0;
@@ -138,7 +138,7 @@
                 } else {
                     if (remaining < $scope.tilesToLoad) {
                         $scope.tilesLoaded = $scope.tilesToLoad - remaining;
-                        $scope.tilesLoadedProgress = Math.floor(100 * ($scope.tilesLoaded/($scope.tilesToLoad - 1)));
+                        $scope.tilesLoadedProgress = Math.floor(100 * ($scope.tilesLoaded / ($scope.tilesToLoad - 1)));
                     } else {
                         $scope.tilesToLoad = remaining;
                     }
@@ -150,6 +150,47 @@
     module.controller('viewerController', function($scope, $injector, MapManager, TimeControlsManager) {
         $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
         $scope.mapManager = MapManager;
+        $scope.toggleVisibleLayer = function(lyr) {
+            MapManager.storyMap.toggleStoryLayer(lyr);
+
+        };
+
+        $rootScope.$on('layer-status', function(event, args){
+            $log.debug("Layer Status: ", args.name, args.phase, args.status);
+            if(args.phase === 'features') {
+                if(args.status === 'loading'){
+                     $scope.loading[args.name] = true;
+                }else{
+                    $timeout(function(){
+                         $scope.loading[args.name] = false;
+                    }, 2000);
+
+                    //Materialize.toast('Feature Updated on ' + args.name, 4000)
+                }
+            }
+        });
+
+        $scope.zoomToExtent = function(feature) {
+            var lon = feature.get('GPS_LON') || feature.get('LON');
+            var lat = feature.get('GPS_LAT') || feature.get('LAT');
+
+            if(lat && lon) {
+                var location = new ol.geom.Point(ol.proj.transform([lon, lat],
+                    'EPSG:4326', 'EPSG:3857'));
+
+                var extent = location.getExtent();
+
+                var center = ol.extent.getCenter(extent);
+
+                MapManager.storyMap.animateCenterAndZoom(center, 10);
+
+                $timeout( function() {
+                    var pixel = MapManager.storyMap.getMap().getPixelFromCoordinate(location.getCoordinates());
+                    MapManager.displayFeatureInfo(pixel, false);
+                }, 1000);
+            }
+        };
+
         $scope.playbackOptions = {
             mode: 'instant',
             fixed: false
