@@ -1195,6 +1195,7 @@ var utils = require('./utils');
  */
 exports.TimeSlider = function(id, model) {
     var slider = $("#" + id)[0];
+    console.log('!DJA SLIDER ID', id, slider);
     var events = new utils.Events();
     var initialized = false;
     var singleSlider;
@@ -1250,6 +1251,7 @@ exports.TimeSlider = function(id, model) {
         if (!initialized) {
             if(slider)
             {
+              console.log('!DJA INIT NOUISLIDER');
                 noUiSlider.create(slider, options);
                 slider.noUiSlider.on('slide', function (ev) {
                     var range = getRange();

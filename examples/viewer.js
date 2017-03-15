@@ -12,6 +12,8 @@
         'ui.bootstrap'
     ]);
 
+    var rootScope_;
+
     module.constant('iconCommonsHost', 'http://mapstory.dev.boundlessgeo.com');
 
     module.run(function() {
@@ -44,7 +46,8 @@
     });
 
     function MapManager($http, $q, $log, $rootScope, $location,
-        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
+      StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
+        rootScope_ = $rootScope;
         this.storyMap = new StoryMap({target: 'map', returnToExtent: false});
         var self = this;
         StoryPinLayerManager.map = self.storyMap;
@@ -52,8 +55,8 @@
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
-                var config = stMapConfigStore.loadConfig(options.id);
-                stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
+                // var config = stMapConfigStore.loadConfig(options.id);
+                // stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
 
                 var annotationsURL = "/maps/" + options.id + "/annotations";
                 if (annotationsURL.slice(-1) === '/') {
@@ -155,7 +158,7 @@
 
         };
 
-        $rootScope.$on('layer-status', function(event, args){
+        rootScope_.$on('layer-status', function(event, args){
             $log.debug("Layer Status: ", args.name, args.phase, args.status);
             if(args.phase === 'features') {
                 if(args.status === 'loading'){

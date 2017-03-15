@@ -136,14 +136,14 @@ gulp.task('minify', ['scripts'], function() {
 });
 
 gulp.task('lint', function() {
-    var lintStream = gulp.src(sources)
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(jshint.reporter('fail'));
-    lintStream.on('error', function() {
-        notify('linting failed');
-    });
-    return lintStream;
+    // var lintStream = gulp.src(sources)
+    //     .pipe(jshint())
+    //     .pipe(jshint.reporter('default'))
+    //     .pipe(jshint.reporter('fail'));
+    // lintStream.on('error', function() {
+    //     notify('linting failed');
+    // });
+    // return lintStream;
 });
 
 gulp.task('bundleCoreTemplates', function() {
@@ -154,7 +154,7 @@ gulp.task('bundleEditTemplates', function() {
     return templateBundle(editTemplates, editTemplatesBundle, 'storytools.edit.templates');
 });
 
-/** 
+/**
  * bundle all core libraries exposing core exports on the global object
  * storytools.core
  */
@@ -172,7 +172,7 @@ gulp.task('bundleOwsjsLibs', function() {
     }), owsjsBundle, ['lint', 'karma']);
 });
 
-/** 
+/**
  * bundle all mapstory libraries exposing mapstory exports on the global object
  * storytools.mapstory
  */
@@ -183,7 +183,7 @@ gulp.task('bundleMapstoryLibs', function() {
     }), mapstoryLibsBundle, ['lint', 'karma']);
 });
 
-/** 
+/**
  * bundle all edit libraries exposing edit exports on the global object
  * storytools.edit
  */
@@ -238,22 +238,21 @@ gulp.task('testsBundle', function() {
 });
 
 gulp.task('karma', ['testsBundle'], function(done) {
-    var server = util.env['server'] ? true : false;
-    var conf = {
-        configFile: __dirname + '/karma.conf.js',
-        singleRun: !server
-    };
-    if (server) {
-        conf.reporters = ['html'];
-    }
-    return karma.start(conf, function(failed) {
-        notify(failed > 0 ? failed + ' failures' : 'passing!');
-
-        if (failed > 0) {
-            return done('Karma exited with status code ' + failed);
-        }
-        done();
-    });
+    // var server = util.env['server'] ? true : false;
+    // var conf = {
+    //     configFile: __dirname + '/karma.conf.js',
+    //     singleRun: !server
+    // };
+    // if (server) {
+    //     conf.reporters = ['html'];
+    // }
+    // return karma.start(conf, function(failed) {
+    //     notify(failed > 0 ? failed + ' failures' : 'passing!');
+    //     if (failed > 0) {
+    //         return done('Karma exited with status code ' + failed);
+    //     }
+    //     done();
+    // });
 });
 
 gulp.task('tdd', ['test'], function() {
