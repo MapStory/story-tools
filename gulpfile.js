@@ -16,6 +16,7 @@ var uglify = require('gulp-uglify');
 var minifyHtml = require('gulp-minify-html');
 var templateCache = require('gulp-angular-templatecache');
 var devServer = require('./dev-server.js');
+var path = require('path');
 
 // internal
 var watch = false;
@@ -30,6 +31,7 @@ var coreNgBundle = 'story-tools-core-ng.js';
 var coreTemplatesBundle = 'story-tools-core-tpls.js';
 var editTemplatesBundle = 'story-tools-edit-tpls.js';
 var editLess = 'lib/ng/edit/style.less';
+var coreLess = 'lib/ng/core/style.less';
 
 // inputs
 var coreNg = 'lib/ng/core/**/*.js';
@@ -213,6 +215,9 @@ gulp.task('bundleCoreNg', function() {
  */
 gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
     // @todo concat both bundles
+     gulp.src(['./dist/story-tools-core-tpls.js', './dist/story-tools-core.js', './dist/story-tools-core-ng.js'])
+    .pipe(concat('story-tools-core-all.js'))
+    .pipe(gulp.dest('dist'));
 });
 
 /**
@@ -228,6 +233,16 @@ gulp.task('lessEdit', function() {
             paths: ['bower_components/bootstrap/less']
         }))
         .pipe(rename('story-tools-edit.css'))
+        .pipe(gulp.dest('dist'));
+});
+
+
+gulp.task('lessCore', function() {
+    gulp.src(coreLess)
+        .pipe(less({
+            paths: ['bower_components/bootstrap/less']
+        }))
+        .pipe(rename('story-tools-core.css'))
         .pipe(gulp.dest('dist'));
 });
 
@@ -263,6 +278,9 @@ gulp.task('tdd', ['test'], function() {
 
 gulp.task('test', ['clean', 'karma']);
 
+
+gulp.task('lazy', ['clean', 'lint', 'scripts', 'bundleCore']);
+
 gulp.task('default', ['clean', 'lint', 'test', 'minify', 'docs']);
 
 gulp.task('develop', ['connect', 'watch']);
@@ -287,4 +305,15 @@ gulp.task('watch', ['lint', 'bundleEditNg', 'lessEdit', 'bundleEditTemplates'], 
     gulp.watch(['dist/*', 'examples/**/*']).on('change', function(f) {
         gulp.src([f.path, '!**/tests.js']).pipe(connect.reload());
     });
+});
+
+
+/* V2 Related */
+
+gulp.task('less', function () {
+  return gulp.src('./examples/v2/style/less/test.less')
+    .pipe(less({
+      paths: [ path.join(__dirname, 'less', 'includes') ]
+    }))
+    .pipe(gulp.dest('./examples/v2/style/css'));
 });
