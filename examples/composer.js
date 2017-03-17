@@ -229,21 +229,6 @@
     });
 
 
-     module.directive('InfoBox',
-      function(MapManager, $rootScope) {
-
-        return {
-          replace: false,
-          restrict: 'A',
-          templateUrl: 'templates/info-box.html',
-          link: function(scope) {
-            scope.mapManager = MapManager;
-          }
-        };
-      }
-  );
-
-
     module.directive('addLayers', function($modal, $log, $http, $sce, limitToFilter,  MapManager) {
         return {
             restrict: 'E',
