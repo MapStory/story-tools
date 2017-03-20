@@ -221,6 +221,16 @@ gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
 });
 
 /**
+ * combined bundle of all core
+ */
+gulp.task('bundleCoreCSS', ['lessEdit', 'lessCore'], function() {
+    // @todo concat both bundles
+     gulp.src(['./dist/story-tools-core.css', './dist/story-tools-edit.css'])
+    .pipe(concat('story-tools-core-all.css'))
+    .pipe(gulp.dest('dist'));
+});
+
+/**
  * combined bundle of all edit
  */
 gulp.task('bundleEdit', ['bundleEditLibs', 'bundleEditNg'], function() {
