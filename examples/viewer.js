@@ -43,17 +43,39 @@
         })();
     });
 
+    var rootscope_;
     function MapManager($http, $q, $log, $rootScope, $location,
-        stMapConfigStore, StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
+      StoryMap, stStoryMapBuilder, stStoryMapBaseBuilder, StoryPinLayerManager, StoryBoxLayerManager) {
         this.storyMap = new StoryMap({target: 'map', returnToExtent: false});
         var self = this;
+        rootscope_ = $rootScope;
         StoryPinLayerManager.map = self.storyMap;
         StoryBoxLayerManager.map = self.storyMap;
+        console.log('----> CONFIG', config);
+        this.loadConfig = function(config, chapter){
+            if(config.chapters){
+                self.chapterCount = config.chapters.length;
+                if(chapter > 0 && chapter <= config.chapters.length) {
+                    self.storyChapter = chapter;
+                    $log.info("Loading Chapter " + chapter + " of " + config.chapters.length);
+                    self.loadMap(config.chapters[chapter - 1]);
+                }else{
+                    $log.warn("Chapter " + chapter + " is INVALID so defaulting to Chapter 1. ");
+                    self.loadMap(config.chapters[0]);
+                }
+            }else{
+                $log.info("Story config has no chapters so just loading the defaults.");
+                self.loadMap(config);
+            }
+
+            self.title = config.about.title;
+            self.username = config.about.username;
+            self.owner = config.about.owner;
+        };
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
-                var config = stMapConfigStore.loadConfig(options.id);
-                stStoryMapBuilder.modifyStoryMap(self.storyMap, config);
+                // !DJA stStoryMapBuilder.modifyStoryMap(self.storyMap, local);
 
                 var annotationsURL = "/maps/" + options.id + "/annotations";
                 if (annotationsURL.slice(-1) === '/') {
@@ -65,15 +87,14 @@
                     boxesURL = boxesURL.slice(0, -1);
                 }
 
-                var annotationsLoad = $http.get(annotationsURL);
-                var boxesLoad = $http.get(boxesURL);
-                $q.all([annotationsLoad, boxesLoad]).then(function(values) {
-                    var pins_geojson = values[0].data;
-                    StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection(), true);
-
-                    var boxes_geojson = values[1].data;
-                    StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection(), true);
-                });
+                // var annotationsLoad = $http.get(annotationsURL);
+                // var boxesLoad = $http.get(boxesURL);
+                // $q.all([]).then(function(values) {
+                //     var pins_geojson = values[0].data;
+                //     StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection(), true);
+                //     var boxes_geojson = values[1].data;
+                //     StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection(), true);
+                // });
             } else if (options.url) {
                 var mapLoad = $http.get(options.url).success(function(data) {
                     stStoryMapBuilder.modifyStoryMap(self.storyMap, data);
@@ -94,12 +115,11 @@
                     boxesURL = boxesURL.slice(0, -1);
                 }
 
-                var annotationsLoad = $http.get(annotationsURL);
-                var boxesLoad = $http.get(boxesURL);
-                $q.all([mapLoad, annotationsLoad, boxesLoad]).then(function(values) {
+                // var annotationsLoad = $http.get(annotationsURL);
+                // var boxesLoad = $http.get(boxesURL);
+                $q.all([mapLoad]).then(function(values) {
                     var pins_geojson = values[1].data;
                     StoryPinLayerManager.loadFromGeoJSON(pins_geojson, self.storyMap.getMap().getView().getProjection());
-
                     var boxes_geojson = values[2].data;
                     StoryBoxLayerManager.loadFromGeoJSON(boxes_geojson, self.storyMap.getMap().getView().getProjection());
                 });
@@ -111,15 +131,14 @@
             // @todo how to make on top?
         };
         $rootScope.$on('$locationChangeSuccess', function() {
-            var path = $location.path();
-            if (path === '/new') {
-                self.loadMap();
-            } else if (path.indexOf('/local') === 0) {
-                self.loadMap({id: /\d+/.exec(path)});
-            } else {
-                self.loadMap({url: path});
-            }
-        });
+          var path = $location.path(), chapter = 1, matches;
+          if (path.indexOf('/chapter') === 0){
+              if ((matches = /\d+/.exec(path)) !== null) {
+                  chapter = matches[0]
+              }
+          }
+          self.loadConfig(config, chapter);
+      });
     }
 
     module.service('MapManager', function ($injector) {
@@ -155,7 +174,7 @@
 
         };
 
-        $rootScope.$on('layer-status', function(event, args){
+        rootscope_.$on('layer-status', function(event, args){
             $log.debug("Layer Status: ", args.name, args.phase, args.status);
             if(args.phase === 'features') {
                 if(args.status === 'loading'){

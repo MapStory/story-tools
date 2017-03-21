@@ -28,7 +28,7 @@
     "ogc-schemas": "highsource/ogc-schemas#master",
     "w3c-schemas": "highsource/w3c-schemas#master",
     "angular-sortable-view" : "0.0.13",
-    "materialize" : "0.98.0",
+    "materialize" : "0.98.0"
   },
   "devDependencies": {
     "bootstrap": "3.0.0",
