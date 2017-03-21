@@ -1,6 +1,28 @@
-<div class="todo">
-    Optional editing of layer visibility
-</div>
-<div class="todo">
-    Once toggled, is visibility 'inherited' from the previous box? Or is it required to explicitly set for each box?
-</div>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th></th>
+        <th>Layer Name</th>
+        <th>Type</th>
+        <th>Author</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="layer in mapManager.storyMap.getStoryLayers().getArray()">
+        <th scope="row">
+            <button type="button" data-toggle="button" ng-click="mapManager.storyMap.toggleVisibleLayer(layer); $event.stopPropagation();" class="btn btn-xs btn-default">
+            <i class="glyphicon" ng-class="{'glyphicon-eye-open': layer.get('visibility'), 'glyphicon-eye-close': !layer.get('visibility')}"></i>
+        </button>
+        </th>
+        <td>{{layer.get('title')}}</td>
+        <td>{{layer.get('type')}}</td>
+        <td>{{layer.get('owner')}}</td>
+        <td>
+            <button type="button" data-toggle="button" ng-click="mapManager.storyMap.removeLayer(layer); $event.stopPropagation();" class="btn btn-xs btn-default">
+                   <i class="glyphicon glyphicon-trash"></i>
+            </button>
+        </td>
+    </tr>
+    </tbody>
+</table>

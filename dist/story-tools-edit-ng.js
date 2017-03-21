@@ -1234,9 +1234,9 @@
             classMethods: [
                 'Natural Breaks',
                 'Equal Interval',
-                'Quantile'/*,
+                'Quantile',
                 'Geometric Interval',
-                'Standard Deviation'*/
+                'Standard Deviation'
             ],
             getPalette: function(name) {
                 var found = this.colorPalettes.filter(function(p) {

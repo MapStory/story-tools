@@ -109,9 +109,9 @@
               url = server + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' +
                   layer_name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' +
                   'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
-              if (layer.get('params').STYLES) {
-                url += '&style=' + layer.get('params').STYLES;
-              }
+              //if (layer.get('params').STYLES) {
+               // url += '&style=' + layer.get('params').STYLES;
+              //}
               return url;
             };
 
@@ -141,69 +141,15 @@
     'use strict';
 
     var module = angular.module('storytools.core.mapstory', [
+      'storytools.core.mapstory.services'
     ]);
-
-    // @todo naive implementation on local storage for now
-    module.service('stMapConfigStore', function() {
-        function path(mapid) {
-            return '/maps/' + mapid;
-        }
-        function get(mapid) {
-            var saved = localStorage.getItem(path(mapid));
-            saved = (saved === null) ? {} : angular.fromJson(saved);
-            return saved;
-        }
-        function set(mapConfig) {
-            localStorage.setItem(path(mapConfig.id), angular.toJson(mapConfig));
-        }
-        function list() {
-            var maps = [];
-            var pattern = new RegExp('/maps/(\\d+)$');
-            Object.getOwnPropertyNames(localStorage).forEach(function(key) {
-                var match = pattern.exec(key);
-                if (match) {
-                    // name/title eventually
-                    maps.push({
-                        id: match[1]
-                    });
-                }
-            });
-            return maps;
-        }
-        function nextId() {
-            var lastId = 0;
-            var existing = list().map(function(m) {
-                return m.id;
-            });
-            existing.sort();
-            if (existing.length) {
-                lastId = parseInt(existing[existing.length - 1]);
-            }
-            return lastId + 1;
-        }
-        return {
-            listMaps: function() {
-                return list();
-            },
-            loadConfig: function(mapid) {
-                return get(mapid);
-            },
-            saveConfig: function(mapConfig) {
-                if (!angular.isDefined(mapConfig.id)) {
-                    mapConfig.id = nextId();
-                }
-                set(mapConfig);
-            }
-        };
-    });
 
 })();
 
 (function() {
   'use strict';
 
-  var module = angular.module('storytools.core.ogc', [
-  ]);
+  var module = angular.module('storytools.core.ogc', []);
 
   // @todo - provisional default story pins style
   var defaultStyle = [new ol.style.Style({
@@ -216,19 +162,107 @@
     })
   })];
 
+  var enabled_ = true;
+  //var containerInstance_ = null;
+  //var clickPosition_ = null;
+
+  $('#map .metric-scale-line').css('bottom', '-=40px');
+  $('#map .imperial-scale-line').css('bottom', '-=40px');
+  $('#map .nautical-scale-line').css('bottom', '-=40px');
+  $('#map .ol-mouse-position').css('bottom', '-=40px');
+  $('#switch-coords-border').css('bottom', '-=40px');
+
+
+  var nauticalScale = new ol.control.ScaleLine({className: 'nautical-scale-line ol-scale-line', units: ol.control.ScaleLineUnits.NAUTICAL,
+        render: function(mapEvent) {
+          //Have to write a custom render function as this scale always needs to display 20 nautical miles
+          var frameState = mapEvent.frameState;
+          if (!frameState) {
+            this.viewState_ = null;
+          } else {
+            this.viewState_ = frameState.viewState;
+          }
+
+
+          var viewState = this.viewState_;
+
+          if (!viewState) {
+            if (this.renderedVisible_) {
+              this.element_.style.display = 'none';
+              this.renderedVisible_ = false;
+            }
+            return;
+          }
+
+          var center = viewState.center;
+          var projection = viewState.projection;
+          var metersPerUnit = projection.getMetersPerUnit();
+          var pointResolution =
+              projection.getPointResolution(viewState.resolution, center) *
+              metersPerUnit;
+
+          pointResolution /= 1852;
+          var suffix = 'nm';
+
+          var nauticalMiles = 20;
+          var width = Math.round(nauticalMiles / pointResolution);
+
+          var html = nauticalMiles + ' ' + suffix;
+          if (this.renderedHTML_ != html) {
+            this.innerElement_.innerHTML = html;
+            this.renderedHTML_ = html;
+          }
+
+          //If the scale is wider than 60% the screen, hide it
+          //If it's smaller than 15 pixels, hide it as the text won't fit inside the scale
+          if (width > mapEvent.frameState.size[0] * 0.6 || width < 15) {
+            this.element_.style.display = 'none';
+            this.renderedVisible_ = false;
+            return;
+          }
+
+          if (this.renderedWidth_ != width) {
+            this.innerElement_.style.width = width + 'px';
+            this.renderedWidth_ = width;
+          }
+
+          if (!this.renderedVisible_) {
+            this.element_.style.display = '';
+            this.renderedVisible_ = true;
+          }
+
+        }});
+
+
   function StoryMap(data) {
     ol.Object.call(this, data);
-    this.map_ = new ol.Map({target: data.target, pixelRatio: 1});
-    this.overlay = new ol.FeatureOverlay({
+    this.map_ = new ol.Map({target: data.target, pixelRatio: 1,
+        controls: ol.control.defaults().extend([
+      /*new ol.control.ZoomSlider(),*/
+      new ol.control.MousePosition({
+        projection: 'EPSG:4326',
+        coordinateFormat: ol.coordinate.toStringHDMS
+      }),
+      new ol.control.ScaleLine({className: 'metric-scale-line ol-scale-line',
+        units: ol.control.ScaleLineUnits.METRIC}),
+      new ol.control.ScaleLine({className: 'imperial-scale-line ol-scale-line',
+        units: ol.control.ScaleLineUnits.IMPERIAL}),
+            nauticalScale
+    ])});
+    this.overlay = new ol.layer.Vector({
       map: this.map_,
       style: defaultStyle
     });
+    this.map_.addOverlay(new ol.Overlay({
+      element: data.overlayElement || document.getElementById('feature-info'),
+      stopEvent: true
+    }));
     this.title = "Default Mapstory";
     this.abstract = "No Information Supplied.";
     this.owner = "";
     this.mode = "instant";
     this.returnToExtent = data.returnToExtent || false;
-    this.center = [0,0];
+    this.center = [0, 0];
     this.zoom = 2;
     this.storyLayers_ = new ol.Collection();
     this.animationDuration_ = data.animationDuration || 500;
@@ -250,6 +284,341 @@
     });
     this.addStoryPinsLayer();
     this.addStoryBoxesLayer();
+
+    this.state_ = '';
+    this.position_ = null;
+
+    function classifyItem(item) {
+      var type = '';
+
+      if (goog.isDefAndNotNull(item)) {
+        if (item.properties) {
+          type = 'feature';
+        } else if (item.features) {
+          type = 'layer';
+        } else if (item.length && item[0].features) {
+          type = 'layers';
+        }
+      }
+      console.log(type);
+      return type;
+    }
+
+    this.show = function(item, position) {
+
+      // if item is not specified, return
+      if (!goog.isDefAndNotNull(item)) {
+        return false;
+      }
+
+      var selectedItemOld = selectedItem_;
+
+      //classify the item parameter as a layer, feature, or layers
+      var type = classifyItem(item);
+
+
+      // when there is nothing in featureInfoPerLayer_, we need to used the passed in item to initialize it
+      // this is done when the user clicks on a single feature (on the map) vice selecting a feature from the pop-up
+      // (such as clicking on overlapping features)
+      if (featureInfoPerLayer_.length === 0) {
+
+        if (type === 'feature') {
+          featureInfoPerLayer_.push({features: [item], layer: selectedLayer_});
+        } else if (type === 'layer') {
+          featureInfoPerLayer_.push(item);
+        } else if (type === 'layers') {
+          featureInfoPerLayer_ = item;
+        } else {
+          throw ({
+            name: 'featureInfoBox',
+            level: 'High',
+            message: 'Expected layers, layer, or feature.',
+            toString: function() {
+              return this.name + ': ' + this.message;
+            }
+          });
+        }
+      }
+
+
+      //set the service's state_ variable (feature, layer, or layers)
+      //the state is 'layer' when the user clicks on multiple (aka overlapping) features in a single layer
+      //the state is 'layers' when the user clicks on multiple (overlapping) features that exist in separate layers
+      //the state is 'feature' when the user finishes creating a feature, they clicked on a single (non-overlapping)
+      //feature, or they select a feature from the deconfliction pop-up
+
+      //we are also going to set the selectedItem_ variable
+      //the selectedItem will be a single feature, a single layer, or a collection of layers
+      //the state is essentially a designation of the selectedItem type
+      if (type === 'feature') {
+        state_ = 'feature';
+        selectedItem_ = item;
+      } else if (type === 'layer') {
+        if (item.features.length === 1) {
+          state_ = 'feature';
+          selectedItem_ = item.features[0];
+        } else {
+          state_ = 'layer';
+          selectedItem_ = item;
+        }
+      } else if (type === 'layers') {
+        if (item.length === 1) {
+          if (item[0].features.length === 1) {
+            state_ = 'feature';
+            selectedItem_ = item[0].features[0];
+          } else {
+            state_ = 'layer';
+            selectedItem_ = item[0];
+          }
+        } else {
+          state_ = 'layers';
+          selectedItem_ = item;
+        }
+      } else {
+        throw ({
+          name: 'featureInfoBox',
+          level: 'High',
+          message: 'Invalid item passed in. Expected layers, layer, or feature.',
+          toString: function() {
+            return this.name + ': ' + this.message;
+          }
+        });
+      }
+      var forceUpdate = true;
+
+      //---- if selected item changed
+      if (selectedItem_ !== selectedItemOld) {
+
+        // -- select the geometry if it is a feature, clear otherwise
+        // -- store the selected layer of the feature
+        if (classifyItem(selectedItem_) === 'feature') {
+
+          selectedLayer_ = self.getSelectedItemLayer().layer;
+
+          // -- update selectedItemProperties_ to contain the props from the newly selected item
+          var tempProps = {};
+          var props = [];
+
+          //if the selectedItem_ is a feature go through and collect the properties in tempProps
+          //if the property is a media property (like photo or video), we need to parse out
+          //the value into an array (since there may be multiple photos or videos)
+          goog.object.forEach(selectedItem_.properties, function(v, k) {
+            tempProps[k] = [k, v];
+          });
+
+          //ensure we only take properties that are defined in the layer schema, the selectedLayer_
+          //may be some other layer so
+          var propName = null;
+          /*  if (goog.isDefAndNotNull(selectedLayer_) && goog.isDefAndNotNull(selectedLayer_.get('metadata').schema)) {
+           for (propName in selectedLayer_.get('metadata').schema) {
+           if (tempProps.hasOwnProperty(propName)) {
+           props.push(tempProps[propName]);
+           }
+           }
+           } else {*/
+          for (propName in tempProps) {
+            if (tempProps.hasOwnProperty(propName)) {
+              props.push(tempProps[propName]);
+            }
+          }
+          // }
+          selectedItemProperties_ = props;
+          console.log('---- selectedItemProperties_: ', selectedItemProperties_);
+
+          // -- update the selectedItemMedia_
+          //selectedItemMedia_ = service_.getSelectedItemMediaByProp(null);
+          //console.log('---- selectedItemMedia_: ', selectedItemMedia_);
+        }
+      }
+
+
+      if (goog.isDefAndNotNull(position)) {
+        position_ = position;
+
+        self.storyMap.getMap().getOverlays().array_[0].setPosition(position);
+      }
+
+
+    };
+
+    this.getSelectedItemLayer = function() {
+      for (var i = 0; i < featureInfoPerLayer_.length; i++) {
+        for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
+          console.log(featureInfoPerLayer_[i].features[j] === selectedItem_);
+          console.log(featureInfoPerLayer_[i].features[j]);
+          console.log(selectedItem_);
+          if (featureInfoPerLayer_[i].features[j].id === selectedItem_.id) {
+            return featureInfoPerLayer_[i];
+          }
+        }
+      }
+      return null;
+    };
+
+    this.showPreviousState = function() {
+      //Note: might want to get position and pass it in again
+      self.show(self.getPreviousState().item);
+    };
+
+    this.getPreviousState = function() {
+
+      var state = null;
+      var item = null;
+
+      if (state_ === 'feature') {
+        var layer = self.getSelectedItemLayer();
+        if (layer) {
+          if (layer.features.length > 1) {
+            state = 'layer';
+            item = layer;
+          } else if (layer.features.length === 1 && featureInfoPerLayer_.length > 1) {
+            item = featureInfoPerLayer_;
+            state = 'layers';
+          }
+        } else {
+          throw ({
+            name: 'featureInfoBox',
+            level: 'High',
+            message: 'Could not find feature!',
+            toString: function() {
+              return this.name + ': ' + this.message;
+            }
+          });
+        }
+      } else if (state_ === 'layer') {
+        if (featureInfoPerLayer_.length > 1) {
+          state = 'layers';
+          item = featureInfoPerLayer_;
+        }
+      }
+
+      if (item !== null) {
+        return {
+          state: state,
+          item: item
+        };
+      }
+
+      return '';
+    };
+
+      this.getState = function() {
+            return state_;
+        };
+
+        this.getSelectedItem = function() {
+            return selectedItem_;
+        };
+
+        this.getMediaUrl = function(mediaItem) {
+            var url = mediaItem;
+            // if the item doesn't start with 'http' then assume the item can be found in the fileservice and so convert it to
+            // a url. This means if the item is, say, at https://mysite.com/mypic.jpg, leave it as is
+            if (goog.isString(mediaItem) && mediaItem.indexOf('http') === -1) {
+                url = configService_.configuration.fileserviceUrlTemplate.replace('{}', mediaItem);
+            }
+            return url;
+        };
+
+        this.getSelectedItemMedia = function() {
+            return selectedItemMedia_;
+        };
+
+        // Warning, returns new array objects, not to be 'watched' / bound. use getSelectedItemMedia instead.
+        this.getSelectedItemMediaByProp = function(propName) {
+            var media = null;
+
+            if (classifyItem(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) &&
+                  goog.isDefAndNotNull(selectedItemProperties_)) {
+
+                goog.object.forEach(selectedItemProperties_, function(prop, index) {
+                    if (service_.isMediaPropertyName(prop[0])) {
+                        if (!goog.isDefAndNotNull(propName) || propName === prop[0]) {
+                            if (!goog.isDefAndNotNull(media)) {
+                                //TODO: media should no longer be objects
+                                media = [];
+                            }
+
+                            goog.object.forEach(prop[1], function(mediaItem) {
+                                media.push(mediaItem);
+                            });
+                        }
+                    }
+                });
+            }
+
+            return media;
+        };
+
+        this.isMediaPropertyName = function(name) {
+            var lower = name.toLowerCase();
+            return lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0 ||
+                  lower.indexOf('audios') === 0 || lower.indexOf('videos') === 0;
+        };
+
+        this.getMediaTypeFromPropertyName = function(name) {
+            var lower = name.toLowerCase();
+            var type = null;
+            if (lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0) {
+                type = 'photos';
+            } else if (lower.indexOf('audios') === 0) {
+                type = 'audios';
+            } else if (lower.indexOf('videos') === 0) {
+                type = 'videos';
+            }
+            return type;
+        };
+
+        this.getMediaUrlThumbnail = function(mediaItem) {
+            var url = mediaItem;
+            if (goog.isDefAndNotNull(mediaItem) && (typeof mediaItem === 'string')) {
+                var ext = mediaItem.split('.').pop().split('/')[0]; // handle cases; /file.ext or /file.ext/endpoint
+                if (supportedVideoFormats_.indexOf(ext) >= 0) {
+                    url = service_.getMediaUrlDefault();
+                } else {
+                    url = service_.getMediaUrl(mediaItem);
+                }
+            }
+            return url;
+        };
+
+        this.getMediaUrlDefault = function() {
+            return '/static/maploom/assets/media-default.png';
+        };
+
+        this.getMediaUrlError = function() {
+            return '/static/maploom/assets/media-error.png';
+        };
+
+        this.getSelectedItemProperties = function() {
+            return selectedItemProperties_;
+        };
+
+        //this method is intended for unit testing only
+        this.setSelectedItemProperties = function(props) {
+            selectedItemProperties_ = props;
+        };
+
+        this.getSelectedLayer = function() {
+            return selectedLayer_;
+        };
+
+        this.getPosition = function() {
+            return position_;
+        };
+
+        this.getEnabled = function() {
+            return enabled_;
+        };
+
+        this.hide = function() {
+            selectedItem_ = null;
+            selectedItemMedia_ = null;
+            selectedItemProperties_ = null;
+            state_ = null;
+            featureInfoPerLayer_ = [];
+            this.map_.getMap().getOverlays().array_[0].setPosition(undefined);
+        };
   }
 
   StoryMap.prototype = Object.create(ol.Object.prototype);
@@ -264,7 +633,7 @@
   };
 
   StoryMap.prototype.setStoryOwner = function(storyOwner) {
-    this.owner =  storyOwner;
+    this.owner = storyOwner;
   };
 
   StoryMap.prototype.getStoryOwner = function() {
@@ -280,23 +649,23 @@
   };
 
   StoryMap.prototype.setStoryTitle = function(storyTitle) {
-    this.title =  storyTitle;
+    this.title = storyTitle;
   };
 
   StoryMap.prototype.setCenter = function(center) {
-    this.center =  center;
+    this.center = center;
   };
 
   StoryMap.prototype.setZoom = function(zoom) {
-    this.zoom =  zoom;
+    this.zoom = zoom;
   };
 
   StoryMap.prototype.setMode = function(playbackMode) {
-    this.mode =  playbackMode;
+    this.mode = playbackMode;
   };
 
   StoryMap.prototype.setStoryAbstract = function(storyAbstract) {
-    this.abstract =  storyAbstract;
+    this.abstract = storyAbstract;
   };
 
 
@@ -324,7 +693,7 @@
     // keep pins layer on top
     var idx = this.map_.getLayers().getLength(), me = this;
     this.map_.getLayers().forEach(function(sl) {
-      if (sl === me.storyPinsLayer) {
+      if (sl === me.storyPinsLayer || sl instanceof ol.layer.Vector) {
         idx -= 1;
       }
     });
@@ -348,14 +717,14 @@
     this.addStoryPinsLayer();
   };
 
-  StoryMap.prototype.animatePanAndBounce = function(center, zoom){
+  StoryMap.prototype.animatePanAndBounce = function(center, zoom) {
 
     var duration = 2000;
     var start = +new Date();
 
     var view = this.map_.getView();
 
-    if(view.getCenter() != center){
+    if (view.getCenter() != center) {
 
       var pan = ol.animation.pan({
         duration: this.animationDuration_,
@@ -424,6 +793,12 @@
     });
   };
 
+  StoryMap.prototype.toggleStoryLayer = function(storyLayer) {
+    var layer = storyLayer.getLayer();
+    storyLayer.set('visibility', !layer.getVisible());
+    layer.setVisible(!layer.getVisible());
+  };
+
   module.constant('StoryMap', StoryMap);
 
   function EditableStoryMap(data) {
@@ -466,13 +841,33 @@
   };
 
   function StoryLayer(data) {
+    var layerParams= {};
+
     if (data.times && storytools.core.time.utils.isRangeLike(data.times)) {
       data.times = new storytools.core.time.utils.Interval(data.times);
     }
     ol.Object.call(this, data);
     var layer;
     if (this.get('type') === 'VECTOR') {
-      layer = new ol.layer.Vector({source: new ol.source.Vector()});
+
+      var vectorSource = new ol.source.Vector({});
+
+      if(data.cluster){
+        var clusterSource = new ol.source.Cluster({distance: 20, source: vectorSource});
+        layerParams = {source: clusterSource, style: data.style || defaultStyle};
+      }
+      else{
+        layerParams = {source: vectorSource, style: data.style || defaultStyle};
+      }
+
+      layer = new ol.layer.Vector(layerParams);
+
+      if(data.animate) {
+        window.setInterval(function () {
+          vectorSource.dispatchEvent('change');
+        }, 1000 / 75);
+      }
+
     } else if (this.get('type') === 'HEATMAP') {
       layer = new ol.layer.Heatmap({
         radius: data.style.radius,
@@ -569,7 +964,7 @@
 
   module.constant('EditableStoryLayer', EditableStoryLayer);
 
-  module.service('stAnnotateLayer', ["$http", "$q", function($http, $q) {
+  module.service('stAnnotateLayer', ["$rootScope", "$http", "$q", function($rootScope, $http, $q) {
     return {
       loadCapabilities: function(storyLayer) {
         var request = 'GetCapabilities', service = 'WMS';
@@ -581,6 +976,9 @@
           url = url.replace('/geoserver', '/geoserver/' + parts[0] + '/' + parts[1]);
         }
         url = url.replace('http:', '');
+        $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'),
+          phase: 'capabilities',
+          status: 'loading' });
 
         return $http({
           method: 'GET',
@@ -588,25 +986,26 @@
           params: {
             'REQUEST': request,
             'SERVICE': service,
-            'VERSION': '1.1.1',
+            'VERSION': '1.3.0',
             'TILED': true
           }
-        }).success(function(data) {
+        }).then(function(response) {
           var context = new owsjs.Jsonix.Context([
-            owsjs.mappings.WMSC_1_1_1
+            owsjs.mappings.XLink_1_0,
+            owsjs.mappings.WMS_1_3_0
           ]);
           var unmarshaller = context.createUnmarshaller();
-          var caps = unmarshaller.unmarshalString(data);
+          var caps = unmarshaller.unmarshalString(response.data);
           var layer = caps.value.capability.layer;
           storyLayer.set('latlonBBOX', [
-            parseFloat(layer.latLonBoundingBox.minx),
-            parseFloat(layer.latLonBoundingBox.miny),
-            parseFloat(layer.latLonBoundingBox.maxx),
-            parseFloat(layer.latLonBoundingBox.maxy)
+            parseFloat(layer.boundingBox[0].minx),
+            parseFloat(layer.boundingBox[0].miny),
+            parseFloat(layer.boundingBox[0].maxx),
+            parseFloat(layer.boundingBox[0].maxy)
           ]);
           var vendorSpecificCapabilities = caps.value.capability.vendorSpecificCapabilities;
-          var tileSets = (vendorSpecificCapabilities && vendorSpecificCapabilities.tileSet)? vendorSpecificCapabilities.tileSet: [];
-          for (var i=0, ii=tileSets.length; i<ii; ++i) {
+          var tileSets = (vendorSpecificCapabilities) ? vendorSpecificCapabilities.tileSet || [] : [];
+          for (var i = 0, ii = tileSets.length; i < ii; ++i) {
             if (tileSets[i].srs === 'EPSG:900913') {
               storyLayer.set('resolutions', tileSets[i].resolutions.split(' '));
               var bbox = tileSets[i].boundingBox;
@@ -624,12 +1023,19 @@
           if (name in found) {
             storyLayer.set('times', found[name]);
           }
-        });
+
+          $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'),
+            phase: 'capabilities',
+            status: 'done' });
+
+        }).catch(function(response){});
       },
       describeFeatureType: function(storyLayer) {
         var me = this;
         var request = 'DescribeFeatureType', service = 'WFS';
         var id = storyLayer.get('id');
+        $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'),  phase: 'featureType',
+            status: 'loading' });
         return $http({
           method: 'GET',
           url: storyLayer.get('url').replace('http:', ''),
@@ -639,33 +1045,36 @@
             'REQUEST': request,
             'TYPENAME': id
           }
-        }).success(function(data) {
-          var parser = new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType();
-          var layerInfo = parser.parseResult(data);
-          if (layerInfo.timeAttribute) {
-            storyLayer.set('timeAttribute', layerInfo.timeAttribute);
-          } else if (storyLayer.get('timeEndpoint')) {
-            me.getTimeAttribute(storyLayer);
+        }).then(function(response) {
+          var parser = (storytools.edit)? new storytools.edit.WFSDescribeFeatureType.WFSDescribeFeatureType():null;
+          if(parser) {
+            var layerInfo = parser.parseResult(response.data);
+            if (layerInfo.timeAttribute) {
+              storyLayer.set('timeAttribute', layerInfo.timeAttribute);
+            } else if (storyLayer.get('timeEndpoint')) {
+              me.getTimeAttribute(storyLayer);
+            }
+            var parts = id.split(':');
+            storyLayer.set('typeName', id);
+            storyLayer.set('featurePrefix', parts[0]);
+            storyLayer.set('featureNS', layerInfo.featureNS);
+            storyLayer.set('geomType', layerInfo.geomType);
+            storyLayer.set('attributes', layerInfo.attributes);
           }
-          var parts = id.split(':');
-          storyLayer.set('typeName', id);
-          storyLayer.set('featurePrefix', parts[0]);
-          storyLayer.set('featureNS', layerInfo.featureNS);
-          storyLayer.set('geomType', layerInfo.geomType);
-          storyLayer.set('attributes', layerInfo.attributes);
-        });
+          $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'), phase: 'featureType', status: 'done' });
+        }).catch(function(response){});
       },
       getTimeAttribute: function(storyLayer) {
         var me = this;
         return $http({
           method: 'GET',
           url: storyLayer.get('timeEndpoint')
-        }).success(function(data) {
-          storyLayer.set('timeAttribute', data.attribute);
+        }).then(function(response) {
+          storyLayer.set('timeAttribute', response.data.attribute);
           if (data.endAttribute) {
-            storyLayer.set('endTimeAttribute', data.endAttribute);
+            storyLayer.set('endTimeAttribute', response.data.endAttribute);
           }
-        });
+        }).catch(function(response){});
       },
       getStyleName: function(storyLayer) {
         if (storyLayer.get('canStyleWMS')) {
@@ -673,26 +1082,53 @@
           return $http({
             method: 'GET',
             url: storyLayer.get('path') + 'rest/layers/' + storyLayer.get('id') + '.json'
-          }).success(function(response) {
-            storyLayer.set('styleName', response.layer.defaultStyle.name);
-          });
+          }).then(function(response) {
+            storyLayer.set('styleName', response.data.layer.defaultStyle.name);
+          }).catch(function(response){});
         } else {
           return $q.when('');
         }
       },
       getFeatures: function(storyLayer, map) {
         var name = storyLayer.get('id');
+        var cql = storyLayer.get('cql');
         var wfsUrl = storyLayer.get('url') + '?service=WFS&version=1.1.0&request=GetFeature&typename=' +
               name + '&outputFormat=application/json' +
               '&srsName=' + map.getView().getProjection().getCode();
+
+        if (cql){
+          wfsUrl += "&cql_filter=" + cql;
+        }
+
+        wfsUrl += "&t=" + new Date().getTime();
+
+        $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'), phase: 'features', status: 'loading' });
+
         return $http({
           method: 'GET',
           url: wfsUrl
-        }).success(function(response) {
+        }).then(function(response) {
           var layer = storyLayer.getLayer();
-          var features = new ol.format.GeoJSON().readFeatures(response);
+          var filter = storyLayer.get('filter');
+          var features = new ol.format.GeoJSON().readFeatures(response.data);
+
+          if (filter) {
+              features = filter(features);
+          }
+
           storyLayer.set('features', features);
-        });
+
+          if(layer.getSource() instanceof ol.source.Cluster) {
+            layer.getSource().getSource().clear(true);
+            layer.getSource().getSource().addFeatures(features);
+          }else if(layer.getSource() instanceof ol.source.Vector){
+            layer.getSource().clear(true);
+            layer.getSource().addFeatures(features);
+          }
+
+          $rootScope.$broadcast('layer-status', { name: storyLayer.get('name'), phase: 'features', status: 'done' });
+
+        }).catch(function(response){});
       }
     };
   }]);
@@ -703,26 +1139,32 @@
         if (data.type === 'MapQuest') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.MapQuest({layer: data.layer})
           });
         } else if (data.type === 'ESRI') {
           return new ol.layer.Tile({
+            state: data,
+            name: data.title,
+            title: data.title,
+            group: 'background',
             source: new ol.source.XYZ({
               attributions: [
                 new ol.Attribution({
-                  html: 'Tiles &copy; <a href="http://services.arcgisonline.com/ArcGIS/' +
-                  'rest/services/World_Topo_Map/MapServer">ArcGIS</a>'
+                  html: 'Tiles &copy; <a href="//services.arcgisonline.com/ArcGIS/' +
+                  'rest/services/NatGeo_World_Map/MapServer">ArcGIS</a>'
                 })
               ],
-              url: 'http://server.arcgisonline.com/ArcGIS/rest/services/' +
-              'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+              url: '//server.arcgisonline.com/ArcGIS/rest/services/' +
+              'NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'
             })
           });
-        }else if (data.type === 'HOT') {
+        } else if (data.type === 'HOT') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.OSM({
@@ -739,12 +1181,13 @@
         } else if (data.type === 'OSM') {
           return new ol.layer.Tile({
             state: data,
+            name: data.title,
             title: data.title,
             group: 'background',
             source: new ol.source.OSM()
           });
         } else if (data.type === 'MapBox') {
-          var layer = new ol.layer.Tile({state: data, title: data.title, group: 'background'});
+          var layer = new ol.layer.Tile({state: data, name: data.title, title: data.title, group: 'background'});
           var name = data.name;
           var urls = [
             '//a.tiles.mapbox.com/v1/mapbox.',
@@ -757,9 +1200,9 @@
             if (zxy[1] < 0 || zxy[2] < 0) {
               return "";
             }
-            return urls[Math.round(Math.random()*3)] + name + '/' +
-                  zxy[0].toString()+'/'+ zxy[1].toString() +'/'+
-                  zxy[2].toString() +'.png';
+            return urls[Math.round(Math.random() * 3)] + name + '/' +
+                  zxy[0].toString() + '/' + zxy[1].toString() + '/' +
+                  zxy[2].toString() + '.png';
           };
           layer.setSource(new ol.source.TileImage({
             crossOrigin: null,
@@ -856,15 +1299,10 @@
     };
   }]);
 
-  module.service('stStoryMapBaseBuilder', ["stBaseLayerBuilder", function(stBaseLayerBuilder) {
+  module.service('stStoryMapBaseBuilder', ["$rootScope", "$compile", "$http", "stBaseLayerBuilder", function($rootScope, $compile, $http, stBaseLayerBuilder) {
     return {
       defaultMap: function(storymap) {
-        storymap.getMap().setView(new ol.View({
-          center: [0,0],
-          minZoom: 3,
-          maxZoom: 17,
-          zoom: 3
-        }));
+        storymap.getMap().setView(new ol.View({center: [0, 0], zoom: 3, minZoom: 3, maxZoom: 16}));
         this.setBaseLayer(storymap, {
           title: 'World Topo Map',
           type: 'ESRI',
@@ -878,7 +1316,7 @@
     };
   }]);
 
-  module.service('stStoryMapBuilder', ["stLayerBuilder", "stStoryMapBaseBuilder", function(stLayerBuilder, stStoryMapBaseBuilder) {
+  module.service('stStoryMapBuilder', ["$rootScope", "$compile", "stLayerBuilder", "stStoryMapBaseBuilder", function($rootScope, $compile, stLayerBuilder, stStoryMapBaseBuilder) {
     return {
       modifyStoryMap: function(storymap, data) {
         storymap.clear();
@@ -886,7 +1324,7 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (data.about !== undefined){
+          if (data.about !== undefined) {
             storymap.setStoryTitle(data.about.title);
             storymap.setStoryAbstract(data.about.abstract);
             storymap.setStoryOwner(data.about.owner);
@@ -907,6 +1345,7 @@
             });
           }
         }
+        //registerOnMapClick(storymap, $rootScope, $compile);
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -917,7 +1356,7 @@
     };
   }]);
 
-  module.service('stEditableStoryMapBuilder', ["stStoryMapBaseBuilder", "stEditableLayerBuilder", function(stStoryMapBaseBuilder, stEditableLayerBuilder) {
+  module.service('stEditableStoryMapBuilder', ["$rootScope", "$compile", "stStoryMapBaseBuilder", "stEditableLayerBuilder", function($rootScope, $compile, stStoryMapBaseBuilder, stEditableLayerBuilder) {
     return {
       modifyStoryLayer: function(storylayer, newType) {
         var data = storylayer.getProperties();
@@ -926,7 +1365,7 @@
         if (data.type === 'WMS') {
           delete data.features;
         }
-        stEditableLayerBuilder.buildEditableLayer(data, storymap.getMap()).then(function(sl) {
+        return stEditableLayerBuilder.buildEditableLayer(data, storymap.getMap()).then(function(sl) {
           // sequence is important here, first change layer, then the type.
           storylayer.setLayer(sl.getLayer());
           storylayer.set('type', sl.get('type'));
@@ -938,7 +1377,7 @@
         if (mapConfig.id >= 0) {
           storymap.set('id', mapConfig.id);
           storymap.setMode(mapConfig.playbackMode);
-          if (data.about !== undefined){
+          if (data.about !== undefined) {
             storymap.setStoryTitle(data.about.title);
             storymap.setStoryAbstract(data.about.abstract);
             storymap.setStoryOwner(data.about.owner);
@@ -956,6 +1395,9 @@
             });
           }
         }
+
+        registerOnMapClick(storymap, $rootScope, $compile);
+
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -967,6 +1409,100 @@
     };
   }]);
 
+  var featureInfoPerLayer_ = [];
+  // valid values: 'layers', 'layer', 'feature', or ''
+  var state_ = '';
+  var selectedItem_ = null;
+  var selectedItemMedia_ = null;
+  var selectedLayer_ = null;
+  var selectedItemProperties_ = null;
+  var position_ = null;
+  var containerInstance_ = null;
+
+  function registerOnMapClick(map_, $rootScope, $compile) {
+    map_.getMap().on('singleclick', function(evt) {
+
+      // Overlay clones the element so we need to compile it after it is cloned so that ng knows about it
+      if (!goog.isDefAndNotNull(containerInstance_)) {
+        containerInstance_ = map_.getMap().getOverlays().array_[0].getElement();
+        $compile(containerInstance_)($rootScope);
+
+      }
+
+      self.hide();
+      featureInfoPerLayer_ = [];
+      selectedItem_ = null;
+      selectedItemMedia_ = null;
+      selectedItemProperties_ = null;
+      state_ = null;
+
+      var infoPerLayer = [];
+      // Attempt to find a marker from the planningAppsLayer
+      var view = map_.getMap().getView();
+      var layers = map_.getStoryLayers().getArray();
+      var validRequestCount = 0;
+      var completedRequestCount = 0;
+
+      goog.array.forEach(layers, function(layer, index) {
+        var source = layer.getLayer().getSource();
+        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+          validRequestCount++;
+        }
+      });
+      //This function is called each time a get feature info request returns (call is made below).
+      //when the completedRequestCount == validRequestCount, we can display the popup
+      var getFeatureInfoCompleted = function() {
+        completedRequestCount++;
+
+        if (completedRequestCount === validRequestCount) {
+          if (infoPerLayer.length > 0) {
+            var clickPosition_ = evt.coordinate;
+            self.show(infoPerLayer, clickPosition_);
+          }
+        } else {
+          self.hide();
+          selectedItem_ = null;
+          selectedItemMedia_ = null;
+          selectedItemProperties_ = null;
+          state_ = null;
+          featureInfoPerLayer_ = [];
+        }
+      };
+
+      goog.array.forEach(layers, function(layer, index) {
+        var source = layer.getLayer().getSource();
+
+        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+
+          var url = source.getGetFeatureInfoUrl(evt.coordinate, view.getResolution(), view.getProjection(),
+                {
+                  'INFO_FORMAT': 'application/json',
+                  'FEATURE_COUNT': 5
+                });
+
+          $http.get(url).then(function(response) {
+            var layerInfo = {};
+            layerInfo.features = response.data.features;
+
+            if (layerInfo.features && layerInfo.features.length > 0 && goog.isDefAndNotNull(layers[index])) {
+              layerInfo.layer = layers[index];
+              goog.array.insert(infoPerLayer, layerInfo);
+            }
+
+            getFeatureInfoCompleted();
+          }, function(reject) {
+            getFeatureInfoCompleted();
+          });
+
+        }
+      });
+      getFeatureInfoCompleted();
+    });
+
+
+  }
+
+
 })();
 
 (function() {
@@ -976,10 +1512,6 @@
   var q_ = null;
   var noembedProviders_ = null;
 
-
-  //ALERT: ANGULARJS WHITELIST IS BULL****. The regex objects you provide get altered in various ways by angular upon
-  //creation of the whitelist. 1st it adds start and end anchor tokens to the regex, and then it ignores and flags you
-  //may have set for regex. This means all regex must be valid without use of case insensitivity flag (which sucks).
   module.config(["$sceDelegateProvider", function($sceDelegateProvider) {
     $sceDelegateProvider.resourceUrlWhitelist([
       // Allow same origin resource loads.
@@ -1158,150 +1690,6 @@
             var pinRange = stutils.createRange(pin.start_time, pin.end_time);
             if (pinRange.intersects(range)) {
                 rootScope_.$broadcast('showPin', pin);
-            }
-        }
-    };
-    StoryPinLayerManager.prototype.pinsChanged = function(pins, action) {
-        var i;
-        if (action == 'delete') {
-            for (i = 0; i < pins.length; i++) {
-                var pin = pins[i];
-                for (var j = 0, jj = this.storyPins.length; j < jj; j++) {
-                    if (this.storyPins[j].id == pin.id) {
-                        this.storyPins.splice(j, 1);
-                        break;
-                    }
-                }
-            }
-        } else if (action == 'add') {
-            for (i = 0; i < pins.length; i++) {
-                this.storyPins.push(pins[i]);
-            }
-        } else if (action == 'change') {
-            // provided edits could be used to optimize below
-        } else {
-            throw new Error('action? :' + action);
-        }
-        // @todo optimize by looking at changes
-        var times = this.storyPins.map(function(p) {
-            if (p.start_time > p.end_time) {
-                return storytools.core.utils.createRange(p.end_time, p.start_time);
-            } else {
-                return storytools.core.utils.createRange(p.start_time, p.end_time);
-            }
-        });
-        this.map.storyPinsLayer.set('times', times);
-        this.map.storyPinsLayer.set('features', this.storyPins);
-    };
-    StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
-
-        if (overwrite){
-            this.storyPins = [];
-        }
-
-        if (geojson && geojson.features) {
-            var loaded = pins.loadFromGeoJSON(geojson, projection);
-            this.pinsChanged(loaded, 'add', true);
-        }
-    };
-
-    module.service('StoryPinLayerManager', StoryPinLayerManager);
-
-    module.constant('StoryPin', pins.StoryPin);
-
-    // @todo naive implementation on local storage for now
-    module.service('stAnnotationsStore', ["StoryPinLayerManager", function(StoryPinLayerManager) {
-        function path(mapid) {
-            return '/maps/' + mapid + '/annotations';
-        }
-        function get(mapid) {
-            var saved = localStorage.getItem(path(mapid));
-            saved = (saved === null) ? [] : JSON.parse(saved);
-            // TODO is this still needed?
-            /*saved.forEach(function(s) {
-                s.the_geom = format.readGeometry(s.the_geom);
-            });*/
-            return saved;
-        }
-        function set(mapid, annotations) {
-            // TODO is this still needed?
-            /*annotations.forEach(function(s) {
-                if (s.the_geom && !angular.isString(s.the_geom)) {
-                    s.the_geom = format.writeGeometry(s.the_geom);
-                }
-            });*/
-            localStorage.setItem(path(mapid),
-                new ol.format.GeoJSON().writeFeatures(annotations,
-                    {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'})
-            );
-        }
-        return {
-            loadAnnotations: function(mapid, projection) {
-                return StoryPinLayerManager.loadFromGeoJSON(get(mapid), projection);
-            },
-            deleteAnnotations: function(annotations) {
-                var saved = get();
-                var toDelete = annotations.map(function(d) {
-                    return d.id;
-                });
-                saved = saved.filter(function(s) {
-                    return toDelete.indexOf(s.id) < 0;
-                });
-                set(saved);
-            },
-            saveAnnotations: function(mapid, annotations) {
-                var saved = get();
-                var maxId = 0;
-                saved.forEach(function(s) {
-                    maxId = Math.max(maxId, s.id);
-                });
-                var clones = [];
-                annotations.forEach(function(a) {
-                    if (typeof a.id == 'undefined') {
-                        a.id = ++maxId;
-                    }
-                    var clone = a.clone();
-                    if (a.get('start_time') !== undefined) {
-                        clone.set('start_time', a.get('start_time')/1000);
-                    }
-                    if (a.get('end_time') !== undefined) {
-                        clone.set('end_time', a.get('end_time')/1000);
-                    }
-                    clones.push(clone);
-                });
-                set(mapid, clones);
-            }
-        };
-    }]);
-
-})();
-
-(function() {
-    'use strict';
-
-    var module = angular.module('storytools.core.pins', [
-    ]);
-
-    var pins = storytools.core.maps.pins;
-    var stutils = storytools.core.time.utils;
-    var rootScope_ = null;
-
-    function StoryPinLayerManager($rootScope) {
-        this.storyPins = [];
-        this.map = null;
-        rootScope_ = $rootScope;
-    }
-    StoryPinLayerManager.$inject = ["$rootScope"];
-    StoryPinLayerManager.prototype.autoDisplayPins = function (range) {
-        var pinsToCheck = this.storyPins.filter(function (pin) {
-            return pin.get('auto_show');
-        });
-
-        for (var iPin = 0; iPin < pinsToCheck.length; iPin += 1) {
-            var pin = pinsToCheck[iPin];
-            var pinRange = stutils.createRange(pin.start_time, pin.end_time);
-            if (pinRange.intersects(range)) {
-                rootScope_.$broadcast('showPin', pin);
             } else {
                 rootScope_.$broadcast('hidePinOverlay', pin);
             }
@@ -1339,6 +1727,13 @@
         this.map.storyPinsLayer.set('times', times);
         this.map.storyPinsLayer.set('features', this.storyPins);
     };
+
+    StoryPinLayerManager.prototype.clear = function(){
+        this.storyPins = [];
+        this.map.storyPinsLayer.set('times', []);
+        this.map.storyPinsLayer.set('features', this.storyPins);
+    };
+
     StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
 
         if (overwrite){
@@ -2121,7 +2516,7 @@
         MapManager.storyMap.getStoryLayers().on('change:length', function() {
             maybeCreateTimeControls(function() {
                 var range = computeTicks(MapManager.storyMap);
-                if (range.length && range.length > 0) {
+                if (range.length >= 0) {
                     return {
                         storyLayers: MapManager.storyMap.getStoryLayers().getArray(),
                         data: range
@@ -2168,4 +2563,359 @@
             computeTicks: computeTicks
         };
     });
+})();
+
+(function() {
+  var module = angular.module('storytools.core.loading.directives', []);
+
+  module.directive('stLoading',
+      function() {
+        return {
+          restrict: 'C',
+          templateUrl: 'loading/loading.html',
+          scope: {
+            spinnerHidden: '='
+          },
+          link: function(scope, element, attrs) {
+            scope.spinnerWidth = 3;
+            scope.spinnerRadius = 28;
+            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
+              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
+            }
+            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
+              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
+            }
+            var loading = element.find('.loading');
+            loading.css('width', scope.spinnerRadius + 'px');
+            loading.css('height', scope.spinnerRadius + 'px');
+            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
+
+            var loadingSpinner = element.find('.loading-spinner');
+            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
+            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
+
+            var mask = element.find('.mask');
+            mask.css('width', (scope.spinnerRadius / 2) + 'px');
+            mask.css('height', (scope.spinnerRadius / 2) + 'px');
+
+            var spinner = element.find('.spinner');
+            spinner.css('width', scope.spinnerRadius + 'px');
+            spinner.css('height', scope.spinnerRadius + 'px');
+
+          }
+        };
+      });
+}());
+(function() {
+    'use strict';
+
+    /**
+     * @namespace storytools.core.measure.directives
+     */
+    var module = angular.module('storytools.core.measure.directives', []);
+
+
+    module.directive('stMeasurepanel',
+         ["$rootScope", "MapManager", function($rootScope, MapManager) {
+            return {
+                replace: true,
+                templateUrl: 'measure/measurepanel.tpl.html',
+                // The linking function will add behavior to the template
+                link: function(scope, element) {
+                    scope.mapManager = MapManager;
+
+                    /** Handy flag for when measuring is happening */
+                    scope.isMeasuring = false;
+
+                    /** measuring feature. */
+                    scope.feature = null;
+
+                    /** label for hte output */
+                    scope.measureType = '';
+
+                    /** measuring 'source' */
+                    scope.source = new ol.source.Vector();
+
+                    /** measuring layer */
+                    scope.layer = new ol.layer.Vector({
+                        source: scope.source
+                    });
+
+                    /** which units to use as output. */
+                    scope.units = 'm';
+
+                    /** array of units options */
+                    scope.unitTypes = [
+                        {type: 'm', label: 'M/KM'},
+                        {type: 'mi', label: 'Mi'},
+                        {type: 'ft', label: 'Ft'}
+                    ];
+
+                    /** Change the units */
+                    scope.changeUnits = function(newUnits) {
+                        scope.units = newUnits;
+                    };
+
+                    /** A formatted string describing the measure */
+                    scope.measureLabel = 0;
+
+                    /** Formatted units label. */
+                    scope.unitsLabel = '';
+
+                    /** The interaction for drawing on the map,
+                     *   defaults to null, set when measuring is started.
+                     */
+                    scope.interaction = null;
+
+                    /** Create the interaction.
+                     */
+                    var createInteraction = function(measureType) {
+                        return new ol.interaction.Draw({
+                            source: scope.source,
+                            type: (measureType == 'line' ? 'LineString' : 'Polygon')
+                        });
+                    };
+
+                    /** This comes striaght from the OL Measuring example.
+                     *
+                     *  http://openlayers.org/en/latest/examples/measure.html
+                     *
+                     */
+                    var wgs84Sphere = new ol.Sphere(6378137);
+
+                    /** The map's projection should not change. */
+                    var mapProjection = MapManager.storyMap.getMap().getView().getProjection();
+
+                    /** When the measure has changed, update the UI.
+                     *
+                     *  Calculations are always done geodesically.
+                     *
+                     */
+                    scope.updateMeasure = function() {
+                        var geo = scope.feature.getGeometry();
+                        // convert the geography to wgs84
+                        var wgs84_geo = geo.clone().transform(mapProjection, 'EPSG:4326');
+                        var coords = [];
+
+                        if (geo instanceof ol.geom.Polygon) {
+                            // get the polygon coordinates
+                            coords = wgs84_geo.getLinearRing(0).getCoordinates();
+                            // ensure polygon has at least 3 points.
+                            if (coords.length > 2) {
+                                // and calculate the area
+                                var area = Math.abs(wgs84Sphere.geodesicArea(coords));
+                                // convert to km's.
+                                if (area > 1000000 && scope.units == 'm') {
+                                    // m -> km
+                                    area = area / 1000000;
+                                    scope.unitsLabel = 'km^2';
+                                } else if (scope.units == 'ft') {
+                                    area = area * 10.7639;
+                                    scope.unitsLabel = 'ft^2';
+                                } else if (scope.units == 'mi') {
+                                    area = (area / 1000) * 0.000386102;
+                                    scope.unitsLabel = 'mi^2';
+                                } else {
+                                    scope.unitsLabel = 'm^2';
+                                }
+                                scope.measureLabel = area;
+                                scope.feature.set('measureLabel', area);
+
+                                // this updates outside of the standard angular event cycle,
+                                //  so it is necessary to notify angular to update.
+                                scope.$apply();
+                            }
+                        } else {
+                            var length = 0;
+                            coords = wgs84_geo.getCoordinates();
+                            if (coords.length > 1) {
+                                for (var i = 1, ii = coords.length; i < ii; i++) {
+                                    length += wgs84Sphere.haversineDistance(coords[i - 1], coords[i]);
+                                }
+
+                                if (length > 1000 && scope.units == 'm') {
+                                    // m -> km
+                                    length = length / 1000;
+                                    scope.unitsLabel = 'km';
+                                } else if (scope.units == 'ft') {
+                                    // m -> ft
+                                    length = length * 3.28084;
+                                    scope.unitsLabel = 'ft';
+                                } else if (scope.units == 'mi') {
+                                    // m -> mi
+                                    length = length / 1609;
+                                    scope.unitsLabel = 'mi';
+                                } else {
+                                    // assumes meters
+                                    scope.unitsLabel = 'm';
+                                }
+
+                                scope.measureLabel = length;
+                                scope.feature.set('measureLabel', length);
+                                // see the note above re: forcing the update.
+                                scope.$apply();
+                            }
+                        }
+                    };
+
+                    /** Initiate the measuring tool
+                     *
+                     *  @param {String} measureType 'line' or 'area' to determine what
+                     *                              type of measuring should be done.
+                     */
+                    scope.startMeasuring = function(measureType) {
+                        // cancel whatever current measuring is happening.
+                        if (scope.isMeasuring) {
+                            scope.stopMeasuring();
+                        }
+
+                        scope.measureType = measureType;
+
+                        // add the measuring layer to the map.
+                        MapManager.storyMap.getMap().addLayer(scope.layer);
+
+                        // configure and add the interaction
+                        scope.interaction = createInteraction(measureType);
+                        MapManager.storyMap.getMap().addInteraction(scope.interaction);
+
+                        scope.interaction.on('drawstart', function(event) {
+                            // clear out the drawing of a feature whenever
+                            //  a drawing starts.
+                            scope.source.clear();
+
+                            // reset the measure label.
+                            scope.measureLabel = 0;
+
+                            // configure the listener for the geometry changes.
+                            scope.feature = event.feature;
+                            scope.feature.set('id', 'measure-tool');
+                            scope.feature.getGeometry().on('change', scope.updateMeasure);
+                        });
+
+                        scope.isMeasuring = true;
+                    };
+
+                    /** Stop the measuring process.
+                     *
+                     *  Cleans up the artifacts
+                     *   of the measure tool from the map.
+                     */
+                    scope.stopMeasuring = function() {
+                        // remove the layer from the map
+                        MapManager.storyMap.getMap().removeLayer(scope.layer);
+
+                        // clear the measure.
+                        scope.measureLabel = 0;
+
+                        // remove the interaction.
+                        if (scope.interaction !== null) {
+                            MapManager.storyMap.getMap().removeInteraction(scope.interaction);
+                        }
+
+                        // reset the measure type
+                        scope.measureType = '';
+
+                        // flag measuring as 'stopped'
+                        scope.isMeasuring = false;
+                    };
+
+                }
+            };
+        }]);
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.measure', [
+        'storytools.core.measure.directives'
+    ]);
+})();
+(function() {
+    'use strict';
+    var module = angular.module('storytools.core.mapstory.localStorageSvc', []);
+
+    module.service('stLocalStorageSvc', ["$http", function($http) {
+        function path(mapid) {
+            return '/maps/' + mapid;
+        }
+
+        var localStorageHandler = {};
+
+        localStorageHandler.get = function(mapid) {
+            var saved = localStorage.getItem(path(mapid));
+            saved = (saved === null) ? {} : angular.fromJson(saved);
+            return saved;
+        };
+
+        localStorageHandler.set = function(mapConfig) {
+            localStorage.setItem(path(mapConfig.id), angular.toJson(mapConfig));
+        };
+
+        localStorageHandler.list = function() {
+            var maps = [];
+            var pattern = new RegExp('/maps/(\\d+)$');
+            Object.getOwnPropertyNames(localStorage).forEach(function(key) {
+                var match = pattern.exec(key);
+                if (match) {
+                    // name/title eventually
+                    maps.push({
+                        id: match[1]
+                    });
+                }
+            });
+            return maps;
+        };
+
+        localStorageHandler.nextId = function() {
+            var lastId = 0;
+            var existing = localStorageHandler.list().map(function(m) {
+                return m.id;
+            });
+            existing.sort();
+            if (existing.length) {
+                lastId = parseInt(existing[existing.length - 1]);
+            }
+            return lastId + 1;
+        };
+
+        return {
+            listMaps: function() {
+                return localStorageHandler.list();
+            },
+            loadConfig: function(mapid) {
+                return localStorageHandler.get(mapid);
+            },
+            saveConfig: function(mapConfig) {
+                if (!angular.isDefined(mapConfig.id)) {
+                    mapConfig.id = localStorageHandler.nextId();
+                }
+                localStorageHandler.set(mapConfig);
+            }
+        };
+    }]);
+})();
+
+(function() {
+    'use strict';
+
+    var module = angular.module('storytools.core.mapstory.remoteStorageSvc', []);
+
+    module.factory('stRemoteStorageSvc', ["$q", "$http", function($q, $http) {
+
+    this.save = function(map_config) {
+
+      // @TODO: Update window.config and save to server
+
+    };
+  }]);
+})();
+
+(function() {
+    'use strict';
+
+    var module = angular.module('storytools.core.mapstory.services', [
+        'storytools.core.mapstory.localStorageSvc',
+        'storytools.core.mapstory.remoteStorageSvc'
+    ]);
 })();

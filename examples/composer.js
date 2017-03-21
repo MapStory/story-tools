@@ -5,12 +5,15 @@
     var module = angular.module('composer', [
         'storytools.core.time',
         'storytools.core.mapstory',
+        'storytools.core.loading',
+        'storytools.core.legend',
         'storytools.edit.style',
         'storytools.edit.boxes',
         'storytools.edit.pins',
         'storytools.core.ogc',
         'colorpicker.module',
-        'ui.bootstrap'
+        'ui.bootstrap',
+        'angular-sortable-view'
     ]);
 
     module.constant('iconCommonsHost', 'http://mapstory.dev.boundlessgeo.com');
@@ -36,7 +39,7 @@
                 watchers = 0;
                 f(root);
                 if (watchers != last) {
-                    console.log(watchers);
+                    //console.log(watchers);
                 }
                 last = watchers;
             }, 1000);
@@ -48,11 +51,18 @@
         {
             name: 'mapstory',
             path: '/geoserver/',
-            absolutePath: 'http://mapstory.org/geoserver/',
+            absolutePath: 'https://demo.mapstory.org/geoserver/',
+            host: 'https://demo.mapstory.org/',
             canStyleWMS: false,
             timeEndpoint: function(name) {
                 return '/maps/time_info.json?layer=' + name;
             }
+        },
+        {
+            name: 'storyscapes',
+            path: '/gsstoryscapes/',
+            canStyleWMS: true,
+            host: 'http://storyscapes.geointservices.io/'
         },
         {
             name: 'local',
@@ -75,10 +85,11 @@
         return server;
     }
 
-    function MapManager($http, $q, $rootScope, $location,
-        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
-        this.storyMap = new EditableStoryMap({target: 'map'});
+    function MapManager($http, $q, $rootScope, $location, $compile,
+                        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
+        this.storyMap = new EditableStoryMap({target: 'map', overlayElement: document.getElementById('info-box')});
         window.storyMap = this.storyMap;
+
         var self = this;
         StoryPinLayerManager.storyPinsLayer = this.storyMap.storyPinsLayer;
         this.loadMap = function(options) {
@@ -112,12 +123,13 @@
                 stStoryMapBaseBuilder.defaultMap(this.storyMap);
             }
             this.currentMapOptions = options;
-        };
+  };
+
         this.saveMap = function() {
             var config = this.storyMap.getState();
             stMapConfigStore.saveConfig(config);
             if (this.storyMap.get('id') === undefined) {
-              this.storyMap.set('id', config.id);
+                this.storyMap.set('id', config.id);
             }
             stAnnotationsStore.saveAnnotations(this.storyMap.get('id'), StoryPinLayerManager.storyPins);
         };
@@ -131,7 +143,9 @@
                 self.loadMap({url: path});
             }
         });
-        this.addLayer = function(name, asVector, server, fitExtent, styleName, title) {
+        this.addLayer = function(name, settings, server, fitExtent, styleName, title) {
+            self.storyMap.setAllowZoom(settings.allowZoom);
+            self.storyMap.setAllowPan(settings.allowPan);
             if (fitExtent === undefined) {
                 fitExtent = true;
             }
@@ -147,29 +161,29 @@
             var url = server.path + workspace + '/' + name + '/wms';
             var id = workspace + ":" + name;
             var options = {
-              id: id,
-              name: name,
-              title: title || name,
-              url: url,
-              path: server.path,
-              canStyleWMS: server.canStyleWMS,
-              timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
-              type: (asVector === true) ? 'VECTOR': 'WMS'
+                id: id,
+                name: name,
+                title: title || name,
+                url: url,
+                path: server.path,
+                canStyleWMS: server.canStyleWMS,
+                timeEndpoint: server.timeEndpoint ? server.timeEndpoint(name): undefined,
+                type: (settings.asVector === true) ? 'VECTOR': 'WMS'
             };
             return stEditableLayerBuilder.buildEditableLayer(options, self.storyMap.getMap()).then(function(a) {
-              self.storyMap.addStoryLayer(a);
-              if (fitExtent === true) {
-                a.get('latlonBBOX');
-                var extent = ol.proj.transformExtent(
-                  a.get('latlonBBOX'),
-                  'EPSG:4326',
-                  self.storyMap.getMap().getView().getProjection()
-                );
-                // prevent getting off the earth
-                extent[1] = Math.max(-20037508.34, Math.min(extent[1], 20037508.34));
-                extent[3] = Math.max(-20037508.34, Math.min(extent[3], 20037508.34));
-                self.storyMap.getMap().getView().fitExtent(extent, self.storyMap.getMap().getSize());
-              }
+                self.storyMap.addStoryLayer(a);
+                if (fitExtent === true) {
+                    a.get('latlonBBOX');
+                    var extent = ol.proj.transformExtent(
+                          a.get('latlonBBOX'),
+                          'EPSG:4326',
+                          self.storyMap.getMap().getView().getProjection()
+                    );
+                    // prevent getting off the earth
+                    extent[1] = Math.max(-20037508.34, Math.min(extent[1], 20037508.34));
+                    extent[3] = Math.max(-20037508.34, Math.min(extent[3], 20037508.34));
+                    self.storyMap.getMap().getView().fitExtent(extent, self.storyMap.getMap().getSize());
+                }
             });
         };
     }
@@ -214,7 +228,8 @@
         return $injector.instantiate(MapManager);
     });
 
-    module.directive('addLayers', function($modal, $log, MapManager) {
+
+    module.directive('addLayers', function($modal, $log, $http, $sce, limitToFilter,  MapManager) {
         return {
             restrict: 'E',
             scope: {
@@ -226,20 +241,42 @@
                     active: servers[0]
                 };
                 scope.servers = servers;
+                scope.results = function(layer_name) {
+                    var url = scope.server.active.host + "api/base/search/?type__in=layer&q=" + layer_name;
+                    return $http.get(url).then(function(response){
+                        var names = [];
+                        for (var i = 0; i < response.data.objects.length; i++) {
+                            if (response.data.objects[i].title) {
+                                names.push(response.data.objects[i].typename);
+                            }
+                        }
+                        return limitToFilter(names, 15);
+                    });
+                };
                 scope.addLayer = function() {
                     scope.loading = true;
-                    MapManager.addLayer(this.layerName, this.asVector, scope.server.active).then(function() {
+                    var settings = {'asVector': this.asVector, 'allowZoom': this.allowZoom, 'allowPan': this.allowPan};
+                    MapManager.addLayer(this.layerName, settings, scope.server.active).then(function() {
                         // pass
+                        scope.$parent.status.open = false;
+
                     }, function(problems) {
                         var msg = 'Something went wrong:';
                         if (problems[0].status == 404) {
-                            msg = 'Cannot find the specified layer:';
+                            msg = 'Cannot find the specified layer: ';
+                        }else {
+                            msg += problems[0].data;
                         }
-                        msg += problems[0].data;
                         $modal.open({
-                            template: msg
+                            templateUrl: '/lib/templates/core/error-dialog.html',
+                            controller: function($scope) {
+                                $scope.title = 'Error';
+                                $scope.msg = $sce.trustAsHtml(
+                                      'An error occurred while communicating with the server. ' +
+                                      '<br/>' + msg);
+                            }
                         });
-                        $log.warn(problems);
+                        $log.warn('Failed to load %s because of %s',scope.layerName, problems);
                     }).finally(function() {
                         scope.loading = false;
                     });
@@ -274,10 +311,12 @@
                     name: 'natural-earth-1'
                 }, {
                     title: 'Humanitarian OpenStreetMap',
-                    type: 'HOT'
+                    type: 'HOT',
+                    name: 'hot'
                 }, {
                     title: 'OpenStreetMap',
-                    type: 'OSM'
+                    type: 'OSM',
+                    name: 'osm'
                 }, {
                     title: 'World Topo Map',
                     type: 'ESRI',
@@ -297,15 +336,36 @@
                 MapManager.storyMap.getStoryLayers().on('change:length', function() {
                     scope.layers = MapManager.storyMap.getStoryLayers().getArray();
                 });
+                scope.toggleVisibleLayer = function(lyr) {
+                    MapManager.storyMap.toggleStoryLayer(lyr);
+                };
+
                 scope.removeLayer = function(lyr) {
                     MapManager.storyMap.removeStoryLayer(lyr);
                 };
                 scope.modifyLayer = function(lyr) {
-                    stEditableStoryMapBuilder.modifyStoryLayer(lyr);
+                    scope.swapping = true;
+                    stEditableStoryMapBuilder.modifyStoryLayer(lyr).then(function() {
+                        scope.swapping = false;
+                    });
                 };
                 scope.onChange = function(baseLayer) {
                     stStoryMapBaseBuilder.setBaseLayer(MapManager.storyMap, baseLayer);
                 };
+                scope.onSort = function(item, partFrom, partTo, indexFrom, indexTo){
+                    console.log("Changed layer position of " + item.get('title')
+                          + " FROM " + indexFrom
+                          + " TO " + indexTo);
+
+                    partFrom.forEach(function(layer) {
+                        console.log(layer.get('title'));
+                    });
+
+                    partTo.forEach(function(layer) {
+                        console.log(layer.get('title'));
+                    });
+                };
+
             }
         };
     });
@@ -319,8 +379,8 @@
                 templateUrl: 'templates/load-map-dialog.html',
                 scope: scope
             }).result.then(function() {
-                return scope.choice;
-            });
+                      return scope.choice;
+                  });
         }
         return {
             show: show
@@ -347,8 +407,8 @@
         });
     });
 
-    module.controller('composerController', function($scope, $injector, MapManager, TimeControlsManager,
-        styleUpdater, loadMapDialog, $location) {
+    module.controller('composerController', function($scope, $compile, $http, $injector, MapManager, TimeControlsManager,
+                                                     styleUpdater, loadMapDialog, $location) {
 
         $scope.mapManager = MapManager;
         $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
@@ -360,12 +420,13 @@
         $scope.saveMap = function() {
             MapManager.saveMap();
         };
+
         $scope.newMap = function() {
             $location.path('/new');
         };
         $scope.styleChanged = function(layer) {
             layer.on('change:type', function(evt) {
-              styleUpdater.updateStyle(evt.target);
+                styleUpdater.updateStyle(evt.target);
             });
             styleUpdater.updateStyle(layer);
         };

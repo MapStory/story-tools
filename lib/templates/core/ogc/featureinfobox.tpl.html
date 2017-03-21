@@ -1,0 +1,56 @@
+  <div>
+    <div class="info-box-title-row row">
+      <div class="info-box-back"><i ng-if="featureInfoService.getPreviousState() != ''" class="glyphicon glyphicon-chevron-left" ng-click="featureInfoService.showPreviousState()"></i></div>
+      <div ng-if="featureInfoService.getState() == 'layers'" class="info-box-title ellipsis" ></div>
+      <div ng-if="featureInfoService.getState() == 'layer'" class="info-box-title ellipsis">{{featureInfoService.getSelectedItem().layer.get('metadata').title}}</div>
+      <div ng-if="featureInfoService.getState() == 'feature'" class="info-box-title ellipsis">
+        {{featureInfoService.getSelectedItemLayer().layer.get('metadata').title}}<br>{{featureInfoService.getSelectedItem().id}}</div>
+      <div class="info-box-close"><i class="glyphicon glyphicon-remove" ng-click="featureInfoService.hide()"></i></div>
+    </div>
+    <div class="animate-switch-container">
+      <div ng-if="featureInfoService.getState() == 'layers'">
+        <ul class="list-group list-group-info-box">
+          <li ng-repeat="layerInfo in featureInfoService.getSelectedItem()" class="list-group-item-info-box"
+              ng-click="featureInfoService.show(layerInfo)">
+            <div>{{layerInfo.layer.get('title')}}</div>
+          </li>
+        </ul>
+      </div>
+      <div ng-if="featureInfoService.getState() == 'layer'">
+        <ul class="list-group list-group-info-box">
+          <li ng-repeat="feature in featureInfoService.getSelectedItem().features" class="list-group-item-info-box"
+              ng-click="featureInfoService.show(feature)">
+            <div>{{feature.id}}</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div ng-if="featureInfoService.getState() == 'feature'">
+      <div id="pic-carousel-container" ng-if="featureInfoService.getSelectedItemMedia()">
+        <carousel id="feature-info-box-carousel" interval="2000">
+          <slide ng-repeat="mediaItem in featureInfoService.getSelectedItemMedia() track by $index">
+            <img ng-src="{{featureInfoService.getMediaUrlThumbnail(mediaItem)}}"
+                 onerror="this.src='/static/maploom/assets/media-error.png'"
+                 style="margin: auto" ng-click="featureInfoService.showMedia(null, $index)">
+          </slide>
+        </carousel>
+      </div>
+
+      <div class="feature-info-box">
+        <span class="info-box-attribute" ng-show="!isShowingAttributes()" ></span>
+      <span ng-repeat="prop in featureInfoService.getSelectedItemProperties()">
+        <div ng-if="!featureInfoService.isMediaPropertyName(prop[0])" ng-show="isAttributeVisible(prop[0])">
+          <span class="info-box-attribute">{{prop[0]}}</span>
+            <span ng-switch on="isUrl(prop[1])">
+              <a ng-switch-when="true" class="info-box-attribute-value" target="_blank" href="{{prop[1]}}">{{prop[1]}}</a>
+              <span ng-switch-default class="info-box-attribute-value">{{prop[1]}}</span>
+            </span>
+        </div>
+      </span>
+      </div>
+
+      <div id="feature-info-box-bottom">
+      </div>
+    </div>
+  </div>
