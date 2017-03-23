@@ -213,9 +213,10 @@ gulp.task('bundleCoreNg', function() {
 /**
  * combined bundle of all core
  */
-gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
+gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg', 'bundleOwsjsLibs'], function() {
     // @todo concat both bundles
-     gulp.src(['./dist/story-tools-core-tpls.js', './dist/story-tools-core.js', './dist/story-tools-core-ng.js'])
+     gulp.src(['./dist/story-tools-core-tpls.js', './dist/story-tools-core.js', './dist/story-tools-core-ng.js',
+               './dist/ows.js',])
     .pipe(concat('story-tools-core-all.js'))
     .pipe(gulp.dest('dist'));
 });
