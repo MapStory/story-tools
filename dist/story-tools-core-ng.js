@@ -138,6 +138,49 @@
     ]);
 })();
 (function() {
+  var module = angular.module('storytools.core.loading.directives', []);
+
+  module.directive('stLoading',
+      function() {
+        return {
+          restrict: 'C',
+          templateUrl: 'loading/loading.html',
+          scope: {
+            spinnerHidden: '='
+          },
+          link: function(scope, element, attrs) {
+            scope.spinnerWidth = 3;
+            scope.spinnerRadius = 28;
+            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
+              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
+            }
+            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
+              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
+            }
+            var loading = element.find('.loading');
+            loading.css('width', scope.spinnerRadius + 'px');
+            loading.css('height', scope.spinnerRadius + 'px');
+            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
+
+            var loadingSpinner = element.find('.loading-spinner');
+            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
+            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
+
+            var mask = element.find('.mask');
+            mask.css('width', (scope.spinnerRadius / 2) + 'px');
+            mask.css('height', (scope.spinnerRadius / 2) + 'px');
+
+            var spinner = element.find('.spinner');
+            spinner.css('width', scope.spinnerRadius + 'px');
+            spinner.css('height', scope.spinnerRadius + 'px');
+
+          }
+        };
+      });
+}());
+(function() {
     'use strict';
 
     var module = angular.module('storytools.core.mapstory', [
@@ -147,9 +190,289 @@
 })();
 
 (function() {
+    'use strict';
+
+    /**
+     * @namespace storytools.core.measure.directives
+     */
+    var module = angular.module('storytools.core.measure.directives', []);
+
+
+    module.directive('stMeasurepanel',
+         ["$rootScope", "MapManager", function($rootScope, MapManager) {
+            return {
+                replace: true,
+                templateUrl: 'measure/measurepanel.tpl.html',
+                // The linking function will add behavior to the template
+                link: function(scope, element) {
+                    scope.mapManager = MapManager;
+
+                    /** Handy flag for when measuring is happening */
+                    scope.isMeasuring = false;
+
+                    /** measuring feature. */
+                    scope.feature = null;
+
+                    /** label for hte output */
+                    scope.measureType = '';
+
+                    /** measuring 'source' */
+                    scope.source = new ol.source.Vector();
+
+                    /** measuring layer */
+                    scope.layer = new ol.layer.Vector({
+                        source: scope.source
+                    });
+
+                    /** which units to use as output. */
+                    scope.units = 'm';
+
+                    /** array of units options */
+                    scope.unitTypes = [
+                        {type: 'm', label: 'M/KM'},
+                        {type: 'mi', label: 'Mi'},
+                        {type: 'ft', label: 'Ft'}
+                    ];
+
+                    /** Change the units */
+                    scope.changeUnits = function(newUnits) {
+                        scope.units = newUnits;
+                    };
+
+                    /** A formatted string describing the measure */
+                    scope.measureLabel = 0;
+
+                    /** Formatted units label. */
+                    scope.unitsLabel = '';
+
+                    /** The interaction for drawing on the map,
+                     *   defaults to null, set when measuring is started.
+                     */
+                    scope.interaction = null;
+
+                    /** Create the interaction.
+                     */
+                    var createInteraction = function(measureType) {
+                        return new ol.interaction.Draw({
+                            source: scope.source,
+                            type: (measureType == 'line' ? 'LineString' : 'Polygon')
+                        });
+                    };
+
+                    /** This comes striaght from the OL Measuring example.
+                     *
+                     *  http://openlayers.org/en/latest/examples/measure.html
+                     *
+                     */
+                    var wgs84Sphere = new ol.Sphere(6378137);
+
+                    /** The map's projection should not change. */
+                    var mapProjection = MapManager.storyMap.getMap().getView().getProjection();
+
+                    /** When the measure has changed, update the UI.
+                     *
+                     *  Calculations are always done geodesically.
+                     *
+                     */
+                    scope.updateMeasure = function() {
+                        var geo = scope.feature.getGeometry();
+                        // convert the geography to wgs84
+                        var wgs84_geo = geo.clone().transform(mapProjection, 'EPSG:4326');
+                        var coords = [];
+
+                        if (geo instanceof ol.geom.Polygon) {
+                            // get the polygon coordinates
+                            coords = wgs84_geo.getLinearRing(0).getCoordinates();
+                            // ensure polygon has at least 3 points.
+                            if (coords.length > 2) {
+                                // and calculate the area
+                                var area = Math.abs(wgs84Sphere.geodesicArea(coords));
+                                // convert to km's.
+                                if (area > 1000000 && scope.units == 'm') {
+                                    // m -> km
+                                    area = area / 1000000;
+                                    scope.unitsLabel = 'km^2';
+                                } else if (scope.units == 'ft') {
+                                    area = area * 10.7639;
+                                    scope.unitsLabel = 'ft^2';
+                                } else if (scope.units == 'mi') {
+                                    area = (area / 1000) * 0.000386102;
+                                    scope.unitsLabel = 'mi^2';
+                                } else {
+                                    scope.unitsLabel = 'm^2';
+                                }
+                                scope.measureLabel = area;
+                                scope.feature.set('measureLabel', area);
+
+                                // this updates outside of the standard angular event cycle,
+                                //  so it is necessary to notify angular to update.
+                                scope.$apply();
+                            }
+                        } else {
+                            var length = 0;
+                            coords = wgs84_geo.getCoordinates();
+                            if (coords.length > 1) {
+                                for (var i = 1, ii = coords.length; i < ii; i++) {
+                                    length += wgs84Sphere.haversineDistance(coords[i - 1], coords[i]);
+                                }
+
+                                if (length > 1000 && scope.units == 'm') {
+                                    // m -> km
+                                    length = length / 1000;
+                                    scope.unitsLabel = 'km';
+                                } else if (scope.units == 'ft') {
+                                    // m -> ft
+                                    length = length * 3.28084;
+                                    scope.unitsLabel = 'ft';
+                                } else if (scope.units == 'mi') {
+                                    // m -> mi
+                                    length = length / 1609;
+                                    scope.unitsLabel = 'mi';
+                                } else {
+                                    // assumes meters
+                                    scope.unitsLabel = 'm';
+                                }
+
+                                scope.measureLabel = length;
+                                scope.feature.set('measureLabel', length);
+                                // see the note above re: forcing the update.
+                                scope.$apply();
+                            }
+                        }
+                    };
+
+                    /** Initiate the measuring tool
+                     *
+                     *  @param {String} measureType 'line' or 'area' to determine what
+                     *                              type of measuring should be done.
+                     */
+                    scope.startMeasuring = function(measureType) {
+                        // cancel whatever current measuring is happening.
+                        if (scope.isMeasuring) {
+                            scope.stopMeasuring();
+                        }
+
+                        scope.measureType = measureType;
+
+                        // add the measuring layer to the map.
+                        MapManager.storyMap.getMap().addLayer(scope.layer);
+
+                        // configure and add the interaction
+                        scope.interaction = createInteraction(measureType);
+                        MapManager.storyMap.getMap().addInteraction(scope.interaction);
+
+                        scope.interaction.on('drawstart', function(event) {
+                            // clear out the drawing of a feature whenever
+                            //  a drawing starts.
+                            scope.source.clear();
+
+                            // reset the measure label.
+                            scope.measureLabel = 0;
+
+                            // configure the listener for the geometry changes.
+                            scope.feature = event.feature;
+                            scope.feature.set('id', 'measure-tool');
+                            scope.feature.getGeometry().on('change', scope.updateMeasure);
+                        });
+
+                        scope.isMeasuring = true;
+                    };
+
+                    /** Stop the measuring process.
+                     *
+                     *  Cleans up the artifacts
+                     *   of the measure tool from the map.
+                     */
+                    scope.stopMeasuring = function() {
+                        // remove the layer from the map
+                        MapManager.storyMap.getMap().removeLayer(scope.layer);
+
+                        // clear the measure.
+                        scope.measureLabel = 0;
+
+                        // remove the interaction.
+                        if (scope.interaction !== null) {
+                            MapManager.storyMap.getMap().removeInteraction(scope.interaction);
+                        }
+
+                        // reset the measure type
+                        scope.measureType = '';
+
+                        // flag measuring as 'stopped'
+                        scope.isMeasuring = false;
+                    };
+
+                }
+            };
+        }]);
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.measure', [
+        'storytools.core.measure.directives'
+    ]);
+})();
+(function() {
+    'use strict';
+
+    /**
+     * @namespace storytools.core.ogc.directives
+     */
+    var module = angular.module('storytools.core.ogc.directives', []);
+
+    module.directive('featureinfobox', ["MapManager", "$rootScope", "stFeatureInfoService", function(MapManager, $rootScope, stFeatureInfoService) {
+
+            return {
+                replace: false,
+                restrict: 'A',
+                templateUrl: 'ogc/featureinfobox.tpl.html',
+                link: function(scope, el, atts) {
+                    scope.mapManager = MapManager;
+                    scope.featureInfoService = stFeatureInfoService;
+
+                    scope.isUrl = function(str) {
+                        if (!/^(f|ht)tps?:\/\//i.test(str)) {
+                            return false;
+                        }
+                        return true;
+                    };
+
+                    scope.isShowingAttributes = function() {
+                        var schema = null;//featureManagerService.getSelectedLayer().get('metadata').schema;
+
+                        // if there is no schema, do not hide attributes
+                        if (!goog.isDefAndNotNull(schema)) {
+                            return true;
+                        }
+
+                        var properties = featureInfoService.getSelectedItemProperties();
+                        for (var index = 0; index < properties.length; index++) {
+                            if (goog.isDefAndNotNull(schema[properties[index][0]]) && schema[properties[index][0]].visible) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+
+                    scope.isAttributeVisible = function(property) {
+                        var schema = null;//featureManagerService.getSelectedLayer().get('metadata').schema;
+
+                        // if there is no schema, show the attribute. only filter out if there is schema and attr is set to hidden
+                        if (!goog.isDefAndNotNull(schema) || !schema.hasOwnProperty(property)) {
+                            return true;
+                        }
+
+                        return schema[property].visible;
+                    };
+                }
+            };
+        }]
+    );
+}());
+(function() {
   'use strict';
 
-  var module = angular.module('storytools.core.ogc', []);
+  var module = angular.module('storytools.core.ogc', ['storytools.core.ogc.directives', 'storytools.core.ogc.services']);
 
   // @todo - provisional default story pins style
   var defaultStyle = [new ol.style.Style({
@@ -163,8 +486,6 @@
   })];
 
   var enabled_ = true;
-  //var containerInstance_ = null;
-  //var clickPosition_ = null;
 
   $('#map .metric-scale-line').css('bottom', '-=40px');
   $('#map .imperial-scale-line').css('bottom', '-=40px');
@@ -253,10 +574,13 @@
       map: this.map_,
       style: defaultStyle
     });
-    this.map_.addOverlay(new ol.Overlay({
-      element: data.overlayElement || document.getElementById('feature-info'),
-      stopEvent: true
-    }));
+
+    if (data.overlayElement) {
+      this.map_.addOverlay(new ol.Overlay({
+        element: data.overlayElement,
+        stopEvent: true
+      }));
+    }
     this.title = "Default Mapstory";
     this.abstract = "No Information Supplied.";
     this.owner = "";
@@ -284,341 +608,6 @@
     });
     this.addStoryPinsLayer();
     this.addStoryBoxesLayer();
-
-    this.state_ = '';
-    this.position_ = null;
-
-    function classifyItem(item) {
-      var type = '';
-
-      if (goog.isDefAndNotNull(item)) {
-        if (item.properties) {
-          type = 'feature';
-        } else if (item.features) {
-          type = 'layer';
-        } else if (item.length && item[0].features) {
-          type = 'layers';
-        }
-      }
-      console.log(type);
-      return type;
-    }
-
-    this.show = function(item, position) {
-
-      // if item is not specified, return
-      if (!goog.isDefAndNotNull(item)) {
-        return false;
-      }
-
-      var selectedItemOld = selectedItem_;
-
-      //classify the item parameter as a layer, feature, or layers
-      var type = classifyItem(item);
-
-
-      // when there is nothing in featureInfoPerLayer_, we need to used the passed in item to initialize it
-      // this is done when the user clicks on a single feature (on the map) vice selecting a feature from the pop-up
-      // (such as clicking on overlapping features)
-      if (featureInfoPerLayer_.length === 0) {
-
-        if (type === 'feature') {
-          featureInfoPerLayer_.push({features: [item], layer: selectedLayer_});
-        } else if (type === 'layer') {
-          featureInfoPerLayer_.push(item);
-        } else if (type === 'layers') {
-          featureInfoPerLayer_ = item;
-        } else {
-          throw ({
-            name: 'featureInfoBox',
-            level: 'High',
-            message: 'Expected layers, layer, or feature.',
-            toString: function() {
-              return this.name + ': ' + this.message;
-            }
-          });
-        }
-      }
-
-
-      //set the service's state_ variable (feature, layer, or layers)
-      //the state is 'layer' when the user clicks on multiple (aka overlapping) features in a single layer
-      //the state is 'layers' when the user clicks on multiple (overlapping) features that exist in separate layers
-      //the state is 'feature' when the user finishes creating a feature, they clicked on a single (non-overlapping)
-      //feature, or they select a feature from the deconfliction pop-up
-
-      //we are also going to set the selectedItem_ variable
-      //the selectedItem will be a single feature, a single layer, or a collection of layers
-      //the state is essentially a designation of the selectedItem type
-      if (type === 'feature') {
-        state_ = 'feature';
-        selectedItem_ = item;
-      } else if (type === 'layer') {
-        if (item.features.length === 1) {
-          state_ = 'feature';
-          selectedItem_ = item.features[0];
-        } else {
-          state_ = 'layer';
-          selectedItem_ = item;
-        }
-      } else if (type === 'layers') {
-        if (item.length === 1) {
-          if (item[0].features.length === 1) {
-            state_ = 'feature';
-            selectedItem_ = item[0].features[0];
-          } else {
-            state_ = 'layer';
-            selectedItem_ = item[0];
-          }
-        } else {
-          state_ = 'layers';
-          selectedItem_ = item;
-        }
-      } else {
-        throw ({
-          name: 'featureInfoBox',
-          level: 'High',
-          message: 'Invalid item passed in. Expected layers, layer, or feature.',
-          toString: function() {
-            return this.name + ': ' + this.message;
-          }
-        });
-      }
-      var forceUpdate = true;
-
-      //---- if selected item changed
-      if (selectedItem_ !== selectedItemOld) {
-
-        // -- select the geometry if it is a feature, clear otherwise
-        // -- store the selected layer of the feature
-        if (classifyItem(selectedItem_) === 'feature') {
-
-          selectedLayer_ = self.getSelectedItemLayer().layer;
-
-          // -- update selectedItemProperties_ to contain the props from the newly selected item
-          var tempProps = {};
-          var props = [];
-
-          //if the selectedItem_ is a feature go through and collect the properties in tempProps
-          //if the property is a media property (like photo or video), we need to parse out
-          //the value into an array (since there may be multiple photos or videos)
-          goog.object.forEach(selectedItem_.properties, function(v, k) {
-            tempProps[k] = [k, v];
-          });
-
-          //ensure we only take properties that are defined in the layer schema, the selectedLayer_
-          //may be some other layer so
-          var propName = null;
-          /*  if (goog.isDefAndNotNull(selectedLayer_) && goog.isDefAndNotNull(selectedLayer_.get('metadata').schema)) {
-           for (propName in selectedLayer_.get('metadata').schema) {
-           if (tempProps.hasOwnProperty(propName)) {
-           props.push(tempProps[propName]);
-           }
-           }
-           } else {*/
-          for (propName in tempProps) {
-            if (tempProps.hasOwnProperty(propName)) {
-              props.push(tempProps[propName]);
-            }
-          }
-          // }
-          selectedItemProperties_ = props;
-          console.log('---- selectedItemProperties_: ', selectedItemProperties_);
-
-          // -- update the selectedItemMedia_
-          //selectedItemMedia_ = service_.getSelectedItemMediaByProp(null);
-          //console.log('---- selectedItemMedia_: ', selectedItemMedia_);
-        }
-      }
-
-
-      if (goog.isDefAndNotNull(position)) {
-        position_ = position;
-
-        self.storyMap.getMap().getOverlays().array_[0].setPosition(position);
-      }
-
-
-    };
-
-    this.getSelectedItemLayer = function() {
-      for (var i = 0; i < featureInfoPerLayer_.length; i++) {
-        for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
-          console.log(featureInfoPerLayer_[i].features[j] === selectedItem_);
-          console.log(featureInfoPerLayer_[i].features[j]);
-          console.log(selectedItem_);
-          if (featureInfoPerLayer_[i].features[j].id === selectedItem_.id) {
-            return featureInfoPerLayer_[i];
-          }
-        }
-      }
-      return null;
-    };
-
-    this.showPreviousState = function() {
-      //Note: might want to get position and pass it in again
-      self.show(self.getPreviousState().item);
-    };
-
-    this.getPreviousState = function() {
-
-      var state = null;
-      var item = null;
-
-      if (state_ === 'feature') {
-        var layer = self.getSelectedItemLayer();
-        if (layer) {
-          if (layer.features.length > 1) {
-            state = 'layer';
-            item = layer;
-          } else if (layer.features.length === 1 && featureInfoPerLayer_.length > 1) {
-            item = featureInfoPerLayer_;
-            state = 'layers';
-          }
-        } else {
-          throw ({
-            name: 'featureInfoBox',
-            level: 'High',
-            message: 'Could not find feature!',
-            toString: function() {
-              return this.name + ': ' + this.message;
-            }
-          });
-        }
-      } else if (state_ === 'layer') {
-        if (featureInfoPerLayer_.length > 1) {
-          state = 'layers';
-          item = featureInfoPerLayer_;
-        }
-      }
-
-      if (item !== null) {
-        return {
-          state: state,
-          item: item
-        };
-      }
-
-      return '';
-    };
-
-      this.getState = function() {
-            return state_;
-        };
-
-        this.getSelectedItem = function() {
-            return selectedItem_;
-        };
-
-        this.getMediaUrl = function(mediaItem) {
-            var url = mediaItem;
-            // if the item doesn't start with 'http' then assume the item can be found in the fileservice and so convert it to
-            // a url. This means if the item is, say, at https://mysite.com/mypic.jpg, leave it as is
-            if (goog.isString(mediaItem) && mediaItem.indexOf('http') === -1) {
-                url = configService_.configuration.fileserviceUrlTemplate.replace('{}', mediaItem);
-            }
-            return url;
-        };
-
-        this.getSelectedItemMedia = function() {
-            return selectedItemMedia_;
-        };
-
-        // Warning, returns new array objects, not to be 'watched' / bound. use getSelectedItemMedia instead.
-        this.getSelectedItemMediaByProp = function(propName) {
-            var media = null;
-
-            if (classifyItem(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) &&
-                  goog.isDefAndNotNull(selectedItemProperties_)) {
-
-                goog.object.forEach(selectedItemProperties_, function(prop, index) {
-                    if (service_.isMediaPropertyName(prop[0])) {
-                        if (!goog.isDefAndNotNull(propName) || propName === prop[0]) {
-                            if (!goog.isDefAndNotNull(media)) {
-                                //TODO: media should no longer be objects
-                                media = [];
-                            }
-
-                            goog.object.forEach(prop[1], function(mediaItem) {
-                                media.push(mediaItem);
-                            });
-                        }
-                    }
-                });
-            }
-
-            return media;
-        };
-
-        this.isMediaPropertyName = function(name) {
-            var lower = name.toLowerCase();
-            return lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0 ||
-                  lower.indexOf('audios') === 0 || lower.indexOf('videos') === 0;
-        };
-
-        this.getMediaTypeFromPropertyName = function(name) {
-            var lower = name.toLowerCase();
-            var type = null;
-            if (lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0) {
-                type = 'photos';
-            } else if (lower.indexOf('audios') === 0) {
-                type = 'audios';
-            } else if (lower.indexOf('videos') === 0) {
-                type = 'videos';
-            }
-            return type;
-        };
-
-        this.getMediaUrlThumbnail = function(mediaItem) {
-            var url = mediaItem;
-            if (goog.isDefAndNotNull(mediaItem) && (typeof mediaItem === 'string')) {
-                var ext = mediaItem.split('.').pop().split('/')[0]; // handle cases; /file.ext or /file.ext/endpoint
-                if (supportedVideoFormats_.indexOf(ext) >= 0) {
-                    url = service_.getMediaUrlDefault();
-                } else {
-                    url = service_.getMediaUrl(mediaItem);
-                }
-            }
-            return url;
-        };
-
-        this.getMediaUrlDefault = function() {
-            return '/static/maploom/assets/media-default.png';
-        };
-
-        this.getMediaUrlError = function() {
-            return '/static/maploom/assets/media-error.png';
-        };
-
-        this.getSelectedItemProperties = function() {
-            return selectedItemProperties_;
-        };
-
-        //this method is intended for unit testing only
-        this.setSelectedItemProperties = function(props) {
-            selectedItemProperties_ = props;
-        };
-
-        this.getSelectedLayer = function() {
-            return selectedLayer_;
-        };
-
-        this.getPosition = function() {
-            return position_;
-        };
-
-        this.getEnabled = function() {
-            return enabled_;
-        };
-
-        this.hide = function() {
-            selectedItem_ = null;
-            selectedItemMedia_ = null;
-            selectedItemProperties_ = null;
-            state_ = null;
-            featureInfoPerLayer_ = [];
-            this.map_.getMap().getOverlays().array_[0].setPosition(undefined);
-        };
   }
 
   StoryMap.prototype = Object.create(ol.Object.prototype);
@@ -1299,7 +1288,7 @@
     };
   }]);
 
-  module.service('stStoryMapBaseBuilder', ["$rootScope", "$compile", "$http", "stBaseLayerBuilder", function($rootScope, $compile, $http, stBaseLayerBuilder) {
+  module.service('stStoryMapBaseBuilder', ["$rootScope", "$compile", "stBaseLayerBuilder", function($rootScope, $compile, stBaseLayerBuilder) {
     return {
       defaultMap: function(storymap) {
         storymap.getMap().setView(new ol.View({center: [0, 0], zoom: 3, minZoom: 3, maxZoom: 16}));
@@ -1345,7 +1334,6 @@
             });
           }
         }
-        //registerOnMapClick(storymap, $rootScope, $compile);
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -1395,9 +1383,7 @@
             });
           }
         }
-
-        registerOnMapClick(storymap, $rootScope, $compile);
-
+        
         storymap.getMap().setView(new ol.View({
           center: mapConfig.map.center,
           zoom: mapConfig.map.zoom,
@@ -1409,102 +1395,616 @@
     };
   }]);
 
-  var featureInfoPerLayer_ = [];
-  // valid values: 'layers', 'layer', 'feature', or ''
-  var state_ = '';
-  var selectedItem_ = null;
-  var selectedItemMedia_ = null;
-  var selectedLayer_ = null;
-  var selectedItemProperties_ = null;
-  var position_ = null;
-  var containerInstance_ = null;
+     ol.Overlay.Popup = function(opt_options) {
 
-  function registerOnMapClick(map_, $rootScope, $compile) {
-    map_.getMap().on('singleclick', function(evt) {
+        var options = opt_options || {};
 
-      // Overlay clones the element so we need to compile it after it is cloned so that ng knows about it
-      if (!goog.isDefAndNotNull(containerInstance_)) {
-        containerInstance_ = map_.getMap().getOverlays().array_[0].getElement();
-        $compile(containerInstance_)($rootScope);
-
-      }
-
-      self.hide();
-      featureInfoPerLayer_ = [];
-      selectedItem_ = null;
-      selectedItemMedia_ = null;
-      selectedItemProperties_ = null;
-      state_ = null;
-
-      var infoPerLayer = [];
-      // Attempt to find a marker from the planningAppsLayer
-      var view = map_.getMap().getView();
-      var layers = map_.getStoryLayers().getArray();
-      var validRequestCount = 0;
-      var completedRequestCount = 0;
-
-      goog.array.forEach(layers, function(layer, index) {
-        var source = layer.getLayer().getSource();
-        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
-          validRequestCount++;
+        this.panMapIfOutOfView = options.panMapIfOutOfView;
+        if (this.panMapIfOutOfView === undefined) {
+            this.panMapIfOutOfView = true;
         }
-      });
-      //This function is called each time a get feature info request returns (call is made below).
-      //when the completedRequestCount == validRequestCount, we can display the popup
-      var getFeatureInfoCompleted = function() {
-        completedRequestCount++;
 
-        if (completedRequestCount === validRequestCount) {
-          if (infoPerLayer.length > 0) {
-            var clickPosition_ = evt.coordinate;
-            self.show(infoPerLayer, clickPosition_);
-          }
+        this.ani = options.ani;
+        if (this.ani === undefined) {
+            this.ani = ol.animation.pan;
+        }
+
+        this.ani_opts = options.ani_opts;
+        if (this.ani_opts === undefined) {
+            this.ani_opts = {'duration': 250};
+        }
+
+        this.container = document.createElement('div');
+        this.container.className = 'ol-popup';
+        this.container.id = (options.hasOwnProperty('id')) ? options.id : '';
+
+
+        this.closer = document.createElement('a');
+        this.closer.className = 'ol-popup-closer';
+        this.closer.href = '#';
+        this.container.appendChild(this.closer);
+
+        var that = this;
+        this.closer.addEventListener('click', function (evt) {
+            that.container.style.display = 'none';
+            that.closer.blur();
+            evt.preventDefault();
+        }, false);
+
+        this.content = document.createElement('div');
+        this.content.className = 'ol-popup-content';
+        this.container.appendChild(this.content);
+
+        ol.Overlay.call(this, {
+            id: (options.hasOwnProperty('id')) ? options.id : 'popup',
+            element: this.container,
+            positioning: (options.hasOwnProperty('positioning')) ? options.positioning : 'top-left',
+            stopEvent: (options.hasOwnProperty('stopEvent')) ? options.stopEvent : true,
+            insertFirst: (options.hasOwnProperty('insertFirst')) ? options.insertFirst : true
+        });
+
+    };
+
+    ol.inherits(ol.Overlay.Popup, ol.Overlay);
+
+    ol.Overlay.Popup.prototype.getId = function() {
+        return this.container.id;
+    };
+
+    ol.Overlay.Popup.prototype.show = function(coord, html) {
+        this.setPosition(coord);
+        if (html instanceof HTMLElement) {
+            this.content.innerHTML = "";
+            this.content.appendChild(html);
         } else {
-          self.hide();
-          selectedItem_ = null;
-          selectedItemMedia_ = null;
-          selectedItemProperties_ = null;
-          state_ = null;
-          featureInfoPerLayer_ = [];
+            this.content.innerHTML = html;
         }
-      };
-
-      goog.array.forEach(layers, function(layer, index) {
-        var source = layer.getLayer().getSource();
-
-        if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
-
-          var url = source.getGetFeatureInfoUrl(evt.coordinate, view.getResolution(), view.getProjection(),
-                {
-                  'INFO_FORMAT': 'application/json',
-                  'FEATURE_COUNT': 5
-                });
-
-          $http.get(url).then(function(response) {
-            var layerInfo = {};
-            layerInfo.features = response.data.features;
-
-            if (layerInfo.features && layerInfo.features.length > 0 && goog.isDefAndNotNull(layers[index])) {
-              layerInfo.layer = layers[index];
-              goog.array.insert(infoPerLayer, layerInfo);
-            }
-
-            getFeatureInfoCompleted();
-          }, function(reject) {
-            getFeatureInfoCompleted();
-          });
-
+        this.container.style.display = 'block';
+        if (this.panMapIfOutOfView) {
+            this.panIntoView_(coord);
         }
-      });
-      getFeatureInfoCompleted();
-    });
+        this.content.scrollTop = 0;
+        return this;
+    };
+
+    /**
+     * @private
+     */
+    ol.Overlay.Popup.prototype.panIntoView_ = function(coord) {
+
+        var popSize = {
+                width: this.getElement().clientWidth + 20,
+                height: this.getElement().clientHeight + 20
+            },
+            mapSize = this.getMap().getSize();
+
+        var tailHeight = 20,
+            tailOffsetLeft = 60,
+            tailOffsetRight = popSize.width - tailOffsetLeft,
+            popOffset = this.getOffset(),
+            popPx = this.getMap().getPixelFromCoordinate(coord);
+
+        var fromLeft = (popPx[0] - tailOffsetLeft),
+            fromRight = mapSize[0] - (popPx[0] + tailOffsetRight);
+
+        var fromTop = popPx[1] - popSize.height + popOffset[1],
+            fromBottom = mapSize[1] - (popPx[1] + tailHeight) - popOffset[1];
+
+        var center = this.getMap().getView().getCenter(),
+            curPx = this.getMap().getPixelFromCoordinate(center),
+            newPx = curPx.slice();
+
+        if (fromRight < 0) {
+            newPx[0] -= fromRight;
+        } else if (fromLeft < 0) {
+            newPx[0] += fromLeft;
+        }
+
+        if (fromTop < 0) {
+            newPx[1] += fromTop;
+        } else if (fromBottom < 0) {
+            newPx[1] -= fromBottom;
+        }
+
+        if (this.ani && this.ani_opts) {
+            this.ani_opts.source = center;
+            this.getMap().beforeRender(this.ani(this.ani_opts));
+        }
+
+        if (newPx[0] !== curPx[0] || newPx[1] !== curPx[1]) {
+            this.getMap().getView().setCenter(this.getMap().getCoordinateFromPixel(newPx));
+        }
+
+        return this.getMap().getView().getCenter();
+
+    };
+
+    /**
+     * Hide the popup.
+     */
+    ol.Overlay.Popup.prototype.hide = function() {
+        this.container.style.display = 'none';
+        return this;
+    };
 
 
-  }
+    /**
+     * Indicates if the popup is in open state
+     */
+    ol.Overlay.Popup.prototype.isOpened = function() {
+        return this.container.style.display == 'block';
+    };
+
+
+
 
 
 })();
 
+(function() {
+    var module = angular.module('storytools.core.ogc.services', []);
+
+    var featureInfoPerLayer_ = [];
+    // valid values: 'layers', 'layer', 'feature', or ''
+    var state_ = '';
+    var selectedItem_ = null;
+    var selectedItemMedia_ = null;
+    var selectedLayer_ = null;
+    var selectedItemProperties_ = null;
+    var position_ = null;
+    var enabled_ = true;
+    var containerInstance_ = null;
+    var overlay_ = null;
+
+
+
+    module.provider('stFeatureInfoService', function() {
+
+        this.$get = ["$rootScope", "$q", "MapManager", "$compile", "$http", function ($rootScope, $q, MapManager, $compile, $http) {
+            rootScope_ = $rootScope;
+            service_ = this;
+            mapService_ = MapManager.storyMap;
+            //translate_ = $translate;
+            httpService_ = $http;
+            q_ = $q;
+            registerOnMapClick($rootScope, $compile);
+            
+            overlay_ = new ol.Overlay({
+                insertFirst: false,
+                element: document.getElementById('info-box')
+            });
+
+            mapService_.getMap().addOverlay(overlay_);
+
+            rootScope_.$on('rangeChange', function(evt, layer) {
+                if (goog.isDefAndNotNull(service_.getSelectedLayer())) {
+                    service_.hide();
+                }
+            });
+
+
+            return this;
+        }];
+
+
+        function classifyItem(item) {
+            var type = '';
+
+            if (goog.isDefAndNotNull(item)) {
+                if (item.properties) {
+                    type = 'feature';
+                } else if (item.features) {
+                    type = 'layer';
+                } else if (item.length && item[0].features) {
+                    type = 'layers';
+                }
+            }
+            console.log(type);
+            return type;
+        }
+
+        this.show = function (item, position) {
+
+            // if item is not specified, return
+            if (!goog.isDefAndNotNull(item)) {
+                return false;
+            }
+
+            var selectedItemOld = selectedItem_;
+
+            //classify the item parameter as a layer, feature, or layers
+            var type = classifyItem(item);
+
+
+            // when there is nothing in featureInfoPerLayer_, we need to used the passed in item to initialize it
+            // this is done when the user clicks on a single feature (on the map) vice selecting a feature from the pop-up
+            // (such as clicking on overlapping features)
+            if (featureInfoPerLayer_.length === 0) {
+
+                if (type === 'feature') {
+                    featureInfoPerLayer_.push({features: [item], layer: selectedLayer_});
+                } else if (type === 'layer') {
+                    featureInfoPerLayer_.push(item);
+                } else if (type === 'layers') {
+                    featureInfoPerLayer_ = item;
+                } else {
+                    throw ({
+                        name: 'featureInfoBox',
+                        level: 'High',
+                        message: 'Expected layers, layer, or feature.',
+                        toString: function () {
+                            return this.name + ': ' + this.message;
+                        }
+                    });
+                }
+            }
+
+
+            //set the service's state_ variable (feature, layer, or layers)
+            //the state is 'layer' when the user clicks on multiple (aka overlapping) features in a single layer
+            //the state is 'layers' when the user clicks on multiple (overlapping) features that exist in separate layers
+            //the state is 'feature' when the user finishes creating a feature, they clicked on a single (non-overlapping)
+            //feature, or they select a feature from the deconfliction pop-up
+
+            //we are also going to set the selectedItem_ variable
+            //the selectedItem will be a single feature, a single layer, or a collection of layers
+            //the state is essentially a designation of the selectedItem type
+            if (type === 'feature') {
+                state_ = 'feature';
+                selectedItem_ = item;
+            } else if (type === 'layer') {
+                if (item.features.length === 1) {
+                    state_ = 'feature';
+                    selectedItem_ = item.features[0];
+                } else {
+                    state_ = 'layer';
+                    selectedItem_ = item;
+                }
+            } else if (type === 'layers') {
+                if (item.length === 1) {
+                    if (item[0].features.length === 1) {
+                        state_ = 'feature';
+                        selectedItem_ = item[0].features[0];
+                    } else {
+                        state_ = 'layer';
+                        selectedItem_ = item[0];
+                    }
+                } else {
+                    state_ = 'layers';
+                    selectedItem_ = item;
+                }
+            } else {
+                throw ({
+                    name: 'featureInfoBox',
+                    level: 'High',
+                    message: 'Invalid item passed in. Expected layers, layer, or feature.',
+                    toString: function () {
+                        return this.name + ': ' + this.message;
+                    }
+                });
+            }
+            var forceUpdate = true;
+
+            //---- if selected item changed
+            if (selectedItem_ !== selectedItemOld) {
+
+                // -- select the geometry if it is a feature, clear otherwise
+                // -- store the selected layer of the feature
+                if (classifyItem(selectedItem_) === 'feature') {
+
+                    selectedLayer_ = this.getSelectedItemLayer().layer;
+
+                    // -- update selectedItemProperties_ to contain the props from the newly selected item
+                    var tempProps = {};
+                    var props = [];
+
+                    //if the selectedItem_ is a feature go through and collect the properties in tempProps
+                    //if the property is a media property (like photo or video), we need to parse out
+                    //the value into an array (since there may be multiple photos or videos)
+                    goog.object.forEach(selectedItem_.properties, function (v, k) {
+                        tempProps[k] = [k, v];
+                    });
+
+                    //ensure we only take properties that are defined in the layer schema, the selectedLayer_
+                    //may be some other layer so
+                    var propName = null;
+                    /*  if (goog.isDefAndNotNull(selectedLayer_) && goog.isDefAndNotNull(selectedLayer_.get('metadata').schema)) {
+                     for (propName in selectedLayer_.get('metadata').schema) {
+                     if (tempProps.hasOwnProperty(propName)) {
+                     props.push(tempProps[propName]);
+                     }
+                     }
+                     } else {*/
+                    for (propName in tempProps) {
+                        if (tempProps.hasOwnProperty(propName)) {
+                            props.push(tempProps[propName]);
+                        }
+                    }
+                    // }
+                    selectedItemProperties_ = props;
+                    console.log('---- selectedItemProperties_: ', selectedItemProperties_);
+
+                    // -- update the selectedItemMedia_
+                    //selectedItemMedia_ = service_.getSelectedItemMediaByProp(null);
+                    //console.log('---- selectedItemMedia_: ', selectedItemMedia_);
+                }
+            }
+
+            if (goog.isDefAndNotNull(position)) {
+                position_ = position;
+                mapService_.getMap().getOverlays().array_[0].setPosition(position_);
+            }
+
+
+        };
+
+        this.getSelectedItemLayer = function () {
+            for (var i = 0; i < featureInfoPerLayer_.length; i++) {
+                for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
+                    console.log(featureInfoPerLayer_[i].features[j] === selectedItem_);
+                    console.log(featureInfoPerLayer_[i].features[j]);
+                    console.log(selectedItem_);
+                    if (featureInfoPerLayer_[i].features[j].id === selectedItem_.id) {
+                        return featureInfoPerLayer_[i];
+                    }
+                }
+            }
+            return null;
+        };
+
+        this.showPreviousState = function () {
+            //Note: might want to get position and pass it in again
+            this.show(this.getPreviousState().item);
+        };
+
+        this.getPreviousState = function () {
+
+            var state = null;
+            var item = null;
+
+            if (state_ === 'feature') {
+                var layer = this.getSelectedItemLayer();
+                if (layer) {
+                    if (layer.features.length > 1) {
+                        state = 'layer';
+                        item = layer;
+                    } else if (layer.features.length === 1 && featureInfoPerLayer_.length > 1) {
+                        item = featureInfoPerLayer_;
+                        state = 'layers';
+                    }
+                } else {
+                    throw ({
+                        name: 'featureInfoBox',
+                        level: 'High',
+                        message: 'Could not find feature!',
+                        toString: function () {
+                            return this.name + ': ' + this.message;
+                        }
+                    });
+                }
+            } else if (state_ === 'layer') {
+                if (featureInfoPerLayer_.length > 1) {
+                    state = 'layers';
+                    item = featureInfoPerLayer_;
+                }
+            }
+
+            if (item !== null) {
+                return {
+                    state: state,
+                    item: item
+                };
+            }
+
+            return '';
+        };
+
+        this.getState = function () {
+            return state_;
+        };
+
+        this.getSelectedItem = function () {
+            return selectedItem_;
+        };
+
+        this.getMediaUrl = function (mediaItem) {
+            var url = mediaItem;
+            // if the item doesn't start with 'http' then assume the item can be found in the fileservice and so convert it to
+            // a url. This means if the item is, say, at https://mysite.com/mypic.jpg, leave it as is
+            if (goog.isString(mediaItem) && mediaItem.indexOf('http') === -1) {
+                url = configService_.configuration.fileserviceUrlTemplate.replace('{}', mediaItem);
+            }
+            return url;
+        };
+
+        this.getSelectedItemMedia = function () {
+            return selectedItemMedia_;
+        };
+
+        // Warning, returns new array objects, not to be 'watched' / bound. use getSelectedItemMedia instead.
+        this.getSelectedItemMediaByProp = function (propName) {
+            var media = null;
+
+            if (classifyItem(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) &&
+                goog.isDefAndNotNull(selectedItemProperties_)) {
+
+                goog.object.forEach(selectedItemProperties_, function (prop, index) {
+                    if (service_.isMediaPropertyName(prop[0])) {
+                        if (!goog.isDefAndNotNull(propName) || propName === prop[0]) {
+                            if (!goog.isDefAndNotNull(media)) {
+                                //TODO: media should no longer be objects
+                                media = [];
+                            }
+
+                            goog.object.forEach(prop[1], function (mediaItem) {
+                                media.push(mediaItem);
+                            });
+                        }
+                    }
+                });
+            }
+
+            return media;
+        };
+
+        this.isMediaPropertyName = function (name) {
+            var lower = name.toLowerCase();
+            return lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0 ||
+                lower.indexOf('audios') === 0 || lower.indexOf('videos') === 0;
+        };
+
+        this.getMediaTypeFromPropertyName = function (name) {
+            var lower = name.toLowerCase();
+            var type = null;
+            if (lower.indexOf('fotos') === 0 || lower.indexOf('photos') === 0) {
+                type = 'photos';
+            } else if (lower.indexOf('audios') === 0) {
+                type = 'audios';
+            } else if (lower.indexOf('videos') === 0) {
+                type = 'videos';
+            }
+            return type;
+        };
+
+        this.getMediaUrlThumbnail = function (mediaItem) {
+            var url = mediaItem;
+            if (goog.isDefAndNotNull(mediaItem) && (typeof mediaItem === 'string')) {
+                var ext = mediaItem.split('.').pop().split('/')[0]; // handle cases; /file.ext or /file.ext/endpoint
+                if (supportedVideoFormats_.indexOf(ext) >= 0) {
+                    url = service_.getMediaUrlDefault();
+                } else {
+                    url = service_.getMediaUrl(mediaItem);
+                }
+            }
+            return url;
+        };
+
+        this.getMediaUrlDefault = function () {
+            return '/static/maploom/assets/media-default.png';
+        };
+
+        this.getMediaUrlError = function () {
+            return '/static/maploom/assets/media-error.png';
+        };
+
+        this.getSelectedItemProperties = function () {
+            return selectedItemProperties_;
+        };
+
+        //this method is intended for unit testing only
+        this.setSelectedItemProperties = function (props) {
+            selectedItemProperties_ = props;
+        };
+
+        this.getSelectedLayer = function () {
+            return selectedLayer_;
+        };
+
+        this.getPosition = function () {
+            return position_;
+        };
+
+        this.getEnabled = function () {
+            return enabled_;
+        };
+
+        this.hide = function () {
+            selectedItem_ = null;
+            selectedItemMedia_ = null;
+            selectedItemProperties_ = null;
+            state_ = null;
+            featureInfoPerLayer_ = [];
+            mapService_.getMap().getOverlays().array_[0].setPosition(undefined);
+        };
+
+    });
+
+    function registerOnMapClick($rootScope, $compile) {
+        mapService_.getMap().on('singleclick', function(evt) {
+
+            // Overlay clones the element so we need to compile it after it is cloned so that ng knows about it
+            if (!goog.isDefAndNotNull(containerInstance_)) {
+                containerInstance_ = mapService_.getMap().getOverlays().array_[0].getElement();
+                $compile(containerInstance_)($rootScope);
+
+            }
+
+            service_.hide();
+            featureInfoPerLayer_ = [];
+            selectedItem_ = null;
+            selectedItemMedia_ = null;
+            selectedItemProperties_ = null;
+            state_ = null;
+
+            var infoPerLayer = [];
+            // Attempt to find a marker from the planningAppsLayer
+            var view = mapService_.getMap().getView();
+            var layers = mapService_.getStoryLayers().getArray();
+            var validRequestCount = 0;
+            var completedRequestCount = 0;
+
+            goog.array.forEach(layers, function(layer, index) {
+                var source = layer.getLayer().getSource();
+                if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+                    validRequestCount++;
+                }
+            });
+            //This function is called each time a get feature info request returns (call is made below).
+            //when the completedRequestCount == validRequestCount, we can display the popup
+            var getFeatureInfoCompleted = function() {
+                completedRequestCount++;
+
+                if (completedRequestCount === validRequestCount) {
+                    if (infoPerLayer.length > 0) {
+                        var clickPosition_ = evt.coordinate;
+                        service_.show(infoPerLayer, clickPosition_);
+                    }
+                } else {
+                    service_.hide();
+                    selectedItem_ = null;
+                    selectedItemMedia_ = null;
+                    selectedItemProperties_ = null;
+                    state_ = null;
+                    featureInfoPerLayer_ = [];
+                }
+            };
+
+            goog.array.forEach(layers, function(layer, index) {
+                var source = layer.getLayer().getSource();
+
+                if (goog.isDefAndNotNull(source.getGetFeatureInfoUrl)) {
+
+                    var url = source.getGetFeatureInfoUrl(evt.coordinate, view.getResolution(), view.getProjection(),
+                        {
+                            'INFO_FORMAT': 'application/json',
+                            'FEATURE_COUNT': 5
+                        });
+
+                    //Local Mod for testing
+                    //url = url.split('https://mapstory.org')[1];
+
+                    httpService_.get(url).then(function(response) {
+                        var layerInfo = {};
+                        layerInfo.features = response.data.features;
+
+                        if (layerInfo.features && layerInfo.features.length > 0 && goog.isDefAndNotNull(layers[index])) {
+                            layerInfo.layer = layers[index];
+                            goog.array.insert(infoPerLayer, layerInfo);
+                        }
+
+                        getFeatureInfoCompleted();
+                    }, function(reject) {
+                        getFeatureInfoCompleted();
+                    });
+
+                }
+            });
+        });
+
+
+    }
+
+}());
 (function() {
   var module = angular.module('loom_media_service', []);
   var service_ = null;
@@ -2508,7 +3008,7 @@
                 });
                 timeControlsManager.timeControls.on('rangeChange', function(range) {
                     timeControlsManager.currentRange = range;
-                    StoryPinLayerManager.autoDisplayPins(range);
+                    $rootScope.$broadcast('rangeChange', range);
                 });
             }
         }
@@ -2565,272 +3065,6 @@
     });
 })();
 
-(function() {
-  var module = angular.module('storytools.core.loading.directives', []);
-
-  module.directive('stLoading',
-      function() {
-        return {
-          restrict: 'C',
-          templateUrl: 'loading/loading.html',
-          scope: {
-            spinnerHidden: '='
-          },
-          link: function(scope, element, attrs) {
-            scope.spinnerWidth = 3;
-            scope.spinnerRadius = 28;
-            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
-              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
-            }
-            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
-              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
-            }
-            var loading = element.find('.loading');
-            loading.css('width', scope.spinnerRadius + 'px');
-            loading.css('height', scope.spinnerRadius + 'px');
-            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
-
-            var loadingSpinner = element.find('.loading-spinner');
-            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
-            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
-            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
-            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
-
-            var mask = element.find('.mask');
-            mask.css('width', (scope.spinnerRadius / 2) + 'px');
-            mask.css('height', (scope.spinnerRadius / 2) + 'px');
-
-            var spinner = element.find('.spinner');
-            spinner.css('width', scope.spinnerRadius + 'px');
-            spinner.css('height', scope.spinnerRadius + 'px');
-
-          }
-        };
-      });
-}());
-(function() {
-    'use strict';
-
-    /**
-     * @namespace storytools.core.measure.directives
-     */
-    var module = angular.module('storytools.core.measure.directives', []);
-
-
-    module.directive('stMeasurepanel',
-         ["$rootScope", "MapManager", function($rootScope, MapManager) {
-            return {
-                replace: true,
-                templateUrl: 'measure/measurepanel.tpl.html',
-                // The linking function will add behavior to the template
-                link: function(scope, element) {
-                    scope.mapManager = MapManager;
-
-                    /** Handy flag for when measuring is happening */
-                    scope.isMeasuring = false;
-
-                    /** measuring feature. */
-                    scope.feature = null;
-
-                    /** label for hte output */
-                    scope.measureType = '';
-
-                    /** measuring 'source' */
-                    scope.source = new ol.source.Vector();
-
-                    /** measuring layer */
-                    scope.layer = new ol.layer.Vector({
-                        source: scope.source
-                    });
-
-                    /** which units to use as output. */
-                    scope.units = 'm';
-
-                    /** array of units options */
-                    scope.unitTypes = [
-                        {type: 'm', label: 'M/KM'},
-                        {type: 'mi', label: 'Mi'},
-                        {type: 'ft', label: 'Ft'}
-                    ];
-
-                    /** Change the units */
-                    scope.changeUnits = function(newUnits) {
-                        scope.units = newUnits;
-                    };
-
-                    /** A formatted string describing the measure */
-                    scope.measureLabel = 0;
-
-                    /** Formatted units label. */
-                    scope.unitsLabel = '';
-
-                    /** The interaction for drawing on the map,
-                     *   defaults to null, set when measuring is started.
-                     */
-                    scope.interaction = null;
-
-                    /** Create the interaction.
-                     */
-                    var createInteraction = function(measureType) {
-                        return new ol.interaction.Draw({
-                            source: scope.source,
-                            type: (measureType == 'line' ? 'LineString' : 'Polygon')
-                        });
-                    };
-
-                    /** This comes striaght from the OL Measuring example.
-                     *
-                     *  http://openlayers.org/en/latest/examples/measure.html
-                     *
-                     */
-                    var wgs84Sphere = new ol.Sphere(6378137);
-
-                    /** The map's projection should not change. */
-                    var mapProjection = MapManager.storyMap.getMap().getView().getProjection();
-
-                    /** When the measure has changed, update the UI.
-                     *
-                     *  Calculations are always done geodesically.
-                     *
-                     */
-                    scope.updateMeasure = function() {
-                        var geo = scope.feature.getGeometry();
-                        // convert the geography to wgs84
-                        var wgs84_geo = geo.clone().transform(mapProjection, 'EPSG:4326');
-                        var coords = [];
-
-                        if (geo instanceof ol.geom.Polygon) {
-                            // get the polygon coordinates
-                            coords = wgs84_geo.getLinearRing(0).getCoordinates();
-                            // ensure polygon has at least 3 points.
-                            if (coords.length > 2) {
-                                // and calculate the area
-                                var area = Math.abs(wgs84Sphere.geodesicArea(coords));
-                                // convert to km's.
-                                if (area > 1000000 && scope.units == 'm') {
-                                    // m -> km
-                                    area = area / 1000000;
-                                    scope.unitsLabel = 'km^2';
-                                } else if (scope.units == 'ft') {
-                                    area = area * 10.7639;
-                                    scope.unitsLabel = 'ft^2';
-                                } else if (scope.units == 'mi') {
-                                    area = (area / 1000) * 0.000386102;
-                                    scope.unitsLabel = 'mi^2';
-                                } else {
-                                    scope.unitsLabel = 'm^2';
-                                }
-                                scope.measureLabel = area;
-                                scope.feature.set('measureLabel', area);
-
-                                // this updates outside of the standard angular event cycle,
-                                //  so it is necessary to notify angular to update.
-                                scope.$apply();
-                            }
-                        } else {
-                            var length = 0;
-                            coords = wgs84_geo.getCoordinates();
-                            if (coords.length > 1) {
-                                for (var i = 1, ii = coords.length; i < ii; i++) {
-                                    length += wgs84Sphere.haversineDistance(coords[i - 1], coords[i]);
-                                }
-
-                                if (length > 1000 && scope.units == 'm') {
-                                    // m -> km
-                                    length = length / 1000;
-                                    scope.unitsLabel = 'km';
-                                } else if (scope.units == 'ft') {
-                                    // m -> ft
-                                    length = length * 3.28084;
-                                    scope.unitsLabel = 'ft';
-                                } else if (scope.units == 'mi') {
-                                    // m -> mi
-                                    length = length / 1609;
-                                    scope.unitsLabel = 'mi';
-                                } else {
-                                    // assumes meters
-                                    scope.unitsLabel = 'm';
-                                }
-
-                                scope.measureLabel = length;
-                                scope.feature.set('measureLabel', length);
-                                // see the note above re: forcing the update.
-                                scope.$apply();
-                            }
-                        }
-                    };
-
-                    /** Initiate the measuring tool
-                     *
-                     *  @param {String} measureType 'line' or 'area' to determine what
-                     *                              type of measuring should be done.
-                     */
-                    scope.startMeasuring = function(measureType) {
-                        // cancel whatever current measuring is happening.
-                        if (scope.isMeasuring) {
-                            scope.stopMeasuring();
-                        }
-
-                        scope.measureType = measureType;
-
-                        // add the measuring layer to the map.
-                        MapManager.storyMap.getMap().addLayer(scope.layer);
-
-                        // configure and add the interaction
-                        scope.interaction = createInteraction(measureType);
-                        MapManager.storyMap.getMap().addInteraction(scope.interaction);
-
-                        scope.interaction.on('drawstart', function(event) {
-                            // clear out the drawing of a feature whenever
-                            //  a drawing starts.
-                            scope.source.clear();
-
-                            // reset the measure label.
-                            scope.measureLabel = 0;
-
-                            // configure the listener for the geometry changes.
-                            scope.feature = event.feature;
-                            scope.feature.set('id', 'measure-tool');
-                            scope.feature.getGeometry().on('change', scope.updateMeasure);
-                        });
-
-                        scope.isMeasuring = true;
-                    };
-
-                    /** Stop the measuring process.
-                     *
-                     *  Cleans up the artifacts
-                     *   of the measure tool from the map.
-                     */
-                    scope.stopMeasuring = function() {
-                        // remove the layer from the map
-                        MapManager.storyMap.getMap().removeLayer(scope.layer);
-
-                        // clear the measure.
-                        scope.measureLabel = 0;
-
-                        // remove the interaction.
-                        if (scope.interaction !== null) {
-                            MapManager.storyMap.getMap().removeInteraction(scope.interaction);
-                        }
-
-                        // reset the measure type
-                        scope.measureType = '';
-
-                        // flag measuring as 'stopped'
-                        scope.isMeasuring = false;
-                    };
-
-                }
-            };
-        }]);
-}());
-(function() {
-  'use strict';
-   var module = angular.module('storytools.core.measure', [
-        'storytools.core.measure.directives'
-    ]);
-})();
 (function() {
     'use strict';
     var module = angular.module('storytools.core.mapstory.localStorageSvc', []);

@@ -746,9 +746,11 @@ exports.readCapabilitiesTimeDimensions = function(caps, openlayers2) {
     } else {
         // @todo need to make layer scanning recursive?
         caps.value.capability.layer.layer.forEach(function(lyr) {
-            if (lyr.dimension && lyr.extent[0].value) {
-                dimensions[lyr.name] = parse(lyr.extent[0].value);
+          for (var i = 0; i < lyr.dimension.length; i ++) {
+            if (lyr.dimension[i] && lyr.dimension[i].name && lyr.dimension[i].name === 'time') {
+              dimensions[lyr.name] = parse(lyr.dimension[i].value);
             }
+          }
         });
     }
     return dimensions;
@@ -1195,7 +1197,6 @@ var utils = require('./utils');
  */
 exports.TimeSlider = function(id, model) {
     var slider = $("#" + id)[0];
-    console.log('!DJA SLIDER ID', id, slider);
     var events = new utils.Events();
     var initialized = false;
     var singleSlider;
@@ -1251,7 +1252,6 @@ exports.TimeSlider = function(id, model) {
         if (!initialized) {
             if(slider)
             {
-              console.log('!DJA INIT NOUISLIDER');
                 noUiSlider.create(slider, options);
                 slider.noUiSlider.on('slide', function (ev) {
                     var range = getRange();
@@ -1631,7 +1631,7 @@ exports.pickInterval = function(range) {
 
 exports.stringToMoment = function(date, format){
     return moment(date, format);
-}
+};
 
 exports.getTime = getTime;
 
