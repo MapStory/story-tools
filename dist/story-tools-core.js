@@ -844,6 +844,7 @@ function filterVectorLayer(storyLayer, range) {
     }, l_features);
     layer.getSource().clear(true);
     layer.getSource().addFeatures(features);
+    return features;
 }
 
 
@@ -969,16 +970,19 @@ exports.MapController = function(options, timeControls) {
 
     function updateCenterAndZoom(range){
         var currentBoxes = filterVectorBoxLayer(storyMap.storyBoxesLayer, range);
+        var currentPinFeatures = filterVectorLayer(storyMap.storyPinsLayer, range);
 
-        if(currentBoxes && currentBoxes.length > 0) {
+        if (currentPinFeatures && currentPinFeatures.length > 0) {
+          return;
+        } else if (currentBoxes && currentBoxes.length > 0) {
             var currentBox = currentBoxes[0];
 
             if (currentBox.center) {
                 storyMap.animateCenterAndZoom(currentBox.center, currentBox.zoom);
             }
-        }else{
+        } else {
             if (storyMap.returnToExtent) {
-                storyMap.animateCenterAndZoom(storyMap.getCenter(), storyMap.getZoom());
+               storyMap.animateCenterAndZoom(storyMap.getCenter(), storyMap.getZoom());
             }
         }
     }
