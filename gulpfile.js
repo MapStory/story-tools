@@ -220,7 +220,9 @@ gulp.task('bundleCoreNg', function() {
  */
 gulp.task('bundleVendorCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
     // @todo concat both bundles
-     gulp.src(['./examples/ol-debug.js', './bower_components/nouislider/distribute/nouislider.min.js',
+     gulp.src(['./examples/ol-debug.js',
+     './bower_components/bootstrap/dist/js/bootstrap.min.js',
+     './bower_components/nouislider/distribute/nouislider.min.js',
      './bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
      './bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js'])
     .pipe(concat('story-tools-vendor-all.js'))
@@ -259,6 +261,7 @@ gulp.task('bundleCoreCSS', ['lessEdit', 'lessCore'], function() {
          './dist/story-tools-core.css',
          './dist/story-tools-edit.css',
          './node_modules/vis/dist/vis.min.css',
+         './bower_components/bootstrap/dist/css/bootstrap.min.css',
          './bower_components/nouislider/distribute/nouislider.min.css'])
     .pipe(concat('story-tools-core-all.css'))
     .pipe(gulp.dest('dist'));
