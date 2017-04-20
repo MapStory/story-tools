@@ -261,7 +261,6 @@ gulp.task('bundleCoreCSS', ['lessEdit', 'lessCore'], function() {
          './dist/story-tools-core.css',
          './dist/story-tools-edit.css',
          './node_modules/vis/dist/vis.min.css',
-         './bower_components/bootstrap/dist/css/bootstrap.min.css',
          './bower_components/nouislider/distribute/nouislider.min.css'])
     .pipe(concat('story-tools-core-all.css'))
     .pipe(gulp.dest('dist'));
