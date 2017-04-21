@@ -2,8 +2,7 @@
   "name": "time-controls",
   "version": "0.0.1",
   "main": [
-    "dist/timecontrols.min.js",
-    "dist/timecontrols.min.css"
+    "lib/core/time/controls.js"
   ],
   "description": "time slider and timeline controls for maps",
   "homepage": "",
@@ -33,5 +32,8 @@
   "devDependencies": {
     "bootstrap": "3.0.0",
     "angular-mocks": "1.2.21"
+  },
+  "resolutions": {
+    "angular": "1.6.3"
   }
 }
