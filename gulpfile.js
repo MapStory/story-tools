@@ -327,7 +327,7 @@ gulp.task('test', ['clean', 'karma']);
 
 gulp.task('lazy', ['clean', 'lint', 'lessEdit', 'scripts', 'bundleCore']);
 
-gulp.task('default', ['clean', 'lint', 'test', 'minify', 'docs']);
+gulp.task('default', ['clean', 'lint', 'test', 'minify']);
 
 gulp.task('develop', ['connect', 'watch']);
 
