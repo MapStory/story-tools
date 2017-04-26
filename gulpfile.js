@@ -142,14 +142,14 @@ gulp.task('minify', ['scripts'], function() {
 });
 
 gulp.task('lint', function() {
-    // var lintStream = gulp.src(sources)
-    //     .pipe(jshint())
-    //     .pipe(jshint.reporter('default'))
-    //     .pipe(jshint.reporter('fail'));
-    // lintStream.on('error', function() {
-    //     notify('linting failed');
-    // });
-    // return lintStream;
+    var lintStream = gulp.src(sources)
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(jshint.reporter('fail'));
+    lintStream.on('error', function() {
+        notify('linting failed');
+    });
+    return lintStream;
 });
 
 gulp.task('bundleCoreTemplates', function() {
@@ -322,12 +322,12 @@ gulp.task('tdd', ['test'], function() {
     gulp.watch('test/*', ['karma']);
 });
 
-gulp.task('test', ['clean', 'karma']);
+gulp.task('test', ['scripts', 'karma']);
 
 
 gulp.task('lazy', ['clean', 'lint', 'lessEdit', 'scripts', 'bundleCore']);
 
-gulp.task('default', ['clean', 'lint', 'test', 'minify', 'docs']);
+gulp.task('default', ['test', 'minify']);
 
 gulp.task('develop', ['connect', 'watch']);
 
