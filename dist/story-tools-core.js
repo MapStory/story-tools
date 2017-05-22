@@ -1263,6 +1263,13 @@ exports.TimeSlider = function(id, model) {
                 });
                 initialized = true;
             }
+        } else {
+          slider.noUiSlider.updateOptions({
+              range: {
+                min: 0,
+                max: model.getSteps() - 1
+              }
+          }, true);
         }
 
     }
