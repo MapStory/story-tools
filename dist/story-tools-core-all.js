@@ -1270,6 +1270,12 @@ exports.TimeSlider = function(id, model) {
                 });
                 initialized = true;
             }
+        } else {
+          options.range = {
+            min: 0,
+            max: model.getSteps() - 1
+          };
+          slider.noUiSlider.updateOptions(options, true);
         }
 
     }
