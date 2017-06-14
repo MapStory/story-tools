@@ -86,7 +86,7 @@
     }
 
     function MapManager($http, $q, $rootScope, $location, $compile,
-                        StoryPinLayerManager, stMapConfigStore, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
+                        StoryPinLayerManager, stAnnotationsStore, stEditableLayerBuilder, EditableStoryMap, stStoryMapBaseBuilder, stEditableStoryMapBuilder) {
         this.storyMap = new EditableStoryMap({target: 'map', overlayElement: document.getElementById('info-box')});
         window.storyMap = this.storyMap;
 
@@ -95,16 +95,16 @@
         this.loadMap = function(options) {
             options = options || {};
             if (options.id) {
-                var config = stMapConfigStore.loadConfig(options.id);
+                var config = null;//stMapConfigStore.loadConfig(options.id);
                 stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, config);
                 var annotations = stAnnotationsStore.loadAnnotations(options.id, this.storyMap.getMap().getView().getProjection());
                 if (annotations) {
                     StoryPinLayerManager.pinsChanged(annotations, 'add', true);
                 }
             } else if (options.url) {
-                var mapLoad = $http.get(options.url).success(function(data) {
-                    stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, data);
-                }).error(function(data, status) {
+                var mapLoad = $http.get(options.url).then(function(resp) {
+                    stEditableStoryMapBuilder.modifyStoryMap(self.storyMap, resp.data);
+                }).catch(function(data, status) {
                     if (status === 401) {
                         window.console.warn('Not authorized to see map ' + mapId);
                         stStoryMapBaseBuilder.defaultMap(self.storyMap);
@@ -127,7 +127,7 @@
 
         this.saveMap = function() {
             var config = this.storyMap.getState();
-            stMapConfigStore.saveConfig(config);
+           // stMapConfigStore.saveConfig(config);
             if (this.storyMap.get('id') === undefined) {
                 this.storyMap.set('id', config.id);
             }
@@ -229,7 +229,7 @@
     });
 
 
-    module.directive('addLayers', function($modal, $log, $http, $sce, limitToFilter,  MapManager) {
+    module.directive('addLayers', function($log, $http, $sce, limitToFilter,  MapManager) {
         return {
             restrict: 'E',
             scope: {
@@ -267,7 +267,7 @@
                         }else {
                             msg += problems[0].data;
                         }
-                        $modal.open({
+                        /*$modal.open({
                             templateUrl: '/lib/templates/core/error-dialog.html',
                             controller: function($scope) {
                                 $scope.title = 'Error';
@@ -275,7 +275,7 @@
                                       'An error occurred while communicating with the server. ' +
                                       '<br/>' + msg);
                             }
-                        });
+                        });*/
                         $log.warn('Failed to load %s because of %s',scope.layerName, problems);
                     }).finally(function() {
                         scope.loading = false;
@@ -370,10 +370,10 @@
         };
     });
 
-    module.service('loadMapDialog', function($modal, $rootScope, stMapConfigStore) {
+    /*module.service('loadMapDialog', function($modal, $rootScope) {
         function show() {
             var scope = $rootScope.$new(true);
-            scope.maps = stMapConfigStore.listMaps();
+            scope.maps = [];//stMapConfigStore.listMaps();
             scope.choice = {};
             return $modal.open({
                 templateUrl: 'templates/load-map-dialog.html',
@@ -385,7 +385,7 @@
         return {
             show: show
         };
-    });
+    });*/
     module.controller('tileProgressController', function($scope) {
         $scope.tilesToLoad = 0;
         $scope.tilesLoadedProgress = 0;
@@ -408,7 +408,7 @@
     });
 
     module.controller('composerController', function($scope, $compile, $http, $injector, MapManager, TimeControlsManager,
-                                                     styleUpdater, loadMapDialog, $location) {
+                                                     styleUpdater, $location) {
 
         $scope.mapManager = MapManager;
         $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
@@ -431,14 +431,14 @@
             styleUpdater.updateStyle(layer);
         };
         $scope.showLoadMapDialog = function() {
-            var promise = loadMapDialog.show();
+           /* var promise = loadMapDialog.show();
             promise.then(function(result) {
                 if (result.mapstoryMapId) {
                     $location.path('/maps/' + result.mapstoryMapId + "/data/");
                 } else if (result.localMapId) {
                     $location.path('/local/' + result.localMapId);
                 }
-            });
+            });*/
         };
         // strip features from properties to avoid circular dependencies in debug
         $scope.layerProperties = function(lyr) {
