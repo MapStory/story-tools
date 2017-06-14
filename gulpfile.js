@@ -13,16 +13,19 @@ var less = require('gulp-less');
 var karma = require('karma').server;
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
+var cleanCSS = require('gulp-clean-css');
 var minifyHtml = require('gulp-minify-html');
 var templateCache = require('gulp-angular-templatecache');
 var devServer = require('./dev-server.js');
 var path = require('path');
+var modernizr = require('gulp-modernizr');
 
 // internal
 var watch = false;
 
 // outputs
 var coreLibsBundle = 'story-tools-core.js';
+var coreLibsAllBundle = 'story-tools-core-all.js';
 var mapstoryLibsBundle = 'story-tools-mapstory.js';
 var owsjsBundle = 'ows.js';
 var editLibsBundle = 'story-tools-edit.js';
@@ -135,6 +138,7 @@ gulp.task('minify', ['scripts'], function() {
     doMinify('dist/' + editLibsBundle);
     doMinify('dist/' + coreNgBundle);
     doMinify('dist/' + editNgBundle);
+    doMinify('dist/' + coreLibsAllBundle);
 });
 
 gulp.task('lint', function() {
@@ -210,6 +214,20 @@ gulp.task('bundleCoreNg', function() {
     ngBundle(coreNg, coreNgBundle);
 });
 
+
+/**
+ * combined bundle of all vendors
+ */
+gulp.task('bundleVendorCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
+    // @todo concat both bundles
+     gulp.src(['./examples/ol-debug.js', './bower_components/nouislider/distribute/nouislider.min.js',
+     './bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+     './bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js'])
+    .pipe(concat('story-tools-vendor-all.js'))
+    .pipe(gulp.dest('dist'));
+});
+
+
 /**
  * combined bundle of all core
  */
@@ -220,12 +238,26 @@ gulp.task('bundleCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
     .pipe(gulp.dest('dist'));
 });
 
+
+gulp.task('minify-css', function() {
+  return gulp.src('./dist/*-all.css')
+    .pipe(cleanCSS({compatibility: 'ie8', debug: true}, function(details) {
+            console.log(details.name + ': ' + details.stats.originalSize);
+            console.log(details.name + ': ' + details.stats.minifiedSize);
+        }))
+    .pipe(gulp.dest('dist'));
+});
+
+
 /**
  * combined bundle of all core
  */
 gulp.task('bundleCoreCSS', ['lessEdit', 'lessCore'], function() {
     // @todo concat both bundles
-     gulp.src(['./dist/story-tools-core.css', './dist/story-tools-edit.css'])
+     gulp.src(['./dist/story-tools-core.css',
+         './dist/story-tools-edit.css',
+         './node_modules/vis/dist/vis.min.css',
+     './bower_components/nouislider/distribute/nouislider.min.css'])
     .pipe(concat('story-tools-core-all.css'))
     .pipe(gulp.dest('dist'));
 });
@@ -256,7 +288,7 @@ gulp.task('lessCore', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
+gulp.task('scripts', ['bundleVendorCore', 'bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);
@@ -327,4 +359,10 @@ gulp.task('less', function () {
       paths: [ path.join(__dirname, 'less', 'includes') ]
     }))
     .pipe(gulp.dest('./examples/v2/style/css'));
+});
+
+gulp.task('modernizr', function() {
+  gulp.src('./examples/v2/js/*.js')
+    .pipe(modernizr())
+    .pipe(gulp.dest("dist/"))
 });
