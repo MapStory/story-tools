@@ -462,7 +462,7 @@
     });
 
     module.controller('composerController', function($scope, $log, $compile, $http, $injector, MapManager, TimeControlsManager,
-                                                     styleUpdater, loadMapDialog, $location) {
+                                                     styleUpdater, $location) {
 
         $scope.mapManager = MapManager;
         $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);

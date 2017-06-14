@@ -288,7 +288,7 @@ gulp.task('lessCore', function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('scripts', ['bundleVendorCore', 'bundleCore', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
+gulp.task('scripts', ['bundleVendorCore', 'bundleCore', 'bundleCoreCSS', 'bundleOwsjsLibs', 'bundleMapstoryLibs', 'bundleEdit', 'lessEdit', 'bundleCoreTemplates', 'bundleEditTemplates']);
 
 gulp.task('testsBundle', function() {
     return doBundle(browserify({entries: './test/tests.js', debug: true, paths: ['../lib/']}), 'tests.js', ['karma']);
