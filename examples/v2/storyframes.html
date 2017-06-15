@@ -1,0 +1,119 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,900" rel="stylesheet">
+        <link href="style/css/test.css" rel="stylesheet">
+        <script src="https://use.fontawesome.com/9690d4cb85.js"></script>
+        <script src="js/modernizr.js"></script>
+    </head>
+    <body>
+        <header>
+            <div class="story-info">
+                <h1>Story Title</h1>
+                <a href="#">Edit story info</a>
+            </div>
+            <div class="preview">
+                <i class="fa fa-toggle-off"></i>
+                <p>Preview mode</p>
+            </div>
+            <div class="autosave">
+                <p>Last edit was 6 days ago<p>
+                <button>Save</button>
+                <button>Publish</button>
+            </div>
+        </header>
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="chapter-header">
+                    <a href="table_of_contents.html" class="toc-link">Table of Contents</a>
+                    <div class="chapter-nav">
+                        <a href="#" class="arrow"><i class="fa fa-caret-left"></i></a>
+                        <h1 class="sidebar-title">01 <strong>Chapter Name</strong></h1>
+                        <a href="#" class="arrow"><i class="fa fa-caret-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-main">
+                <nav class="sidebar-nav">
+                    <a href="chapter_info.html"><i class="fa fa-info-circle"></i></a>
+                    <a href="playback_settings.html"><i class="fa fa-play-circle-o"></i></a>
+                    <a href="legend_settings.html"><i class="fa fa-list-alt"></i></a>
+                    <a href="#"><i class="fa fa-clone"></i></a>
+                    <a href="storypins.html"><i class="fa fa-map-pin"></i></a>
+                    <a href="#"><i class="fa fa-object-group active"></i></a>
+                </nav>
+                <div class="sidebar-content">
+                    <section>
+                        <h2 class="section-title float-left">StoryFrames</h2>
+                        <button class="sidebar-button float-right">Add New StoryFrame</button>
+                        <p class="clearfix">
+                            A StoryFrame defines the area of the map a viewer of your story will see.
+                            Set the default StoryFrame below, or create additional StoryFrames to
+                            override the part of the map your viewers will see for this chapter.
+                        </p>
+                    </section>
+                    <section class="accordion-item active">
+                        <div class="title-row">
+                            <h2>Default StoryFrame</h2>
+                            <i class="fa fa-trash delete"></i>
+                            <i class="fa fa-caret-up caret"></i>
+                        </div>
+                        <p>
+                            Set the StoryFrame your viewers will see when this chapter begins.
+                        </p>
+                    </section>
+                    <section class="accordion-item">
+                        <div class="title-row">
+                            <h2>StoryFrame Name 1</h2>
+                            <i class="fa fa-trash delete"></i>
+                            <i class="fa fa-caret-down caret"></i>
+                        </div>
+                    </section>
+                    <section class="accordion-item">
+                        <div class="title-row">
+                            <h2>StoryPin Name</h2>
+                            <i class="fa fa-trash delete"></i>
+                            <i class="fa fa-caret-up caret"></i>
+                        </div>
+                        <form>
+                            <div class="form-field">
+                                <label for="storypin_title">StoryFrame Title</label>
+                                <strong><abbr title="required">*</abbr></strong>
+                                <br />
+                                <input id="storypin_title" type="text" name="storypin_title" />
+                            </div>
+                            <div class="form-field">
+                                <label for="start_time">Start Time</label>
+                                <strong><abbr title="required">*</abbr></strong>
+                                <br />
+                                <input type="date" name="start_time_date">
+                                <input type="time" name="start_time_time">
+                            </div>
+                            <div class="form-field">
+                                <label for="end_time">End Time</label>
+                                <strong><abbr title="required">*</abbr></strong>
+                                <br />
+                                <input type="date" name="end_time_date">
+                                <input type="time" name="end_time_time">
+                                <br /><br />
+                                <p>Set placement for this StoryFrame on the map.</p>
+                            </div>
+                        </form>
+                    </section>
+                    <section class="accordion-item">
+                        <div class="title-row">
+                            <h2>StoryFrame Name 3</h2>
+                            <i class="fa fa-trash delete"></i>
+                            <i class="fa fa-caret-down caret"></i>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div class="map-area">
+            <div class="interactive-banner">
+                <strong>Placement for "Default StoryFrame":</strong> Place your StoryFrame over the part of the map you want
+                viewers to see when they play the story. Drag the corners to resize.
+            </div>
+        </div>
+    </body>
+</html>
