@@ -494,6 +494,18 @@
                 }
             });
         };
+
+        $scope.togglePreviewMode = function() {
+          if ($scope.mode && $scope.mode.preview === true) {
+            $scope.mapWidth = '100%'
+          } else {
+            $scope.mapWidth = '70%'
+          }
+          setTimeout(function() {
+            window.storyMap.getMap().updateSize();
+          });
+        }
+
         // strip features from properties to avoid circular dependencies in debug
         $scope.layerProperties = function(lyr) {
             var props = lyr.getProperties();

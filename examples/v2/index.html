@@ -46,7 +46,7 @@
         <div class="form-field">
             <label for="timeline">Preview mode</label>
             <label class="switch">
-                <input type="checkbox" ng-model="mode.preview" for="sidebar">
+                <input type="checkbox" ng-model="mode.preview" for="sidebar" ng-click="togglePreviewMode()">
                 <div class="slider round"></div>
             </label>
         </div>
@@ -278,12 +278,12 @@
         viewers to see when they play the story. Drag the corners to resize.
     </div>
     <div class="stLegend"></div-->
-    <div id="map"></div>
+    <div id="map" ng-style="{'width':mapWidth}"></div>
     <div featureinfobox id="info-box" ng-show="featureInfoService.getSelectedItem() && featureInfoService.getEnabled()"
      class="feature-info-box-popup">
 </div>
     <div id="footer" class='floating-below'
-         ng-show="timeControlsManager.timeControls && timeControlsManager.timeControls.isReady() ">
+         ng-show="timeControlsManager.timeControls && timeControlsManager.timeControls.isReady() " ng-style="{'width':mapWidth}">
         <div id="time-controls-panel2" style="background: #34495e;">
             <div class="navbar" style="margin:3px 0 0; min-height: 32px;" ng-controller="tileProgressController">
                 <st-playback-controls playback-options="playbackOptions" class="pull-left" style="width:100%"
