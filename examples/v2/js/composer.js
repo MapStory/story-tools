@@ -178,6 +178,8 @@
         };
         $rootScope.$on('$locationChangeSuccess', function() {
             var path = $location.path(), chapter = 1, matches;
+            var mapID = /\/maps\/(\d+)/.exec(path) ? /\/maps\/(\d+)/.exec(path)[1] : null;
+            var mapJsonUrl = '/maps/' + mapID + '/data';
 
             if (path.indexOf('/chapter') === 0){
                 if ((matches = /\d+/.exec(path)) !== null) {
@@ -185,7 +187,16 @@
                 }
             }
 
-            self.loadConfig(config, chapter);
+            if (mapID) {
+              $.ajax({
+                dataType: "json",
+                url: mapJsonUrl ,
+                }).done(function ( data ) {
+                  self.loadConfig(data, chapter);
+              });
+            } else {
+              self.loadConfig(config, chapter);
+            }
 
             /* var path = $location.path();
              if (path === '/new') {
