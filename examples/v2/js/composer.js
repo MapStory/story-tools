@@ -278,6 +278,10 @@
         };
     });
 
+    module.config(['$qProvider', function($qProvider) {
+      $qProvider.errorOnUnhandledRejections(false);
+    }]);
+
     module.service('MapManager', function($injector) {
         return $injector.instantiate(MapManager);
     });
