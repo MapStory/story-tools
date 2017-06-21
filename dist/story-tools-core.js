@@ -550,7 +550,7 @@ exports.TimeLine = function(id, model) {
             var end = ann.end_time != null ? ann.end_time : range.end;
             var type = start === end ? 'box' : 'range';
             return {
-                id: utils.sha1('annotation' + ann.id),
+                id: utils.sha1('annotation' + ann.id + i),
                 start: start,
                 end: end,
                 content: ann.content || ann.title,
@@ -603,7 +603,7 @@ exports.TimeLine = function(id, model) {
                     for (var j = 0; j < times.length; j++) {
                         var time = times[j];
                         elements.push({
-                            id: utils.sha1(id + time),
+                            id: utils.sha1(id + time + Date()),
                             group: id,
                             content: "",
                             start: time,
@@ -1264,12 +1264,11 @@ exports.TimeSlider = function(id, model) {
                 initialized = true;
             }
         } else {
-          slider.noUiSlider.updateOptions({
-              range: {
-                min: 0,
-                max: model.getSteps() - 1
-              }
-          }, true);
+          options.range = {
+            min: 0,
+            max: model.getSteps() - 1
+          };
+          slider.noUiSlider.updateOptions(options, true);
         }
 
     }
