@@ -1,0 +1,14 @@
+{
+  "name": "composer",
+  "version": "0.0.1",
+  "description": "",
+  "main": "js/composer.js",
+  "scripts": {
+    "bundle": "webpack"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "webpack": "^1.12.14",
+    "angular": "^1.5.0"
+  }
+}

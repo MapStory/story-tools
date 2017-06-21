@@ -1,0 +1,4 @@
+## Deployment
+
+- `npm install`
+- `webpack`
