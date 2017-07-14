@@ -223,6 +223,7 @@ gulp.task('bundleVendorCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
      gulp.src(['./examples/ol-debug.js',
      './bower_components/bootstrap/dist/js/bootstrap.min.js',
      './bower_components/nouislider/distribute/nouislider.min.js',
+     //'./bower_components/angular-bootstrap/ui-bootstrap.min.js',
      './bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
      './bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js'])
     .pipe(concat('story-tools-vendor-all.js'))
