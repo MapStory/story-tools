@@ -57,6 +57,56 @@
 })();
 
 (function() {
+  var module = angular.module('storytools.core.loading.directives', []);
+
+  module.directive('stLoading',
+      function() {
+        return {
+          restrict: 'C',
+          templateUrl: 'loading/loading.html',
+          scope: {
+            spinnerHidden: '='
+          },
+          link: function(scope, element, attrs) {
+            scope.spinnerWidth = 3;
+            scope.spinnerRadius = 28;
+            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
+              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
+            }
+            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
+              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
+            }
+            var loading = element.find('.loading');
+            loading.css('width', scope.spinnerRadius + 'px');
+            loading.css('height', scope.spinnerRadius + 'px');
+            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
+
+            var loadingSpinner = element.find('.loading-spinner');
+            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
+            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
+            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
+
+            var mask = element.find('.mask');
+            mask.css('width', (scope.spinnerRadius / 2) + 'px');
+            mask.css('height', (scope.spinnerRadius / 2) + 'px');
+
+            var spinner = element.find('.spinner');
+            spinner.css('width', scope.spinnerRadius + 'px');
+            spinner.css('height', scope.spinnerRadius + 'px');
+
+          }
+        };
+      });
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.loading', [
+        'storytools.core.loading.directives'
+    ]);
+})();
+
+(function() {
       'use strict';
 
     /**
@@ -137,56 +187,6 @@
         'storytools.core.legend.directives'
     ]);
 })();
-(function() {
-  var module = angular.module('storytools.core.loading.directives', []);
-
-  module.directive('stLoading',
-      function() {
-        return {
-          restrict: 'C',
-          templateUrl: 'loading/loading.html',
-          scope: {
-            spinnerHidden: '='
-          },
-          link: function(scope, element, attrs) {
-            scope.spinnerWidth = 3;
-            scope.spinnerRadius = 28;
-            if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
-              scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
-            }
-            if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
-              scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
-            }
-            var loading = element.find('.loading');
-            loading.css('width', scope.spinnerRadius + 'px');
-            loading.css('height', scope.spinnerRadius + 'px');
-            loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
-
-            var loadingSpinner = element.find('.loading-spinner');
-            loadingSpinner.css('width', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
-            loadingSpinner.css('height', (scope.spinnerRadius - scope.spinnerWidth) + 'px');
-            loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
-            loadingSpinner.css('border-radius', (scope.spinnerRadius / 2) + 'px');
-
-            var mask = element.find('.mask');
-            mask.css('width', (scope.spinnerRadius / 2) + 'px');
-            mask.css('height', (scope.spinnerRadius / 2) + 'px');
-
-            var spinner = element.find('.spinner');
-            spinner.css('width', scope.spinnerRadius + 'px');
-            spinner.css('height', scope.spinnerRadius + 'px');
-
-          }
-        };
-      });
-}());
-(function() {
-  'use strict';
-   var module = angular.module('storytools.core.loading', [
-        'storytools.core.loading.directives'
-    ]);
-})();
-
 (function() {
     'use strict';
 
@@ -2039,17 +2039,19 @@
 
   module.provider('mediaService', function() {
 
-    this.$get = ["$rootScope", "$http", "$q", function($rootScope, $http, $q) {
+    this.$get = ["$rootScope", "$http", "$q", "$sce", function($rootScope, $http, $q, $sce) {
       http_ = $http;
       q_ = $q;
       service_ = this;
+      sce_ = $sce;
 
-      http_.jsonp('https://noembed.com/providers?callback=JSON_CALLBACK', {
+      http_.jsonp($sce.trustAsResourceUrl('https://noembed.com/providers'), {
+        jsonCallbackParam: 'cb',
         headers: {
           'Content-Type': 'application/json'
         }
-      }).success(function(result) {
-        noembedProviders_ = result;
+      }).then(function(result) {
+        noembedProviders_ = result.data;
       });
 
       mediaHandlers_ = service_.configureDefaultHandlers();
@@ -2110,7 +2112,7 @@
 
     //Handler callbacks
     function getNOEmbedRequestUrl(url, params) {
-      var api_url = 'https://noembed.com/embed?url=' + url + '&callback=JSON_CALLBACK',
+      var api_url = 'https://noembed.com/embed?url=' + url,
           qs = '',
           i;
 
@@ -2131,13 +2133,20 @@
 
       var request_url = getNOEmbedRequestUrl(url, embed_params);
 
-      http_.jsonp(request_url, {
+      http_.jsonp(sce_.trustAsResourceUrl(request_url), {
+        jsonCallbackParam: 'cb',
         headers: {
           'Content-Type': 'application/json'
         }
-      }).success(function(result) {
-        response.resolve(result.html);
-      });
+      }).then(
+        /*success*/
+        function(result) {
+          response.resolve(result.data.html);
+        },
+        /*failure*/
+        function(result) {
+          console.log("error", result)
+        });
 
       return response.promise;
 
