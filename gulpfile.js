@@ -221,6 +221,7 @@ gulp.task('bundleCoreNg', function() {
 gulp.task('bundleVendorCore', ['bundleCoreLibs', 'bundleCoreNg'], function() {
     // @todo concat both bundles
      gulp.src(['./examples/ol-debug.js',
+     './bower_components/angular/angular.min.js',
      './bower_components/bootstrap/dist/js/bootstrap.min.js',
      './bower_components/nouislider/distribute/nouislider.min.js',
      './bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
