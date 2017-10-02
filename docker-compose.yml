@@ -1,0 +1,8 @@
+version: '3.1'
+services:
+
+  story-tools-build:
+    build: .
+    image: quay.io/mapstory/story-tools-build
+    volumes:
+      - ./:/usr/src/app
