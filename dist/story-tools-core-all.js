@@ -23344,15 +23344,6 @@ exports.easingFunctions = {
     ]);
 })();
 (function() {
-    'use strict';
-
-    var module = angular.module('storytools.core.mapstory', [
-      'storytools.core.mapstory.services'
-    ]);
-
-})();
-
-(function() {
   var module = angular.module('storytools.core.loading.directives', []);
 
   module.directive('stLoading',
@@ -23400,6 +23391,15 @@ exports.easingFunctions = {
    var module = angular.module('storytools.core.loading', [
         'storytools.core.loading.directives'
     ]);
+})();
+
+(function() {
+    'use strict';
+
+    var module = angular.module('storytools.core.mapstory', [
+      'storytools.core.mapstory.services'
+    ]);
+
 })();
 
 (function() {
@@ -25245,17 +25245,19 @@ exports.easingFunctions = {
 
   module.provider('mediaService', function() {
 
-    this.$get = ["$rootScope", "$http", "$q", function($rootScope, $http, $q) {
+    this.$get = ["$rootScope", "$http", "$q", "$sce", function($rootScope, $http, $q, $sce) {
       http_ = $http;
       q_ = $q;
       service_ = this;
+      sce_ = $sce;
 
-      http_.jsonp('https://noembed.com/providers?callback=JSON_CALLBACK', {
+      http_.jsonp($sce.trustAsResourceUrl('https://noembed.com/providers'), {
+        jsonCallbackParam: 'cb',
         headers: {
           'Content-Type': 'application/json'
         }
-      }).success(function(result) {
-        noembedProviders_ = result;
+      }).then(function(result) {
+        noembedProviders_ = result.data;
       });
 
       mediaHandlers_ = service_.configureDefaultHandlers();
@@ -25316,7 +25318,7 @@ exports.easingFunctions = {
 
     //Handler callbacks
     function getNOEmbedRequestUrl(url, params) {
-      var api_url = 'https://noembed.com/embed?url=' + url + '&callback=JSON_CALLBACK',
+      var api_url = 'https://noembed.com/embed?url=' + url,
           qs = '',
           i;
 
@@ -25337,13 +25339,20 @@ exports.easingFunctions = {
 
       var request_url = getNOEmbedRequestUrl(url, embed_params);
 
-      http_.jsonp(request_url, {
+      http_.jsonp(sce_.trustAsResourceUrl(request_url), {
+        jsonCallbackParam: 'cb',
         headers: {
           'Content-Type': 'application/json'
         }
-      }).success(function(result) {
-        response.resolve(result.html);
-      });
+      }).then(
+        /*success*/
+        function(result) {
+          response.resolve(result.data.html);
+        },
+        /*failure*/
+        function(result) {
+          console.log("error", result)
+        });
 
       return response.promise;
 
