@@ -13,7 +13,7 @@
                  ng-repeat="layer in mapManager.storyMap.getStoryLayers().getArray();">
                 <div class="panel-heading
      legend-item-header" data-toggle=collapse data-target="{{'#' + layer.get('name') + 'legend'}}">
-                    {{layer.get('title')}}
+                    {{layer.get('title')||layer.get('name')}}
                 </div>
                 <div class="panel-collapse legend-item in legend-panel-body" id="{{layer.get('name') + 'legend'}}">
                     <img ng-src={{getLegendUrl(layer)}}></div>
