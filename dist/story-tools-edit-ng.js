@@ -1610,15 +1610,6 @@
             }
         },
         {
-            name: 'heatmap',
-            displayName: 'HeatMap',
-            prototype: {
-                geomType: 'point',
-                radius: 8,
-                opacity: 0.8
-            }
-        },
-        {
             name: 'simple-line',
             displayName: 'Simple',
             prototype: {
