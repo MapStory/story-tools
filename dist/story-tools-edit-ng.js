@@ -1242,7 +1242,7 @@
                                 return response.rules;
                             } else {
                                 $modal.open({
-                                    templateUrl: '/lib/templates/core/error-dialog.html',
+                                    templateUrl: 'error-dialog.html',
                                     controller: ["$scope", function($scope) {
                                         $scope.title = 'Error';
                                         $scope.msg = $sce.trustAsHtml(
