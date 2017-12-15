@@ -190,6 +190,15 @@
 (function() {
     'use strict';
 
+    var module = angular.module('storytools.core.mapstory', [
+      'storytools.core.mapstory.services'
+    ]);
+
+})();
+
+(function() {
+    'use strict';
+
     /**
      * @namespace storytools.core.measure.directives
      */
@@ -410,15 +419,6 @@
         'storytools.core.measure.directives'
     ]);
 })();
-(function() {
-    'use strict';
-
-    var module = angular.module('storytools.core.mapstory', [
-      'storytools.core.mapstory.services'
-    ]);
-
-})();
-
 (function() {
     'use strict';
 
