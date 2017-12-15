@@ -1,53 +1,4 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.owsjs=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-//'use strict';
-exports.Jsonix = require('../../bower_components/jsonix/dist/Jsonix-all.js').Jsonix;
-exports.mappings = {};
-exports.mappings.XLink_1_0 = require('../../bower_components/w3c-schemas/scripts/lib/XLink_1_0.js').XLink_1_0;
-exports.mappings.Filter_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/Filter_1_0_0.js').Filter_1_0_0;
-exports.mappings.GML_2_1_2 = require('../../bower_components/ogc-schemas/scripts/lib/GML_2_1_2.js').GML_2_1_2;
-exports.mappings.SLD_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/SLD_1_0_0.js').SLD_1_0_0;
-exports.mappings.OWS_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/OWS_1_1_0.js').OWS_1_1_0;
-exports.mappings.Filter_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/Filter_1_1_0.js').Filter_1_1_0;
-exports.mappings.OWS_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/OWS_1_0_0.js').OWS_1_0_0;
-exports.mappings.SMIL_2_0 = require('../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0.js').SMIL_2_0;
-exports.mappings.SMIL_2_0_Language = require('../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0_Language.js').SMIL_2_0_Language;
-exports.mappings.GML_3_1_1 = require('../../bower_components/ogc-schemas/scripts/lib/GML_3_1_1.js').GML_3_1_1;
-exports.mappings.WFS_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/WFS_1_1_0.js').WFS_1_1_0;
-exports.mappings.WPS_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/WPS_1_0_0.js').WPS_1_0_0;
-exports.mappings.XSD_1_0 = require('../../bower_components/w3c-schemas/scripts/lib/XSD_1_0.js').XSD_1_0;
-exports.mappings.WMSC_1_1_1 = require('../../bower_components/ogc-schemas/scripts/lib/WMSC_1_1_1.js').WMSC_1_1_1;
-exports.mappings.WMS_1_3_0 = require('../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0.js').WMS_1_3_0;
-exports.mappings.WMS_1_3_0_Exceptions = require('../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0_Exceptions.js').WMS_1_3_0_Exceptions;
-
-// modify the JSONIX mapping to add the GeoServer specific VendorOption
-exports.mappings.SLD_1_0_0.tis.push({
-    ln: 'VendorOption',
-    ps: [{
-        n: 'name',
-        an: {
-            lp: 'name'
-        },
-            t: 'a'
-        }, {
-            n: 'content',
-            t: 'v'
-        }
-    ]
-});
-
-for (var i=0, ii=exports.mappings.SLD_1_0_0.tis.length; i<ii; i++) {
-    if (exports.mappings.SLD_1_0_0.tis[i].ln === 'TextSymbolizer') {
-        exports.mappings.SLD_1_0_0.tis[i].ps.push({
-            n: 'vendorOption',
-            en: 'VendorOption',
-            col: true,
-            ti: '.VendorOption'
-        });
-    }
-}
-// end of modification
-
-},{"../../bower_components/jsonix/dist/Jsonix-all.js":2,"../../bower_components/ogc-schemas/scripts/lib/Filter_1_0_0.js":3,"../../bower_components/ogc-schemas/scripts/lib/Filter_1_1_0.js":4,"../../bower_components/ogc-schemas/scripts/lib/GML_2_1_2.js":5,"../../bower_components/ogc-schemas/scripts/lib/GML_3_1_1.js":6,"../../bower_components/ogc-schemas/scripts/lib/OWS_1_0_0.js":7,"../../bower_components/ogc-schemas/scripts/lib/OWS_1_1_0.js":8,"../../bower_components/ogc-schemas/scripts/lib/SLD_1_0_0.js":9,"../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0.js":10,"../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0_Language.js":11,"../../bower_components/ogc-schemas/scripts/lib/WFS_1_1_0.js":12,"../../bower_components/ogc-schemas/scripts/lib/WMSC_1_1_1.js":13,"../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0.js":14,"../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0_Exceptions.js":15,"../../bower_components/ogc-schemas/scripts/lib/WPS_1_0_0.js":16,"../../bower_components/w3c-schemas/scripts/lib/XLink_1_0.js":17,"../../bower_components/w3c-schemas/scripts/lib/XSD_1_0.js":18}],2:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.owsjs = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*global window */
 var _jsonix_factory = function(_jsonix_xmldom, _jsonix_xmlhttprequest, _jsonix_fs)
 {
@@ -5519,7 +5470,7 @@ else
 	var Jsonix = _jsonix_factory().Jsonix;
 }
 
-},{"amdefine":19}],3:[function(require,module,exports){
+},{"amdefine":19}],2:[function(require,module,exports){
 var Filter_1_0_0_Module_Factory = function () {
   var Filter_1_0_0 = {
     n: 'Filter_1_0_0',
@@ -6269,7 +6220,7 @@ else {
     var Filter_1_0_0 = Filter_1_0_0_Module.Filter_1_0_0;
   }
 }
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var Filter_1_1_0_Module_Factory = function () {
   var Filter_1_1_0 = {
     n: 'Filter_1_1_0',
@@ -7029,7 +6980,7 @@ else {
     var Filter_1_1_0 = Filter_1_1_0_Module.Filter_1_1_0;
   }
 }
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var GML_2_1_2_Module_Factory = function () {
   var GML_2_1_2 = {
     n: 'GML_2_1_2',
@@ -7590,7 +7541,7 @@ else {
     var GML_2_1_2 = GML_2_1_2_Module.GML_2_1_2;
   }
 }
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var GML_3_1_1_Module_Factory = function () {
   var GML_3_1_1 = {
     n: 'GML_3_1_1',
@@ -17391,7 +17342,7 @@ else {
     var GML_3_1_1 = GML_3_1_1_Module.GML_3_1_1;
   }
 }
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var OWS_1_0_0_Module_Factory = function () {
   var OWS_1_0_0 = {
     n: 'OWS_1_0_0',
@@ -18056,7 +18007,7 @@ else {
     var OWS_1_0_0 = OWS_1_0_0_Module.OWS_1_0_0;
   }
 }
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var OWS_1_1_0_Module_Factory = function () {
   var OWS_1_1_0 = {
     n: 'OWS_1_1_0',
@@ -19134,7 +19085,7 @@ else {
     var OWS_1_1_0 = OWS_1_1_0_Module.OWS_1_1_0;
   }
 }
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var SLD_1_0_0_Module_Factory = function () {
   var SLD_1_0_0 = {
     n: 'SLD_1_0_0',
@@ -20176,7 +20127,7 @@ else {
     var SLD_1_0_0 = SLD_1_0_0_Module.SLD_1_0_0;
   }
 }
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var SMIL_2_0_Module_Factory = function () {
   var SMIL_2_0 = {
     n: 'SMIL_2_0',
@@ -20428,7 +20379,7 @@ else {
     var SMIL_2_0 = SMIL_2_0_Module.SMIL_2_0;
   }
 }
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var SMIL_2_0_Language_Module_Factory = function () {
   var SMIL_2_0_Language = {
     n: 'SMIL_2_0_Language',
@@ -21115,7 +21066,7 @@ else {
     var SMIL_2_0_Language = SMIL_2_0_Language_Module.SMIL_2_0_Language;
   }
 }
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var WFS_1_1_0_Module_Factory = function () {
   var WFS_1_1_0 = {
     n: 'WFS_1_1_0',
@@ -22022,7 +21973,7 @@ else {
     var WFS_1_1_0 = WFS_1_1_0_Module.WFS_1_1_0;
   }
 }
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var WMSC_1_1_1_Module_Factory = function () {
   var WMSC_1_1_1 = {
     n: 'WMSC_1_1_1',
@@ -23510,7 +23461,7 @@ else {
     var WMSC_1_1_1 = WMSC_1_1_1_Module.WMSC_1_1_1;
   }
 }
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var WMS_1_3_0_Module_Factory = function () {
   var WMS_1_3_0 = {
     n: 'WMS_1_3_0',
@@ -24501,7 +24452,7 @@ else {
     var WMS_1_3_0 = WMS_1_3_0_Module.WMS_1_3_0;
   }
 }
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var WMS_1_3_0_Exceptions_Module_Factory = function () {
   var WMS_1_3_0_Exceptions = {
     n: 'WMS_1_3_0_Exceptions',
@@ -24562,7 +24513,7 @@ else {
     var WMS_1_3_0_Exceptions = WMS_1_3_0_Exceptions_Module.WMS_1_3_0_Exceptions;
   }
 }
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var WPS_1_0_0_Module_Factory = function () {
   var WPS_1_0_0 = {
     n: 'WPS_1_0_0',
@@ -25663,7 +25614,7 @@ else {
     var WPS_1_0_0 = WPS_1_0_0_Module.WPS_1_0_0;
   }
 }
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var XLink_1_0_Module_Factory = function () {
   var XLink_1_0 = {
     n: 'XLink_1_0',
@@ -25889,7 +25840,7 @@ else {
     var XLink_1_0 = XLink_1_0_Module.XLink_1_0;
   }
 }
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var XSD_1_0_Module_Factory = function () {
   var XSD_1_0 = {
     n: 'XSD_1_0',
@@ -27301,7 +27252,56 @@ else {
     var XSD_1_0 = XSD_1_0_Module.XSD_1_0;
   }
 }
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
+//'use strict';
+exports.Jsonix = require('../../bower_components/jsonix/dist/Jsonix-all.js').Jsonix;
+exports.mappings = {};
+exports.mappings.XLink_1_0 = require('../../bower_components/w3c-schemas/scripts/lib/XLink_1_0.js').XLink_1_0;
+exports.mappings.Filter_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/Filter_1_0_0.js').Filter_1_0_0;
+exports.mappings.GML_2_1_2 = require('../../bower_components/ogc-schemas/scripts/lib/GML_2_1_2.js').GML_2_1_2;
+exports.mappings.SLD_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/SLD_1_0_0.js').SLD_1_0_0;
+exports.mappings.OWS_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/OWS_1_1_0.js').OWS_1_1_0;
+exports.mappings.Filter_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/Filter_1_1_0.js').Filter_1_1_0;
+exports.mappings.OWS_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/OWS_1_0_0.js').OWS_1_0_0;
+exports.mappings.SMIL_2_0 = require('../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0.js').SMIL_2_0;
+exports.mappings.SMIL_2_0_Language = require('../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0_Language.js').SMIL_2_0_Language;
+exports.mappings.GML_3_1_1 = require('../../bower_components/ogc-schemas/scripts/lib/GML_3_1_1.js').GML_3_1_1;
+exports.mappings.WFS_1_1_0 = require('../../bower_components/ogc-schemas/scripts/lib/WFS_1_1_0.js').WFS_1_1_0;
+exports.mappings.WPS_1_0_0 = require('../../bower_components/ogc-schemas/scripts/lib/WPS_1_0_0.js').WPS_1_0_0;
+exports.mappings.XSD_1_0 = require('../../bower_components/w3c-schemas/scripts/lib/XSD_1_0.js').XSD_1_0;
+exports.mappings.WMSC_1_1_1 = require('../../bower_components/ogc-schemas/scripts/lib/WMSC_1_1_1.js').WMSC_1_1_1;
+exports.mappings.WMS_1_3_0 = require('../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0.js').WMS_1_3_0;
+exports.mappings.WMS_1_3_0_Exceptions = require('../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0_Exceptions.js').WMS_1_3_0_Exceptions;
+
+// modify the JSONIX mapping to add the GeoServer specific VendorOption
+exports.mappings.SLD_1_0_0.tis.push({
+    ln: 'VendorOption',
+    ps: [{
+        n: 'name',
+        an: {
+            lp: 'name'
+        },
+            t: 'a'
+        }, {
+            n: 'content',
+            t: 'v'
+        }
+    ]
+});
+
+for (var i=0, ii=exports.mappings.SLD_1_0_0.tis.length; i<ii; i++) {
+    if (exports.mappings.SLD_1_0_0.tis[i].ln === 'TextSymbolizer') {
+        exports.mappings.SLD_1_0_0.tis[i].ps.push({
+            n: 'vendorOption',
+            en: 'VendorOption',
+            col: true,
+            ti: '.VendorOption'
+        });
+    }
+}
+// end of modification
+
+},{"../../bower_components/jsonix/dist/Jsonix-all.js":1,"../../bower_components/ogc-schemas/scripts/lib/Filter_1_0_0.js":2,"../../bower_components/ogc-schemas/scripts/lib/Filter_1_1_0.js":3,"../../bower_components/ogc-schemas/scripts/lib/GML_2_1_2.js":4,"../../bower_components/ogc-schemas/scripts/lib/GML_3_1_1.js":5,"../../bower_components/ogc-schemas/scripts/lib/OWS_1_0_0.js":6,"../../bower_components/ogc-schemas/scripts/lib/OWS_1_1_0.js":7,"../../bower_components/ogc-schemas/scripts/lib/SLD_1_0_0.js":8,"../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0.js":9,"../../bower_components/ogc-schemas/scripts/lib/SMIL_2_0_Language.js":10,"../../bower_components/ogc-schemas/scripts/lib/WFS_1_1_0.js":11,"../../bower_components/ogc-schemas/scripts/lib/WMSC_1_1_1.js":12,"../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0.js":13,"../../bower_components/ogc-schemas/scripts/lib/WMS_1_3_0_Exceptions.js":14,"../../bower_components/ogc-schemas/scripts/lib/WPS_1_0_0.js":15,"../../bower_components/w3c-schemas/scripts/lib/XLink_1_0.js":16,"../../bower_components/w3c-schemas/scripts/lib/XSD_1_0.js":17}],19:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 1.0.1 Copyright (c) 2011-2016, The Dojo Foundation All Rights Reserved.
@@ -27836,71 +27836,165 @@ var substr = 'ab'.substr(-1) === 'b'
 }).call(this,require('_process'))
 },{"_process":21}],21:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canMutationObserver = typeof window !== 'undefined'
-    && window.MutationObserver;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
 
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
     }
 
-    var queue = [];
 
-    if (canMutationObserver) {
-        var hiddenDiv = document.createElement("div");
-        var observer = new MutationObserver(function () {
-            var queueList = queue.slice();
-            queue.length = 0;
-            queueList.forEach(function (fn) {
-                fn();
-            });
-        });
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
 
-        observer.observe(hiddenDiv, { attributes: true });
 
-        return function nextTick(fn) {
-            if (!queue.length) {
-                hiddenDiv.setAttribute('yes', 'no');
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
             }
-            queue.push(fn);
-        };
+        }
+        queueIndex = -1;
+        len = queue.length;
     }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
 
-    if (canPost) {
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
     }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
 
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -27911,16 +28005,20 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+process.umask = function() { return 0; };
 
-},{}]},{},[1])(1)
+},{}]},{},[18])(18)
 });

@@ -26,6 +26,8 @@
     width: 83.33333333%;
   }
 }
+@media (min-width: 768px) {
+}
 .style-editor-item button {
   display: inline-block;
   padding: 6px 12px;
@@ -46,7 +48,7 @@
   user-select: none;
 }
 .style-editor-item button {
-  color: #ffffff;
+  color: #fff;
   background-color: #428bca;
   border-color: #357ebd;
 }
@@ -65,6 +67,18 @@
   position: relative;
   display: inline-block;
   vertical-align: middle;
+}
+@media (min-width: 768px) {
+}
+@media (max-width: 767px) {
+}
+@media (min-width: 768px) {
+}
+@media (min-width: 768px) {
+}
+@media (max-width: 767px) {
+}
+@media (max-width: 767px) {
 }
 .icon-commons-search .icon-list li.active {
   background-color: #5bc0de;
