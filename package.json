@@ -1,5 +1,5 @@
 {
-  "name": "time-controls",
+  "name": "story-tools",
   "version": "0.0.1",
   "description": "time slider and timeline controls for maps",
   "homepage": "",
@@ -7,12 +7,7 @@
     "type": "git",
     "url": "git://github.com/mapstory/story-tools.git"
   },
-  "keywords": [
-    "time",
-    "timeslider",
-    "timeline",
-    "javascript"
-  ],
+  "keywords": ["time", "timeslider", "timeline", "javascript"],
   "main": "./index",
   "scripts": {
     "test": "mocha",
@@ -54,6 +49,6 @@
     "gulp-minify-html": "~0.1.8",
     "gulp-shell": "~0.2.11",
     "angular-jsdoc": "~0.3.1",
-    "babelify":  "~6.0.0"
+    "babelify": "~6.0.0"
   }
 }
