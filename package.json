@@ -21,14 +21,17 @@
     "watch-dev": "gulp watch --bundle"
   },
   "dependencies": {
+    "amdefine": ">=0.1.0",
+    "jsonix": "^2.4.1",
+    "ogc-schemas": "^2.6.1",
     "vis": "3.5.0",
-    "amdefine": ">=0.1.0"
+    "w3c-schemas": "^1.4.0"
   },
   "devDependencies": {
     "gulp": "^3.8.5",
     "gulp-connect": "2.0.6",
     "proxy-middleware": "0.6.0",
-    "karma": "~0.12.24",
+    "karma": "^0.13.22",
     "karma-chrome-launcher": "~0.1.5",
     "karma-jasmine": "~0.2",
     "karma-sourcemap-loader": "~0.2",
