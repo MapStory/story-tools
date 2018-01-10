@@ -486,7 +486,7 @@
 
             function setLayer(layer) {
                 $scope.layer = layer;
-                $scope.styleTypes = stStyleTypes.getTypes(layer);
+                $scope.styleTypes = stStyleTypes.getTypes(layer, $scope.layerstyles);
                 if ($scope.styleTypes.length > 0) {
                     var activeStyleIndex = getStyleTypeIndex();
                     $scope.styleTypes[activeStyleIndex].active = true;
@@ -626,7 +626,7 @@
                     scope.updateProperty = function(update) {
                       scope.$parent.activeStyle[([property || scope.property])] = update;
                       console.log((property || scope.property) + ' updated');
-                    }; 
+                    };
                     scope.styleChoices = styleChoices;
                     if (linker) {
                         linker(scope, element, attrs);
@@ -699,7 +699,8 @@
                 layer : '=',
                 onChange : '=',
                 formChanged : '=',
-                control : '='
+                control : '=',
+                layerstyles: '=',
             }
         };
     });
@@ -1693,11 +1694,21 @@
 
     module.factory('stStyleTypes', function() {
         return {
-            getTypes: function(storyLayer) {
-                return angular.copy(types).filter(function(f) {
-                    var prop = storyLayer.get('geomType') || storyLayer.get('metadata') && storyLayer.get('metadata').geomType;
+            getTypes: function(storyLayer, styleLimit) {
+                var styles = angular.copy(types).filter(function(f) {
+                    var prop = storyLayer.get('geomType') || storyLayer.get('metadata').geomType;
                     return f.prototype.geomType === prop;
                 });
+
+                // if there are limited styles,
+                //  limit the list to those that are offered.
+                if (styleLimit !== undefined) {
+                  styles = styles.filter(function(t) {
+                    return (styleLimit.indexOf(t.name) >= 0);
+                  });
+                }
+
+                return styles;
             },
             getStyleType: function(typeName) {
                 var match = types.filter(function(t) {
