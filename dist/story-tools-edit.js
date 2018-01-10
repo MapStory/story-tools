@@ -688,14 +688,14 @@ exports.styleStorageService = function() {
       layerName = layer;
     }
     var chapter_index = chapter || window.config.chapter_index;
-    // get style from the chapter config if that exists
 
+    // get style from the stylestore if it exists
     if (isDefAndNotNull(window.config.stylestore) &&
               isDefAndNotNull(chapter_index) &&
               isDefAndNotNull(window.config.stylestore[chapter_index]) &&
               isDefAndNotNull(window.config.stylestore[chapter_index][layerName])) {
       layerStyleJson = window.config.stylestore[chapter_index][layerName];
-    // or from the layer
+    // or from the chapter config
     } else if (isDefAndNotNull(window.config.chapters) &&
              isDefAndNotNull(window.config.chapters[chapter_index])) {
       var chapterLayers = window.config.chapters[chapter_index].map.layers;
@@ -705,7 +705,7 @@ exports.styleStorageService = function() {
           layerStyleJson = chapterLayers[i].jsonstyle;
         }
       }
-    // or if it exists in the temporary style store, grab that one
+    // or from the layer
     } else if (isObject && layer.get('metadata').jsonstyle) {
       layerStyleJson = layer.get('metadata').jsonstyle;
     }
@@ -716,7 +716,7 @@ exports.styleStorageService = function() {
     if (isDefAndNotNull(window.config)) {
       var chapter_index = window.config.chapter_index;
       var style = layer.get('style') || layer.get('metadata').style;
-      // if the story was loaded from a previous save then stash the styling info in the config
+      // if the style store exists, save there
       if (isDefAndNotNull(window.config.stylestore)) {
         if (isDefAndNotNull(window.config.stylestore[chapter_index])) {
           window.config.stylestore[chapter_index][layer.get('metadata').name] = style;
@@ -725,6 +725,7 @@ exports.styleStorageService = function() {
           window.config.stylestore[chapter_index][layer.get('metadata').name] = style;
         }
       // otherwise create a temporary place to store the style
+      // otherwise create a style store and then save
       } else {
         window.config.stylestore = {};
         window.config.stylestore[chapter_index] = {};
