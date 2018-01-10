@@ -10,7 +10,7 @@ var connect = require('gulp-connect');
 var rimraf = require('gulp-rimraf');
 var jshint = require('gulp-jshint');
 var less = require('gulp-less');
-var karma = require('karma').server;
+var karma = require('karma');
 var notifier = require('node-notifier');
 var uglify = require('gulp-uglify');
 var minifyHtml = require('gulp-minify-html');
@@ -154,7 +154,7 @@ gulp.task('bundleEditTemplates', function() {
     return templateBundle(editTemplates, editTemplatesBundle, 'storytools.edit.templates');
 });
 
-/** 
+/**
  * bundle all core libraries exposing core exports on the global object
  * storytools.core
  */
@@ -172,7 +172,7 @@ gulp.task('bundleOwsjsLibs', function() {
     }), owsjsBundle, ['lint', 'karma']);
 });
 
-/** 
+/**
  * bundle all mapstory libraries exposing mapstory exports on the global object
  * storytools.mapstory
  */
@@ -183,7 +183,7 @@ gulp.task('bundleMapstoryLibs', function() {
     }), mapstoryLibsBundle, ['lint', 'karma']);
 });
 
-/** 
+/**
  * bundle all edit libraries exposing edit exports on the global object
  * storytools.edit
  */
@@ -246,9 +246,13 @@ gulp.task('karma', ['testsBundle'], function() {
     if (server) {
         conf.reporters = ['html'];
     }
-    return karma.start(conf, function(failed) {
+
+    var done = function(failed) {
         notify(failed > 0 ? failed + ' failures' : 'passing!');
-    });
+    };
+
+    var test_server = new karma.Server(conf, done)
+    test_server.start()
 });
 
 gulp.task('tdd', ['test'], function() {
