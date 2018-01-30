@@ -3,6 +3,7 @@ var gulp = require("gulp");
 var util = require("gulp-util");
 var concat = require("gulp-concat");
 var browserify = require("browserify");
+var babelify = require("babelify");
 var rename = require("gulp-rename");
 var watchify = require("watchify");
 var source = require("vinyl-source-stream");
@@ -19,6 +20,7 @@ var templateCache = require("gulp-angular-templatecache");
 var devServer = require("./dev-server.js");
 var path = require("path");
 var modernizr = require("gulp-modernizr");
+var babel = require("gulp-babel");
 
 // internal
 var watch = false;
@@ -184,6 +186,7 @@ gulp.task("bundleEditTemplates", function() {
 gulp.task("bundleCoreLibs", function() {
   return bundle(
     browserify({
+      insertGlobals: true,
       entries: ["./lib/core/index.js"],
       standalone: "storytools.core"
     }),
@@ -196,7 +199,8 @@ gulp.task("bundleOwsjsLibs", function() {
   return bundle(
     browserify({
       entries: ["./lib/owsjs/index.js"],
-      standalone: "owsjs"
+      standalone: "owsjs",
+      debug: true
     }),
     owsjsBundle,
     ["lint", "karma"]
@@ -345,15 +349,15 @@ gulp.task("lessCore", function() {
 });
 
 gulp.task("scripts", [
-  "bundleVendorCore",
-  "bundleCore",
-  "bundleOwsjsLibs",
-  "bundleMapstoryLibs",
-  "bundleEdit",
-  "lessEdit",
-  "bundleCoreTemplates",
-  "bundleEditTemplates",
-  "bundleCoreCSS"
+  // "bundleVendorCore"
+  "bundleCore"
+  // "bundleOwsjsLibs",
+  // "bundleMapstoryLibs",
+  // "bundleEdit",
+  // "lessEdit",
+  // "bundleCoreTemplates",
+  // "bundleEditTemplates",
+  // "bundleCoreCSS"
 ]);
 
 gulp.task("testsBundle", function() {

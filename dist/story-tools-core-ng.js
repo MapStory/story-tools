@@ -200,550 +200,6 @@
     'use strict';
 
     /**
-     * @namespace storytools.core.measure.directives
-     */
-    var module = angular.module('storytools.core.measure.directives', []);
-
-
-    module.directive('stMeasurepanel',
-         ["$rootScope", "MapManager", function($rootScope, MapManager) {
-            return {
-                replace: true,
-                templateUrl: 'measure/measurepanel.tpl.html',
-                // The linking function will add behavior to the template
-                link: function(scope, element) {
-                    scope.mapManager = MapManager;
-
-                    /** Handy flag for when measuring is happening */
-                    scope.isMeasuring = false;
-
-                    /** measuring feature. */
-                    scope.feature = null;
-
-                    /** label for hte output */
-                    scope.measureType = '';
-
-                    /** measuring 'source' */
-                    scope.source = new ol.source.Vector();
-
-                    /** measuring layer */
-                    scope.layer = new ol.layer.Vector({
-                        source: scope.source
-                    });
-
-                    /** which units to use as output. */
-                    scope.units = 'm';
-
-                    /** array of units options */
-                    scope.unitTypes = [
-                        {type: 'm', label: 'M/KM'},
-                        {type: 'mi', label: 'Mi'},
-                        {type: 'ft', label: 'Ft'}
-                    ];
-
-                    /** Change the units */
-                    scope.changeUnits = function(newUnits) {
-                        scope.units = newUnits;
-                    };
-
-                    /** A formatted string describing the measure */
-                    scope.measureLabel = 0;
-
-                    /** Formatted units label. */
-                    scope.unitsLabel = '';
-
-                    /** The interaction for drawing on the map,
-                     *   defaults to null, set when measuring is started.
-                     */
-                    scope.interaction = null;
-
-                    /** Create the interaction.
-                     */
-                    var createInteraction = function(measureType) {
-                        return new ol.interaction.Draw({
-                            source: scope.source,
-                            type: (measureType == 'line' ? 'LineString' : 'Polygon')
-                        });
-                    };
-
-                    /** This comes striaght from the OL Measuring example.
-                     *
-                     *  http://openlayers.org/en/latest/examples/measure.html
-                     *
-                     */
-                    var wgs84Sphere = new ol.Sphere(6378137);
-
-                    /** The map's projection should not change. */
-                    var mapProjection = MapManager.storyMap.getMap().getView().getProjection();
-
-                    /** When the measure has changed, update the UI.
-                     *
-                     *  Calculations are always done geodesically.
-                     *
-                     */
-                    scope.updateMeasure = function() {
-                        var geo = scope.feature.getGeometry();
-                        // convert the geography to wgs84
-                        var wgs84_geo = geo.clone().transform(mapProjection, 'EPSG:4326');
-                        var coords = [];
-
-                        if (geo instanceof ol.geom.Polygon) {
-                            // get the polygon coordinates
-                            coords = wgs84_geo.getLinearRing(0).getCoordinates();
-                            // ensure polygon has at least 3 points.
-                            if (coords.length > 2) {
-                                // and calculate the area
-                                var area = Math.abs(wgs84Sphere.geodesicArea(coords));
-                                // convert to km's.
-                                if (area > 1000000 && scope.units == 'm') {
-                                    // m -> km
-                                    area = area / 1000000;
-                                    scope.unitsLabel = 'km^2';
-                                } else if (scope.units == 'ft') {
-                                    area = area * 10.7639;
-                                    scope.unitsLabel = 'ft^2';
-                                } else if (scope.units == 'mi') {
-                                    area = (area / 1000) * 0.000386102;
-                                    scope.unitsLabel = 'mi^2';
-                                } else {
-                                    scope.unitsLabel = 'm^2';
-                                }
-                                scope.measureLabel = area;
-                                scope.feature.set('measureLabel', area);
-
-                                // this updates outside of the standard angular event cycle,
-                                //  so it is necessary to notify angular to update.
-                                scope.$apply();
-                            }
-                        } else {
-                            var length = 0;
-                            coords = wgs84_geo.getCoordinates();
-                            if (coords.length > 1) {
-                                for (var i = 1, ii = coords.length; i < ii; i++) {
-                                    length += wgs84Sphere.haversineDistance(coords[i - 1], coords[i]);
-                                }
-
-                                if (length > 1000 && scope.units == 'm') {
-                                    // m -> km
-                                    length = length / 1000;
-                                    scope.unitsLabel = 'km';
-                                } else if (scope.units == 'ft') {
-                                    // m -> ft
-                                    length = length * 3.28084;
-                                    scope.unitsLabel = 'ft';
-                                } else if (scope.units == 'mi') {
-                                    // m -> mi
-                                    length = length / 1609;
-                                    scope.unitsLabel = 'mi';
-                                } else {
-                                    // assumes meters
-                                    scope.unitsLabel = 'm';
-                                }
-
-                                scope.measureLabel = length;
-                                scope.feature.set('measureLabel', length);
-                                // see the note above re: forcing the update.
-                                scope.$apply();
-                            }
-                        }
-                    };
-
-                    /** Initiate the measuring tool
-                     *
-                     *  @param {String} measureType 'line' or 'area' to determine what
-                     *                              type of measuring should be done.
-                     */
-                    scope.startMeasuring = function(measureType) {
-                        // cancel whatever current measuring is happening.
-                        if (scope.isMeasuring) {
-                            scope.stopMeasuring();
-                        }
-
-                        scope.measureType = measureType;
-
-                        // add the measuring layer to the map.
-                        MapManager.storyMap.getMap().addLayer(scope.layer);
-
-                        // configure and add the interaction
-                        scope.interaction = createInteraction(measureType);
-                        MapManager.storyMap.getMap().addInteraction(scope.interaction);
-
-                        scope.interaction.on('drawstart', function(event) {
-                            // clear out the drawing of a feature whenever
-                            //  a drawing starts.
-                            scope.source.clear();
-
-                            // reset the measure label.
-                            scope.measureLabel = 0;
-
-                            // configure the listener for the geometry changes.
-                            scope.feature = event.feature;
-                            scope.feature.set('id', 'measure-tool');
-                            scope.feature.getGeometry().on('change', scope.updateMeasure);
-                        });
-
-                        scope.isMeasuring = true;
-                    };
-
-                    /** Stop the measuring process.
-                     *
-                     *  Cleans up the artifacts
-                     *   of the measure tool from the map.
-                     */
-                    scope.stopMeasuring = function() {
-                        // remove the layer from the map
-                        MapManager.storyMap.getMap().removeLayer(scope.layer);
-
-                        // clear the measure.
-                        scope.measureLabel = 0;
-
-                        // remove the interaction.
-                        if (scope.interaction !== null) {
-                            MapManager.storyMap.getMap().removeInteraction(scope.interaction);
-                        }
-
-                        // reset the measure type
-                        scope.measureType = '';
-
-                        // flag measuring as 'stopped'
-                        scope.isMeasuring = false;
-                    };
-
-                }
-            };
-        }]);
-}());
-(function() {
-  'use strict';
-   var module = angular.module('storytools.core.measure', [
-        'storytools.core.measure.directives'
-    ]);
-})();
-(function() {
-  var module = angular.module('loom_media_service', []);
-  var service_ = null;
-  var mediaHandlers_ = null;
-  var q_ = null;
-  var noembedProviders_ = null;
-
-  module.config(["$sceDelegateProvider", function($sceDelegateProvider) {
-    $sceDelegateProvider.resourceUrlWhitelist([
-      // Allow same origin resource loads.
-      'self',
-      new RegExp(/https?:\/\/.*\.flickr\.com\/photos\/.*/),
-      new RegExp(/https?:\/\/flic\.kr\/p\/.*/),
-      new RegExp(/https?:\/\/instagram\.com\/p\/.*/),
-      new RegExp(/https?:\/\/instagr\.am\/p\/.*/),
-      new RegExp(/https?:\/\/vine\.co\/v\/.*/),
-      new RegExp(/https?:\/\/(?:www\.)?vimeo\.com\/.+/),
-      new RegExp(/https?:\/\/((?:www\.)|(?:pic\.)?)twitter\.com\/.*/),
-      new RegExp(/https?:\/\/(?:w{3}\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com).+/im),
-      new RegExp(/https?:\/\/(w{3}\.)?soundcloud\.com\/.+/im),
-      new RegExp(/https?:\/\/(?:((?:m)\.)|((?:www)\.)|((?:i)\.))?imgur\.com\/?.+/im)
-    ]);
-
-  }]);
-
-  module.provider('mediaService', function() {
-
-    this.$get = ["$rootScope", "$http", "$q", "$sce", function($rootScope, $http, $q, $sce) {
-      http_ = $http;
-      q_ = $q;
-      service_ = this;
-      sce_ = $sce;
-
-      http_.jsonp($sce.trustAsResourceUrl('https://noembed.com/providers'), {
-        jsonCallbackParam: 'cb',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(function(result) {
-        noembedProviders_ = result.data;
-      });
-
-      mediaHandlers_ = service_.configureDefaultHandlers();
-
-      return service_;
-    }];
-
-    this.isNOEmbedProvided = function(url) {
-      for (var iProvider = 0; iProvider < noembedProviders_.length; iProvider += 1) {
-        var provider = noembedProviders_[iProvider];
-        for (var iUrlScheme = 0; iUrlScheme < provider.patterns.length; iUrlScheme += 1) {
-          var regExp = new RegExp(provider.patterns[iUrlScheme], 'i');
-          if (url.match(regExp) !== null) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-
-    this.configureDefaultHandlers = function() {
-
-      var defaultHandlers = [
-        //{name: 'youtube', regex: /https?:\/\/(?:[0-9A-Z-]+\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com\S*?[^\w\s-])/i, callback: embed_youtube},
-        {name: 'imgur', regex: /(https?:\/\/(\w+\.)?imgur\.com)/i, callback: embed_imgur}
-      ];
-
-      return defaultHandlers;
-    };
-
-    this.isUrl = function(str) {
-      if (!/^(f|ht)tps?:\/\//i.test(str)) {
-        return false;
-      }
-      return true;
-    };
-
-    this.getEmbedContent = function(url, embed_params) {
-
-      var unsafeReturn = '<a href="' + url + '"> Unable to Embed Content </a>';
-
-      //Check to see if we have a specialized handler first for this site
-      for (var iHandler = 0; iHandler < mediaHandlers_.length; iHandler += 1) {
-        var testHandler = mediaHandlers_[iHandler];
-        if (testHandler.regex.test(url)) {
-          return testHandler.callback(url, embed_params);
-        }
-      }
-
-      //Check and see if the embed content is handled through the noembed service
-      if (service_.isNOEmbedProvided(url) !== null) {
-        return noembed_handler(url, embed_params);
-      }
-
-      //Unable to embed allowed content. Return a link to content.
-      return unsafeReturn;
-    };
-
-    //Handler callbacks
-    function getNOEmbedRequestUrl(url, params) {
-      var api_url = 'https://noembed.com/embed?url=' + url,
-          qs = '',
-          i;
-
-      for (i in params) {
-        if (params[i] !== null) {
-          qs += '&' + encodeURIComponent(i) + '=' + params[i];
-        }
-      }
-
-      api_url += qs;
-
-      return api_url;
-    }
-
-    function noembed_handler(url, embed_params) {
-
-      var response = q_.defer();
-
-      var request_url = getNOEmbedRequestUrl(url, embed_params);
-
-      http_.jsonp(sce_.trustAsResourceUrl(request_url), {
-        jsonCallbackParam: 'cb',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(
-        /*success*/
-        function(result) {
-          response.resolve(result.data.html);
-        },
-        /*failure*/
-        function(result) {
-          console.log("error", result)
-        });
-
-      return response.promise;
-
-    }
-
-    function embed_imgur(url, embed_params) {
-
-      var response = q_.defer();
-
-      var regex = /(https?:\/\/(\w+\.)?imgur\.com)/ig;
-
-      var matches = url.match(regex);
-
-      var embed = '';
-      if (matches.length > 1) {
-        //dealing with a basic image link from something like i.imgur.blah.png
-        embed = '<iframe src="' + url + '" width="' + embed_params.maxwidth + '" height="' + embed_params.maxheight + '"></iframe>';
-      } else {
-        //dealing with link to post or album
-        var id_regex = /https?:\/\/imgur\.com\/(?:\w+)\/?(.*?)(?:[#\/].*|$)/i;
-        embed = url.replace(id_regex,
-            '<blockquote class="imgur-embed-pub" lang="en" data-id="a/$1"></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>');
-      }
-
-      response.resolve(embed);
-      return response.promise;
-
-    }
-
-  });
-
-})();
-
-(function() {
-    'use strict';
-
-    StoryPinLayerManager.$inject = ["$rootScope"];
-    var module = angular.module('storytools.core.pins', [
-    ]);
-
-    var pins = storytools.core.maps.pins;
-    var stutils = storytools.core.time.utils;
-    var rootScope_ = null;
-
-    function StoryPinLayerManager($rootScope) {
-        this.storyPins = [];
-        this.map = null;
-        rootScope_ = $rootScope;
-    }
-    StoryPinLayerManager.prototype.autoDisplayPins = function (range) {
-        var pinsToCheck = this.storyPins.filter(function (pin) {
-            return pin.get('auto_show');
-        });
-
-        for (var iPin = 0; iPin < pinsToCheck.length; iPin += 1) {
-            var pin = pinsToCheck[iPin];
-            var pinRange = stutils.createRange(pin.start_time, pin.end_time);
-            if (pinRange.intersects(range)) {
-                rootScope_.$broadcast('showPin', pin);
-            } else {
-                rootScope_.$broadcast('hidePinOverlay', pin);
-            }
-        }
-    };
-    StoryPinLayerManager.prototype.pinsChanged = function(pins, action) {
-        var i;
-        if (action == 'delete') {
-            for (i = 0; i < pins.length; i++) {
-                var pin = pins[i];
-                for (var j = 0, jj = this.storyPins.length; j < jj; j++) {
-                    if (this.storyPins[j].id == pin.id) {
-                        this.storyPins.splice(j, 1);
-                        break;
-                    }
-                }
-            }
-        } else if (action == 'add') {
-            for (i = 0; i < pins.length; i++) {
-                this.storyPins.push(pins[i]);
-            }
-        } else if (action == 'change') {
-            // provided edits could be used to optimize below
-        } else {
-            throw new Error('action? :' + action);
-        }
-        // @todo optimize by looking at changes
-        var times = this.storyPins.map(function(p) {
-            if (p.start_time > p.end_time) {
-                return storytools.core.utils.createRange(p.end_time, p.start_time);
-            } else {
-                return storytools.core.utils.createRange(p.start_time, p.end_time);
-            }
-        });
-        this.map.storyPinsLayer.set('times', times);
-        this.map.storyPinsLayer.set('features', this.storyPins);
-    };
-
-    StoryPinLayerManager.prototype.clear = function(){
-        this.storyPins = [];
-        this.map.storyPinsLayer.set('times', []);
-        this.map.storyPinsLayer.set('features', this.storyPins);
-    };
-
-    StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
-
-        if (overwrite){
-            this.storyPins = [];
-        }
-
-        if (geojson && geojson.features) {
-            var loaded = pins.loadFromGeoJSON(geojson, projection);
-            this.pinsChanged(loaded, 'add', true);
-        }
-    };
-
-    module.service('StoryPinLayerManager', StoryPinLayerManager);
-
-    module.constant('StoryPin', pins.StoryPin);
-
-    // @todo naive implementation on local storage for now
-    module.service('stAnnotationsStore', ["StoryPinLayerManager", function(StoryPinLayerManager) {
-        function path(mapid) {
-            return '/maps/' + mapid + '/annotations';
-        }
-        function get(mapid) {
-            var saved = localStorage.getItem(path(mapid));
-            saved = (saved === null) ? [] : JSON.parse(saved);
-            // TODO is this still needed?
-            /*saved.forEach(function(s) {
-                s.the_geom = format.readGeometry(s.the_geom);
-            });*/
-            return saved;
-        }
-        function set(mapid, annotations) {
-            // TODO is this still needed?
-            /*annotations.forEach(function(s) {
-                if (s.the_geom && !angular.isString(s.the_geom)) {
-                    s.the_geom = format.writeGeometry(s.the_geom);
-                }
-            });*/
-            localStorage.setItem(path(mapid),
-                new ol.format.GeoJSON().writeFeatures(annotations,
-                    {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'})
-            );
-        }
-        return {
-            loadAnnotations: function(mapid, projection) {
-                return StoryPinLayerManager.loadFromGeoJSON(get(mapid), projection);
-            },
-            deleteAnnotations: function(annotations) {
-                var saved = get();
-                var toDelete = annotations.map(function(d) {
-                    return d.id;
-                });
-                saved = saved.filter(function(s) {
-                    return toDelete.indexOf(s.id) < 0;
-                });
-                set(saved);
-            },
-            saveAnnotations: function(mapid, annotations) {
-                var saved = get();
-                var maxId = 0;
-                saved.forEach(function(s) {
-                    maxId = Math.max(maxId, s.id);
-                });
-                var clones = [];
-                annotations.forEach(function(a) {
-                    if (typeof a.id == 'undefined') {
-                        a.id = ++maxId;
-                    }
-                    var clone = a.clone();
-                    if (a.get('start_time') !== undefined) {
-                        clone.set('start_time', a.get('start_time')/1000);
-                    }
-                    if (a.get('end_time') !== undefined) {
-                        clone.set('end_time', a.get('end_time')/1000);
-                    }
-                    clones.push(clone);
-                });
-                set(mapid, clones);
-            }
-        };
-    }]);
-
-})();
-
-(function() {
-    'use strict';
-
-    /**
      * @namespace storytools.core.ogc.directives
      */
     var module = angular.module('storytools.core.ogc.directives', []);
@@ -2536,6 +1992,550 @@
       });
     });
   }
+})();
+
+(function() {
+    'use strict';
+
+    /**
+     * @namespace storytools.core.measure.directives
+     */
+    var module = angular.module('storytools.core.measure.directives', []);
+
+
+    module.directive('stMeasurepanel',
+         ["$rootScope", "MapManager", function($rootScope, MapManager) {
+            return {
+                replace: true,
+                templateUrl: 'measure/measurepanel.tpl.html',
+                // The linking function will add behavior to the template
+                link: function(scope, element) {
+                    scope.mapManager = MapManager;
+
+                    /** Handy flag for when measuring is happening */
+                    scope.isMeasuring = false;
+
+                    /** measuring feature. */
+                    scope.feature = null;
+
+                    /** label for hte output */
+                    scope.measureType = '';
+
+                    /** measuring 'source' */
+                    scope.source = new ol.source.Vector();
+
+                    /** measuring layer */
+                    scope.layer = new ol.layer.Vector({
+                        source: scope.source
+                    });
+
+                    /** which units to use as output. */
+                    scope.units = 'm';
+
+                    /** array of units options */
+                    scope.unitTypes = [
+                        {type: 'm', label: 'M/KM'},
+                        {type: 'mi', label: 'Mi'},
+                        {type: 'ft', label: 'Ft'}
+                    ];
+
+                    /** Change the units */
+                    scope.changeUnits = function(newUnits) {
+                        scope.units = newUnits;
+                    };
+
+                    /** A formatted string describing the measure */
+                    scope.measureLabel = 0;
+
+                    /** Formatted units label. */
+                    scope.unitsLabel = '';
+
+                    /** The interaction for drawing on the map,
+                     *   defaults to null, set when measuring is started.
+                     */
+                    scope.interaction = null;
+
+                    /** Create the interaction.
+                     */
+                    var createInteraction = function(measureType) {
+                        return new ol.interaction.Draw({
+                            source: scope.source,
+                            type: (measureType == 'line' ? 'LineString' : 'Polygon')
+                        });
+                    };
+
+                    /** This comes striaght from the OL Measuring example.
+                     *
+                     *  http://openlayers.org/en/latest/examples/measure.html
+                     *
+                     */
+                    var wgs84Sphere = new ol.Sphere(6378137);
+
+                    /** The map's projection should not change. */
+                    var mapProjection = MapManager.storyMap.getMap().getView().getProjection();
+
+                    /** When the measure has changed, update the UI.
+                     *
+                     *  Calculations are always done geodesically.
+                     *
+                     */
+                    scope.updateMeasure = function() {
+                        var geo = scope.feature.getGeometry();
+                        // convert the geography to wgs84
+                        var wgs84_geo = geo.clone().transform(mapProjection, 'EPSG:4326');
+                        var coords = [];
+
+                        if (geo instanceof ol.geom.Polygon) {
+                            // get the polygon coordinates
+                            coords = wgs84_geo.getLinearRing(0).getCoordinates();
+                            // ensure polygon has at least 3 points.
+                            if (coords.length > 2) {
+                                // and calculate the area
+                                var area = Math.abs(wgs84Sphere.geodesicArea(coords));
+                                // convert to km's.
+                                if (area > 1000000 && scope.units == 'm') {
+                                    // m -> km
+                                    area = area / 1000000;
+                                    scope.unitsLabel = 'km^2';
+                                } else if (scope.units == 'ft') {
+                                    area = area * 10.7639;
+                                    scope.unitsLabel = 'ft^2';
+                                } else if (scope.units == 'mi') {
+                                    area = (area / 1000) * 0.000386102;
+                                    scope.unitsLabel = 'mi^2';
+                                } else {
+                                    scope.unitsLabel = 'm^2';
+                                }
+                                scope.measureLabel = area;
+                                scope.feature.set('measureLabel', area);
+
+                                // this updates outside of the standard angular event cycle,
+                                //  so it is necessary to notify angular to update.
+                                scope.$apply();
+                            }
+                        } else {
+                            var length = 0;
+                            coords = wgs84_geo.getCoordinates();
+                            if (coords.length > 1) {
+                                for (var i = 1, ii = coords.length; i < ii; i++) {
+                                    length += wgs84Sphere.haversineDistance(coords[i - 1], coords[i]);
+                                }
+
+                                if (length > 1000 && scope.units == 'm') {
+                                    // m -> km
+                                    length = length / 1000;
+                                    scope.unitsLabel = 'km';
+                                } else if (scope.units == 'ft') {
+                                    // m -> ft
+                                    length = length * 3.28084;
+                                    scope.unitsLabel = 'ft';
+                                } else if (scope.units == 'mi') {
+                                    // m -> mi
+                                    length = length / 1609;
+                                    scope.unitsLabel = 'mi';
+                                } else {
+                                    // assumes meters
+                                    scope.unitsLabel = 'm';
+                                }
+
+                                scope.measureLabel = length;
+                                scope.feature.set('measureLabel', length);
+                                // see the note above re: forcing the update.
+                                scope.$apply();
+                            }
+                        }
+                    };
+
+                    /** Initiate the measuring tool
+                     *
+                     *  @param {String} measureType 'line' or 'area' to determine what
+                     *                              type of measuring should be done.
+                     */
+                    scope.startMeasuring = function(measureType) {
+                        // cancel whatever current measuring is happening.
+                        if (scope.isMeasuring) {
+                            scope.stopMeasuring();
+                        }
+
+                        scope.measureType = measureType;
+
+                        // add the measuring layer to the map.
+                        MapManager.storyMap.getMap().addLayer(scope.layer);
+
+                        // configure and add the interaction
+                        scope.interaction = createInteraction(measureType);
+                        MapManager.storyMap.getMap().addInteraction(scope.interaction);
+
+                        scope.interaction.on('drawstart', function(event) {
+                            // clear out the drawing of a feature whenever
+                            //  a drawing starts.
+                            scope.source.clear();
+
+                            // reset the measure label.
+                            scope.measureLabel = 0;
+
+                            // configure the listener for the geometry changes.
+                            scope.feature = event.feature;
+                            scope.feature.set('id', 'measure-tool');
+                            scope.feature.getGeometry().on('change', scope.updateMeasure);
+                        });
+
+                        scope.isMeasuring = true;
+                    };
+
+                    /** Stop the measuring process.
+                     *
+                     *  Cleans up the artifacts
+                     *   of the measure tool from the map.
+                     */
+                    scope.stopMeasuring = function() {
+                        // remove the layer from the map
+                        MapManager.storyMap.getMap().removeLayer(scope.layer);
+
+                        // clear the measure.
+                        scope.measureLabel = 0;
+
+                        // remove the interaction.
+                        if (scope.interaction !== null) {
+                            MapManager.storyMap.getMap().removeInteraction(scope.interaction);
+                        }
+
+                        // reset the measure type
+                        scope.measureType = '';
+
+                        // flag measuring as 'stopped'
+                        scope.isMeasuring = false;
+                    };
+
+                }
+            };
+        }]);
+}());
+(function() {
+  'use strict';
+   var module = angular.module('storytools.core.measure', [
+        'storytools.core.measure.directives'
+    ]);
+})();
+(function() {
+  var module = angular.module('loom_media_service', []);
+  var service_ = null;
+  var mediaHandlers_ = null;
+  var q_ = null;
+  var noembedProviders_ = null;
+
+  module.config(["$sceDelegateProvider", function($sceDelegateProvider) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+      // Allow same origin resource loads.
+      'self',
+      new RegExp(/https?:\/\/.*\.flickr\.com\/photos\/.*/),
+      new RegExp(/https?:\/\/flic\.kr\/p\/.*/),
+      new RegExp(/https?:\/\/instagram\.com\/p\/.*/),
+      new RegExp(/https?:\/\/instagr\.am\/p\/.*/),
+      new RegExp(/https?:\/\/vine\.co\/v\/.*/),
+      new RegExp(/https?:\/\/(?:www\.)?vimeo\.com\/.+/),
+      new RegExp(/https?:\/\/((?:www\.)|(?:pic\.)?)twitter\.com\/.*/),
+      new RegExp(/https?:\/\/(?:w{3}\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com).+/im),
+      new RegExp(/https?:\/\/(w{3}\.)?soundcloud\.com\/.+/im),
+      new RegExp(/https?:\/\/(?:((?:m)\.)|((?:www)\.)|((?:i)\.))?imgur\.com\/?.+/im)
+    ]);
+
+  }]);
+
+  module.provider('mediaService', function() {
+
+    this.$get = ["$rootScope", "$http", "$q", "$sce", function($rootScope, $http, $q, $sce) {
+      http_ = $http;
+      q_ = $q;
+      service_ = this;
+      sce_ = $sce;
+
+      http_.jsonp($sce.trustAsResourceUrl('https://noembed.com/providers'), {
+        jsonCallbackParam: 'cb',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(function(result) {
+        noembedProviders_ = result.data;
+      });
+
+      mediaHandlers_ = service_.configureDefaultHandlers();
+
+      return service_;
+    }];
+
+    this.isNOEmbedProvided = function(url) {
+      for (var iProvider = 0; iProvider < noembedProviders_.length; iProvider += 1) {
+        var provider = noembedProviders_[iProvider];
+        for (var iUrlScheme = 0; iUrlScheme < provider.patterns.length; iUrlScheme += 1) {
+          var regExp = new RegExp(provider.patterns[iUrlScheme], 'i');
+          if (url.match(regExp) !== null) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    this.configureDefaultHandlers = function() {
+
+      var defaultHandlers = [
+        //{name: 'youtube', regex: /https?:\/\/(?:[0-9A-Z-]+\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com\S*?[^\w\s-])/i, callback: embed_youtube},
+        {name: 'imgur', regex: /(https?:\/\/(\w+\.)?imgur\.com)/i, callback: embed_imgur}
+      ];
+
+      return defaultHandlers;
+    };
+
+    this.isUrl = function(str) {
+      if (!/^(f|ht)tps?:\/\//i.test(str)) {
+        return false;
+      }
+      return true;
+    };
+
+    this.getEmbedContent = function(url, embed_params) {
+
+      var unsafeReturn = '<a href="' + url + '"> Unable to Embed Content </a>';
+
+      //Check to see if we have a specialized handler first for this site
+      for (var iHandler = 0; iHandler < mediaHandlers_.length; iHandler += 1) {
+        var testHandler = mediaHandlers_[iHandler];
+        if (testHandler.regex.test(url)) {
+          return testHandler.callback(url, embed_params);
+        }
+      }
+
+      //Check and see if the embed content is handled through the noembed service
+      if (service_.isNOEmbedProvided(url) !== null) {
+        return noembed_handler(url, embed_params);
+      }
+
+      //Unable to embed allowed content. Return a link to content.
+      return unsafeReturn;
+    };
+
+    //Handler callbacks
+    function getNOEmbedRequestUrl(url, params) {
+      var api_url = 'https://noembed.com/embed?url=' + url,
+          qs = '',
+          i;
+
+      for (i in params) {
+        if (params[i] !== null) {
+          qs += '&' + encodeURIComponent(i) + '=' + params[i];
+        }
+      }
+
+      api_url += qs;
+
+      return api_url;
+    }
+
+    function noembed_handler(url, embed_params) {
+
+      var response = q_.defer();
+
+      var request_url = getNOEmbedRequestUrl(url, embed_params);
+
+      http_.jsonp(sce_.trustAsResourceUrl(request_url), {
+        jsonCallbackParam: 'cb',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(
+        /*success*/
+        function(result) {
+          response.resolve(result.data.html);
+        },
+        /*failure*/
+        function(result) {
+          console.log("error", result)
+        });
+
+      return response.promise;
+
+    }
+
+    function embed_imgur(url, embed_params) {
+
+      var response = q_.defer();
+
+      var regex = /(https?:\/\/(\w+\.)?imgur\.com)/ig;
+
+      var matches = url.match(regex);
+
+      var embed = '';
+      if (matches.length > 1) {
+        //dealing with a basic image link from something like i.imgur.blah.png
+        embed = '<iframe src="' + url + '" width="' + embed_params.maxwidth + '" height="' + embed_params.maxheight + '"></iframe>';
+      } else {
+        //dealing with link to post or album
+        var id_regex = /https?:\/\/imgur\.com\/(?:\w+)\/?(.*?)(?:[#\/].*|$)/i;
+        embed = url.replace(id_regex,
+            '<blockquote class="imgur-embed-pub" lang="en" data-id="a/$1"></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>');
+      }
+
+      response.resolve(embed);
+      return response.promise;
+
+    }
+
+  });
+
+})();
+
+(function() {
+    'use strict';
+
+    StoryPinLayerManager.$inject = ["$rootScope"];
+    var module = angular.module('storytools.core.pins', [
+    ]);
+
+    var pins = storytools.core.maps.pins;
+    var stutils = storytools.core.time.utils;
+    var rootScope_ = null;
+
+    function StoryPinLayerManager($rootScope) {
+        this.storyPins = [];
+        this.map = null;
+        rootScope_ = $rootScope;
+    }
+    StoryPinLayerManager.prototype.autoDisplayPins = function (range) {
+        var pinsToCheck = this.storyPins.filter(function (pin) {
+            return pin.get('auto_show');
+        });
+
+        for (var iPin = 0; iPin < pinsToCheck.length; iPin += 1) {
+            var pin = pinsToCheck[iPin];
+            var pinRange = stutils.createRange(pin.start_time, pin.end_time);
+            if (pinRange.intersects(range)) {
+                rootScope_.$broadcast('showPin', pin);
+            } else {
+                rootScope_.$broadcast('hidePinOverlay', pin);
+            }
+        }
+    };
+    StoryPinLayerManager.prototype.pinsChanged = function(pins, action) {
+        var i;
+        if (action == 'delete') {
+            for (i = 0; i < pins.length; i++) {
+                var pin = pins[i];
+                for (var j = 0, jj = this.storyPins.length; j < jj; j++) {
+                    if (this.storyPins[j].id == pin.id) {
+                        this.storyPins.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+        } else if (action == 'add') {
+            for (i = 0; i < pins.length; i++) {
+                this.storyPins.push(pins[i]);
+            }
+        } else if (action == 'change') {
+            // provided edits could be used to optimize below
+        } else {
+            throw new Error('action? :' + action);
+        }
+        // @todo optimize by looking at changes
+        var times = this.storyPins.map(function(p) {
+            if (p.start_time > p.end_time) {
+                return storytools.core.utils.createRange(p.end_time, p.start_time);
+            } else {
+                return storytools.core.utils.createRange(p.start_time, p.end_time);
+            }
+        });
+        this.map.storyPinsLayer.set('times', times);
+        this.map.storyPinsLayer.set('features', this.storyPins);
+    };
+
+    StoryPinLayerManager.prototype.clear = function(){
+        this.storyPins = [];
+        this.map.storyPinsLayer.set('times', []);
+        this.map.storyPinsLayer.set('features', this.storyPins);
+    };
+
+    StoryPinLayerManager.prototype.loadFromGeoJSON = function(geojson, projection, overwrite) {
+
+        if (overwrite){
+            this.storyPins = [];
+        }
+
+        if (geojson && geojson.features) {
+            var loaded = pins.loadFromGeoJSON(geojson, projection);
+            this.pinsChanged(loaded, 'add', true);
+        }
+    };
+
+    module.service('StoryPinLayerManager', StoryPinLayerManager);
+
+    module.constant('StoryPin', pins.StoryPin);
+
+    // @todo naive implementation on local storage for now
+    module.service('stAnnotationsStore', ["StoryPinLayerManager", function(StoryPinLayerManager) {
+        function path(mapid) {
+            return '/maps/' + mapid + '/annotations';
+        }
+        function get(mapid) {
+            var saved = localStorage.getItem(path(mapid));
+            saved = (saved === null) ? [] : JSON.parse(saved);
+            // TODO is this still needed?
+            /*saved.forEach(function(s) {
+                s.the_geom = format.readGeometry(s.the_geom);
+            });*/
+            return saved;
+        }
+        function set(mapid, annotations) {
+            // TODO is this still needed?
+            /*annotations.forEach(function(s) {
+                if (s.the_geom && !angular.isString(s.the_geom)) {
+                    s.the_geom = format.writeGeometry(s.the_geom);
+                }
+            });*/
+            localStorage.setItem(path(mapid),
+                new ol.format.GeoJSON().writeFeatures(annotations,
+                    {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'})
+            );
+        }
+        return {
+            loadAnnotations: function(mapid, projection) {
+                return StoryPinLayerManager.loadFromGeoJSON(get(mapid), projection);
+            },
+            deleteAnnotations: function(annotations) {
+                var saved = get();
+                var toDelete = annotations.map(function(d) {
+                    return d.id;
+                });
+                saved = saved.filter(function(s) {
+                    return toDelete.indexOf(s.id) < 0;
+                });
+                set(saved);
+            },
+            saveAnnotations: function(mapid, annotations) {
+                var saved = get();
+                var maxId = 0;
+                saved.forEach(function(s) {
+                    maxId = Math.max(maxId, s.id);
+                });
+                var clones = [];
+                annotations.forEach(function(a) {
+                    if (typeof a.id == 'undefined') {
+                        a.id = ++maxId;
+                    }
+                    var clone = a.clone();
+                    if (a.get('start_time') !== undefined) {
+                        clone.set('start_time', a.get('start_time')/1000);
+                    }
+                    if (a.get('end_time') !== undefined) {
+                        clone.set('end_time', a.get('end_time')/1000);
+                    }
+                    clones.push(clone);
+                });
+                set(mapid, clones);
+            }
+        };
+    }]);
+
 })();
 
 (function() {
