@@ -164,12 +164,17 @@ gulp.task('bundleEditTemplates', function() {
  * bundle all core libraries exposing core exports on the global object
  * storytools.core
  */
-gulp.task('bundleCoreLibs', function() {
-    return bundle(browserify({
-        entries: ['./lib/core/index.js'],
-        standalone: 'storytools.core'
-    }), coreLibsBundle, ['lint', 'karma']);
-});
+ gulp.task("bundleCoreLibs", function() {
+   return bundle(
+     browserify({
+       insertGlobals: true,
+       entries: ["./lib/core/index.js"],
+       standalone: "storytools.core"
+     }),
+     coreLibsBundle,
+     ["lint", "karma"]
+   );
+ });
 
 gulp.task('bundleOwsjsLibs', function() {
     return bundle(browserify({
