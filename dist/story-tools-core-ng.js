@@ -138,15 +138,6 @@
     ]);
 })();
 (function() {
-    'use strict';
-
-    var module = angular.module('storytools.core.mapstory', [
-      'storytools.core.mapstory.services'
-    ]);
-
-})();
-
-(function() {
   var module = angular.module('storytools.core.loading.directives', []);
 
   module.directive('stLoading',
@@ -194,6 +185,15 @@
    var module = angular.module('storytools.core.loading', [
         'storytools.core.loading.directives'
     ]);
+})();
+
+(function() {
+    'use strict';
+
+    var module = angular.module('storytools.core.mapstory', [
+      'storytools.core.mapstory.services'
+    ]);
+
 })();
 
 (function() {
