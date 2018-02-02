@@ -15,7 +15,7 @@
     </div>
     <div class="controls">
         <div class="btn-group" data-dropdown ng-if="showColorRamp">
-            <button type="button" class="dropdown-toggle"   >
+            <button type="button" class="dropdown-toggle" data-toggle="dropdown">
                 <canvas data-color-ramp width="200" height="14" data-ramp='activeStyle.classify.colorRamp' ng-if="activeStyle.classify.colorRamp"></canvas>
                 <span ng-if="activeStyle.classify.colorRamp == null">Color Ramp</span>
                 <span class="caret"></span>
@@ -29,11 +29,11 @@
         </div>
 
         <div class="btn-group" data-dropdown ng-if="showColorPalette">
-            <button type="button" class="dropdown-toggle"   >
+            <button type="button" class="dropdown-toggle" data-toggle="dropdown">
                 <span>{{ activeStyle.classify.colorPalette||'Color Palette'}}</span>
                 <span class="caret"></span>
             </button>
-            <ul class="dropdown-menu" role="menu">
+            <ul class="dropdown-menu" data-toggle="dropdown" role="menu">
                 <li ng-click="activeStyle.classify.colorPalette=null">[ None ]</li>
                 <li class="clearfix" ng-repeat='p in styleChoices.colorPalettes' ng-click="changeClassifyProperty('colorPalette',p.name)">
                     <div>{{ p.name }}</div>

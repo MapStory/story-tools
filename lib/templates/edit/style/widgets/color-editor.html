@@ -1,9 +1,9 @@
 <div class="btn-group" data-dropdown>
-    <button type="button" class="dropdown-toggle"   >
+    <button type="button" class="dropdown-toggle" data-toggle="dropdown">
         <i ng-style="{'backgroundColor': stModel[property]}" class="color-picker">&nbsp; &nbsp; &nbsp;</i>
         <span class="caret"></span>
     </button>
-    <ul no-close class="dropdown-menu color-select" role="menu">
+    <ul no-close class="dropdown-menu color-select" data-toggle="dropdown" role="menu">
         <input color-field ng-model="stModel[property]">
         <div no-close colorpicker colorpicker-parent="true" colorpicker-position="bottom" type="button" ng-model="stModel[property]"></div>
     </ul>
