@@ -399,20 +399,11 @@ gulp.task("develop", ["connect", "watch"]);
 
 gulp.task(
   "watch",
-  ["lint", "bundleEditNg", "lessEdit", "bundleEditTemplates"],
   function() {
     // enable watch mode and start watchify tasks
     watch = true;
-    gulp.start("bundleCore");
-    gulp.start("bundleOwsjsLibs");
-    gulp.start("bundleMapstoryLibs");
-    gulp.start("bundleEdit");
-    //gulp.start('testsBundle');
-    // and ng related tasks
-    gulp.start("bundleCoreTemplates");
-    gulp.start("bundleEditTemplates");
-    gulp.watch(coreNg, ["lint", "karma", "bundleCoreNg"]);
-    gulp.watch(editNg, ["lint", "karma", "bundleEditNg"]);
+    gulp.start("scripts");
+    gulp.watch(sources, ["scripts"]);
     gulp.watch(coreTemplates, ["bundleCoreTemplates"]);
     gulp.watch(editTemplates, ["bundleEditTemplates"]);
     gulp.watch("lib/ng/**/*.less", ["lessEdit"]);
@@ -442,8 +433,3 @@ gulp.task("modernizr", function() {
     .pipe(modernizr())
     .pipe(gulp.dest("dist/"));
 });
-
-//gulp.task('watch', function(){
-//gulp.watch('./style/less/*.less', ['less']);
-// Other watchers
-//});
