@@ -9689,7 +9689,7 @@ function o(t){return t&&t.__esModule?t:{default:t}}Object.defineProperty(e,"__es
 
   module.service("stAnnotateLayer", ["$rootScope", "$http", "$q", function($rootScope, $http, $q) {
     return {
-      loadCapabilities: function(storyLayer) {
+      loadCapabilities: function(storyLayer, map) {
         var request = "GetCapabilities",
           service = "WMS";
         // always use the virtual service for GetCapabilities
