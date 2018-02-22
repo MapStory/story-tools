@@ -397,6 +397,8 @@ gulp.task("default", ["test", "minify"]);
 
 gulp.task("develop", ["connect", "watch", "minify", "test"]);
 
+gulp.task("build", ["scripts", "minify"]);
+
 gulp.task(
   "watch",
   function() {
