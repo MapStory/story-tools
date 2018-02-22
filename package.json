@@ -36,7 +36,8 @@
     "test": "mocha",
     "build": "gulp",
     "watch": "gulp watch",
-    "watch-dev": "gulp watch --bundle"
+    "watch-dev": "gulp watch --bundle",
+    "install": "gulp"
   },
   "devDependencies": {
     "angular-bootstrap": "^0.12.2",
