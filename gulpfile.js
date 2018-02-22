@@ -256,11 +256,11 @@ gulp.task("bundleVendorCore", ["bundleCoreLibs", "bundleCoreNg"], function() {
   gulp
     .src([
       "./examples/ol-debug.js",
-      "./bower_components/angular/angular.min.js",
-      "./bower_components/bootstrap/dist/js/bootstrap.min.js",
-      "./bower_components/nouislider/distribute/nouislider.min.js",
+      "./node_modules/angular/angular.min.js",
+      "./node_modules/bootstrap/dist/js/bootstrap.min.js",
+      "./node_modules/nouislider/distribute/nouislider.min.js",
       "./node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js",
-      "./bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js"
+      "./node_modules/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js"
     ])
     .pipe(concat("story-tools-vendor-all.js"))
     .pipe(gulp.dest("dist"));
@@ -308,7 +308,7 @@ gulp.task("bundleCoreCSS", ["lessEdit", "lessCore"], function() {
       "./dist/story-tools-core.css",
       "./dist/story-tools-edit.css",
       "./node_modules/vis/dist/vis.min.css",
-      "./bower_components/nouislider/distribute/nouislider.min.css"
+      "./node_modules/nouislider/distribute/nouislider.min.css"
     ])
     .pipe(concat("story-tools-core-all.css"))
     .pipe(gulp.dest("dist"));
@@ -326,7 +326,7 @@ gulp.task("lessEdit", function() {
     .src(editLess)
     .pipe(
       less({
-        paths: ["bower_components/bootstrap/less"]
+        paths: ["node_modules/bootstrap/less"]
       })
     )
     .pipe(rename("story-tools-edit.css"))
@@ -338,7 +338,7 @@ gulp.task("lessCore", function() {
     .src(coreLess)
     .pipe(
       less({
-        paths: ["bower_components/bootstrap/less"]
+        paths: ["node_modules/bootstrap/less"]
       })
     )
     .pipe(rename("story-tools-core.css"))
