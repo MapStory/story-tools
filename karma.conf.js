@@ -7,9 +7,9 @@ module.exports = function(config) {
     files: [
         'test/custom_matcher.js',
         'examples/ol-debug.js',
-        'bower_components/jquery/dist/jquery.js',
-        'bower_components/angular/angular.js',
-        'bower_components/angular-mocks/angular-mocks.js',
+        'node_modules/jquery/dist/jquery.js',
+        'node_modules/angular/angular.js',
+        'node_modules/angular-mocks/angular-mocks.js',
         'dist/ows.js',
         'dist/tests.js',
         /* must be included to have ng-html2js pick them up */

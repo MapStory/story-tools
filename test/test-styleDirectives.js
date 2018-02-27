@@ -4,7 +4,7 @@ require('../lib/ng/edit/style/services/styleChoices.js');
 require('../lib/ng/core/style/ol3StyleConverter.js');
 require('../lib/ng/core/style/svgIcon.js');
 helpers = require('./helpers.js');
-$ = require('../bower_components/jquery/dist/jquery.js');
+$ = require('../node_modules/jquery/dist/jquery.js');
 
 describe('test style directives', function() {
 

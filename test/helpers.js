@@ -1,4 +1,4 @@
-$ = require('../bower_components/jquery/dist/jquery.js');
+$ = require('../node_modules/jquery/dist/jquery.js');
 
 function setInputValue(el, val) {
     el.val(val);
