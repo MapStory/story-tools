@@ -6,8 +6,8 @@
 
 run
 ```
-    npm install
-    bower install
+    yarn install
+    gulp build
     gulp develop
 ```
 If you haven't used or installed Gulp previously, you may also need to run
