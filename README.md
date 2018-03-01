@@ -6,9 +6,8 @@
 
 run
 ```
-    npm install
-    bower install
-    gulp develop
+    yarn install
+    gulp build
 ```
 If you haven't used or installed Gulp previously, you may also need to run
 `npm install --global gulp-cli` before running `gulp develop`.
@@ -18,6 +17,19 @@ Alternatively, run
     docker-compose build
     docker-compose up
 ```
+
+## Developing Locally
+
+If you want to watch your files for changes and bundle everything each time a change is made run
+```
+gulp watch
+```
+
+If you want to run the development server so you can access the examples and see your changes live run
+```
+gulp develop
+```
+
 ## Accessing the examples
 
 Example index will be available at: http://localhost:8001
