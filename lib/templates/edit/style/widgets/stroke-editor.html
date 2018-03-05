@@ -1,6 +1,7 @@
 <div ng-form="stroke" class="style-editor-item">
-    <div class="title">Stroke</div>
+    <div class="title">Border</div>
     <div class="controls">
+        <label for="strokeStyle">Type:</label> 
         <div data-dropdown>
             <button type="button" class="dropdown-toggle"   >
                 {{model.strokeStyle}} <span class="caret"></span>
@@ -9,8 +10,10 @@
                 <li ng-repeat="style in styleChoices.strokeStyle" ng-click="model.strokeStyle=style">{{style}}</li>
             </ul>
         </div>
+        <label for="strokeWidth">Width:</label>
         <number-editor st-model="model" property="strokeWidth" max="64"></number-editor>
+        <label for="strokeColor">Color:</label>
         <color-editor st-model="model" property="strokeColor" ></color-editor>
-        <number-editor st-model="model" property="strokeOpacity" max="100"></number-editor>
+        <label for="strokeOpacity">Opacity:</label><number-editor st-model="model" property="strokeOpacity" max="100"></number-editor>
     </div>
 </div>

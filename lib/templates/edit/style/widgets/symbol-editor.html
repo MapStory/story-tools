@@ -2,10 +2,14 @@
     <div class="title">Symbol</div>
     <div class="controls">
         <graphic-editor ng-if="showGraphic" symbol="model"></graphic-editor>
+        <label for="size">Size:</label>
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
+        <label for="fillColor">Color:</label>
         <color-editor ng-if="!hideColor" st-model="model" property="fillColor" ></color-editor>
+        <label for="fillOpacity">Opacity:</label>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
         <attribute-combo layer="layer" include="double" ng-if="showRotation" st-model="model" property="rotationAttribute"></attribute-combo>
+        <label for="rotationUnits">Rotation:</label>
         <div dropdown ng-if="showRotation">
             <button type="button" class="dropdown-toggle"   >
                 {{model.rotationUnits}} <span class="caret"></span>
