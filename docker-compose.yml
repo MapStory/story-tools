@@ -5,4 +5,4 @@ services:
     build: .
     image: quay.io/mapstory/story-tools-build
     volumes:
-      - ./:/usr/src/app
+      - ./:/usr/src/app:cached
