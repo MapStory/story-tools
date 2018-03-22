@@ -1,7 +1,7 @@
 <div ng-form="symbol" class="style-editor-item">
     <div class="title">Symbol</div>
     <div class="controls">
-        <graphic-editor ng-if="showGraphic" symbol="model"></graphic-editor>
+        <graphic-editor ng-if="showGraphic" st-model="model" property="shape" symbol="model"></graphic-editor>
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
         <color-editor ng-if="!hideColor" st-model="model" property="fillColor" ></color-editor>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
