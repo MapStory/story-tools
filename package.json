@@ -42,6 +42,7 @@
   "dependencies": {
     "amdefine": ">=0.1.0",
     "angular": "1.6.3",
+    "angular-ui-bootstrap": "^2.5.6",
     "angular-bootstrap": "0.12.2",
     "angular-bootstrap-colorpicker": "~3.0.8",
     "angular-sortable-view": "0.0.13",
@@ -85,7 +86,6 @@
   "devDependencies": {
     "angular-jsdoc": "~1.5.0",
     "angular-mocks": "1.6.3",
-    "angular-ui-bootstrap": "^2.5.6",
     "babel": "^6.23.0",
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
