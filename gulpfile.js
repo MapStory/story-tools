@@ -260,7 +260,8 @@ gulp.task("bundleVendorCore", ["bundleCoreLibs", "bundleCoreNg"], function() {
       "./node_modules/bootstrap/dist/js/bootstrap.min.js",
       "./node_modules/nouislider/distribute/nouislider.min.js",
       "./node_modules/angular-ui-bootstrap/dist/ui-bootstrap-tpls.js",
-      "./node_modules/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js"
+      "./node_modules/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js",
+      "./node_modules/spectrum-colorpicker/spectrum.js"
     ])
     .pipe(concat("story-tools-vendor-all.js"))
     .pipe(gulp.dest("dist"));
@@ -308,7 +309,8 @@ gulp.task("bundleCoreCSS", ["lessEdit", "lessCore"], function() {
       "./dist/story-tools-core.css",
       "./dist/story-tools-edit.css",
       "./node_modules/vis/dist/vis.min.css",
-      "./node_modules/nouislider/distribute/nouislider.min.css"
+      "./node_modules/nouislider/distribute/nouislider.min.css",
+      "./node_modules/spectrum-colorpicker/spectrum.css"
     ])
     .pipe(concat("story-tools-core-all.css"))
     .pipe(gulp.dest("dist"));
