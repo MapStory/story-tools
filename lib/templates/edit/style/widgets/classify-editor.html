@@ -42,8 +42,8 @@
             </ul>
         </div>
 
-        <div class="btn-group" dropdown ng-if="showMethod">
-            <button type="button" class="dropdown-toggle"   >
+        <div class="btn-group" data-dropdown ng-if="showMethod">
+            <button type="button" data-toggle="dropdown" class="btn btn-inverse dropdown-toggle">
                 {{activeStyle.classify.method || 'Method'}}<span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
