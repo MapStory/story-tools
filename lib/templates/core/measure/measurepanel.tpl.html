@@ -2,18 +2,18 @@
     <label>Measure Tools</label><br>
     <div class="measure-controls text-center">
         <div class="btn-group">
-            <button class="btn btn-default" tooltip="Line"
+            <button class="btn btn-default" uib-tooltip="Line"
                 ng-class="{'btn-primary' : (measureType == 'line')}"
                 ng-click="startMeasuring('line')">
                 <i class="material-icons" aria-hidden="true">mode_edit</i>
             </button>
-            <button class="btn btn-default" tooltip="Area"
+            <button class="btn btn-default" uib-tooltip="Area"
                 ng-class="{'btn-primary' : (measureType == 'area')}"
                 ng-click="startMeasuring('area')">
                 <i class="material-icons" aria-hidden="true">picture_in_picture</i>
             </button>
             <button class="btn btn-default" ng-class="{'disabled': !isMeasuring}"
-               tooltip="Stop" ng-click="stopMeasuring()">
+              uib-tooltip="Stop" ng-click="stopMeasuring()">
                 <i class="material-icons" aria-hidden="true">not_interested</i>
             </button>
         </div>
