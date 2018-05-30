@@ -5,7 +5,7 @@
     <tabset type="pills">
         <tab heading="Search" select="viewTags()">
             <input ng-model='_typeAhead' type="text" placeholder="Search By Tag" typeahead-wait-ms='250'
-                   typeahead="tag for tag in getTags($viewValue)" class="form-control" typeahead-on-select="tagSelect($item, $model, $label)"/>
+                   uib-typeahead ="tag for tag in getTags($viewValue)" class="form-control" typeahead-on-select="tagSelect($item, $model, $label)"/>
         </tab>
     </tabset>
     <div class="clearfix icon-list">
