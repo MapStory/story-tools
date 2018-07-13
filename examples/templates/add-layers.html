@@ -1,0 +1,34 @@
+<form role="form" ng-submit="addLayer(layerName, asVector)">
+    <div class="btn-group form-group">
+        <button ng-repeat='src in servers' type="button" ng-model="server.active" class="btn btn-inverse" btn-radio="src">{{ src.name }}</button>
+    </div>
+    <div class="form-group">
+        <label for="typename">Layer Name</label>
+        <input autocomplete="off" ng-model="layerName" type="text" class="form-control" id="typename" typeahead="suggestion for suggestion in results($viewValue)" placeholder="Layer name in mapstory">
+    </div>
+    <label class="checkbox" for="vector">
+        <input type="checkbox" ng-model="asVector" value="" id="vector" data-toggle="checkbox" class="custom-checkbox">
+        <span class="icons">
+        <span class="icon-unchecked"></span>
+        <span class="icon-checked"></span>
+    </span>
+        As vector
+    </label>
+        <label class="checkbox" for="zoom">
+        <input type="checkbox" ng-model="allowZoom" value="" id="zoom" data-toggle="checkbox" class="custom-checkbox">
+        <span class="icons">
+        <span class="icon-unchecked"></span>
+        <span class="icon-checked"></span>
+    </span>
+        Allow Zoom
+    </label>
+        <label class="checkbox" for="pan">
+        <input type="checkbox" ng-model="allowPan" value="" id="pan" data-toggle="checkbox" class="custom-checkbox">
+        <span class="icons">
+        <span class="icon-unchecked"></span>
+        <span class="icon-checked"></span>
+    </span>
+        Allow Pan
+    </label>
+    <button type="submit" ng-disabled="!layerName" class="btn btn-primary"> <span ng-if="loading">Loading...</span> <span ng-if="!loading">Add</span></button>
+</form>
