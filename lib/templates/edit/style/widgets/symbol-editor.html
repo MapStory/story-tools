@@ -3,6 +3,17 @@
     <div class="controls">
         <graphic-editor ng-if="showGraphic" st-model="model" property="shape" symbol="model"></graphic-editor>
         <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
+        <div data-dropdown ng-if="showGraphic && model.graphic !== null && model.shape === null">
+            <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                 {{model.graphicColorType}}
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu scrollable-combo" role="menu">
+                <li ng-repeat="graphicColorType in styleChoices.graphicColorTypes" ng-click="model.graphicColorType=graphicColorType">
+                    {{graphicColorType}}
+                </li>
+            </ul>
+        </div>
         <color-editor ng-if="!hideColor" st-model="model" property="fillColor" ></color-editor>
         <number-editor st-model="model" property="fillOpacity" max="100"></number-editor>
         <attribute-combo layer="layer" include="double" ng-if="showRotation" st-model="model" property="rotationAttribute"></attribute-combo>
