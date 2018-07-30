@@ -15,11 +15,18 @@
         </div>
         <color-editor st-model="model" property="fillColor" ></color-editor>
         <div class="btn-group">
-            <button class="btn" ng-model="styleModel.bold" btn-checkbox ng-change="styleModelChange()"><strong>B</strong></button>
-            <button class="btn" ng-model="styleModel.underline" ng-change="styleModelChange()"><u>U</u></button>
-            <button class="btn" ng-model="styleModel.italic" btn-checkbox ng-change="styleModelChange()"><i>I</i></button>
-            <button class="btn" ng-model="styleModel.halo" ng-change="styleModelChange()">H</button>
-            <button class="btn" ng-model="styleModel.shadow" ng-change="styleModelChange()">S</button>
+            <button ng-class="{active: styleModel.bold}" ng-click="styleModel.bold = !styleModel.bold" class="btn style-btn" ng-model="styleModel.bold" btn-checkbox>
+                <strong>B</strong>
+            </button>
+            <button ng-class="{active: styleModel.underline}" ng-click="styleModel.underline = !styleModel.underline" class="btn style-btn" ng-model="styleModel.underline" btn-checkbox>
+                <u>U</u>
+            </button>
+            <button ng-class="{active: styleModel.italic}" class="btn style-btn" ng-click="styleModel.italic = !styleModel.italic"  ng-model="styleModel.italic" btn-checkbox >
+                <i>I</i>
+            </button>
+            <button ng-class="{active: styleModel.halo}" ng-click="styleModel.halo = !styleModel.halo" class="btn style-btn" ng-model="styleModel.halo" btn-checkbox>
+                H
+            </button>
         </div>
     </div>
 </div>
