@@ -19,6 +19,7 @@ var templateCache = require("gulp-angular-templatecache");
 var devServer = require("./dev-server.js");
 var path = require("path");
 var modernizr = require("gulp-modernizr");
+var babel = require('gulp-babel');
 
 // internal
 var watch = false;
@@ -83,6 +84,9 @@ function bundle(browserify, bundleName, tasks) {
 function ngBundle(src, dest) {
   var stream = gulp
     .src(src)
+    .pipe(babel({
+      presets: ['env']
+    }))
     .pipe(concat(dest))
     .pipe(ngAnnotate())
     .pipe(gulp.dest("dist"));
@@ -152,7 +156,7 @@ gulp.task("minify", ["scripts"], function() {
 gulp.task("lint", function() {
   var lintStream = gulp
     .src(sources)
-    .pipe(jshint())
+    .pipe(jshint({esnext: true}))
     .pipe(jshint.reporter("default"))
     .pipe(jshint.reporter("fail"));
   lintStream.on("error", function() {
