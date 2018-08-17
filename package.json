@@ -80,6 +80,7 @@
     "browserify": "~14.5.0",
     "gulp-babel": "^7.0.1",
     "gulp-util": "^3.0.8",
+    "jasmine-core": "^3.2.1",
     "proxy-middleware": "0.15.0"
   }
 }
