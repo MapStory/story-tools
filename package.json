@@ -33,6 +33,7 @@
     "angular-bootstrap-colorpicker": "~3.0.8",
     "angular-sortable-view": "0.0.13",
     "angular-ui-bootstrap": "^2.5.6",
+    "extract-text-webpack-plugin": "3.0.2",
     "gulp": "^3.9.1",
     "gulp-angular-templatecache": "~2.0.0",
     "gulp-clean-css": "^3.0.4",
@@ -47,6 +48,7 @@
     "gulp-rimraf": "~0.2.1",
     "gulp-shell": "~0.6.3",
     "gulp-uglify": "~3.0.0",
+    "html-webpack-plugin": "^3.2.0",
     "jquery": ">=1.8.0",
     "jshint": "^2.9.5",
     "jsonix": "git+http://github.com/highsource/jsonix#e285e82fb15fa3d62665a35eb728022936df1f4b",
@@ -58,6 +60,7 @@
     "karma-phantomjs-launcher": "~1.0.4",
     "karma-sourcemap-loader": "~0.3",
     "karma-spec-reporter": "0.0.32",
+    "karma-webpack": "2.0.9",
     "materialize": "1.0.0",
     "node-notifier": "~5.1.2",
     "nouislider": "9.2.0",
@@ -65,7 +68,10 @@
     "vinyl-source-stream": "~1.1.0",
     "vis": "4.21.0",
     "w3c-schemas": "^1.4.0",
-    "watchify": "3.9.0"
+    "watchify": "3.9.0",
+    "webpack": "3.10.0",
+    "webpack-dev-server": "2.11.1",
+    "webpack-merge-and-include-globally": "^2.0.11"
   },
   "devDependencies": {
     "angular-jsdoc": "~1.5.0",
