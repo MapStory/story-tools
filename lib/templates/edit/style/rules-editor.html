@@ -4,6 +4,7 @@
         <tbody>
             <tr ng-repeat="rule in activeStyle.rules" class="style-rule">
                 <td>{{ rule.name}}</td>
+                <td ng-if="rule.style.symbol.fillColor && activeStyle.typeName==='unique point'"><input ng-model="rule.title"/></td>
                 <td>
                     <color-editor st-model="rule.style.symbol" property="fillColor" ng-if="rule.style.symbol.fillColor"></color-editor>
                     <color-editor st-model="rule.style.stroke" property="strokeColor" ng-if="rule.style.stroke.strokeColor"></color-editor>
