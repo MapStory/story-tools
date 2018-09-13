@@ -136,23 +136,6 @@ gulp.task("clean", function() {
   gulp.src("dist/*", { read: false }).pipe(rimraf());
 });
 
-gulp.task("minify", ["scripts"], function() {
-  function doMinify(src) {
-    gulp
-      .src(src)
-      .pipe(uglify())
-      .pipe(rename({ extname: ".min.js" }))
-      .pipe(gulp.dest("dist"));
-  }
-  doMinify("dist/" + coreLibsBundle);
-  doMinify("dist/" + owsjsBundle);
-  doMinify("dist/" + mapstoryLibsBundle);
-  doMinify("dist/" + editLibsBundle);
-  doMinify("dist/" + coreNgBundle);
-  doMinify("dist/" + editNgBundle);
-  doMinify("dist/" + coreLibsAllBundle);
-});
-
 gulp.task("lint", function() {
   var lintStream = gulp
     .src(sources)
@@ -242,22 +225,22 @@ gulp.task("bundleEditLibs", function() {
  * concat edit angular
  */
 gulp.task("bundleEditNg", function() {
-  ngBundle(editNg, editNgBundle);
+  return ngBundle(editNg, editNgBundle);
 });
 
 /**
  * concat core angular
  */
 gulp.task("bundleCoreNg", function() {
-  ngBundle(coreNg, coreNgBundle);
+  return ngBundle(coreNg, coreNgBundle);
 });
 
 /**
  * combined bundle of all vendors
  */
-gulp.task("bundleVendorCore", ["bundleCoreLibs", "bundleCoreNg"], function() {
+gulp.task("bundleVendorCore", gulp.series("bundleCoreLibs", "bundleCoreNg"), function() {
   // @todo concat both bundles
-  gulp
+  return gulp
     .src([
       "./examples/ol-debug.js",
       "./node_modules/angular/angular.min.js",
@@ -275,7 +258,7 @@ gulp.task("bundleVendorCore", ["bundleCoreLibs", "bundleCoreNg"], function() {
  */
 gulp.task(
   "bundleCore",
-  ["bundleCoreLibs", "bundleCoreNg", "bundleOwsjsLibs"],
+  gulp.series("bundleCoreLibs", "bundleCoreNg", "bundleOwsjsLibs"),
   function() {
     // @todo concat both bundles
     gulp
@@ -302,12 +285,36 @@ gulp.task("minify-css", function() {
     .pipe(gulp.dest("dist"));
 });
 
+gulp.task("lessEdit", function() {
+  return gulp
+    .src(editLess)
+    .pipe(
+      less({
+        paths: ["node_modules/bootstrap/less"]
+      })
+    )
+    .pipe(rename("story-tools-edit.css"))
+    .pipe(gulp.dest("dist"));
+});
+
+gulp.task("lessCore", function() {
+  return gulp
+    .src(coreLess)
+    .pipe(
+      less({
+        paths: ["node_modules/bootstrap/less"]
+      })
+    )
+    .pipe(rename("story-tools-core.css"))
+    .pipe(gulp.dest("dist"));
+});
+
 /**
  * combined bundle of all core
  */
-gulp.task("bundleCoreCSS", ["lessEdit", "lessCore"], function() {
+gulp.task("bundleCoreCSS", gulp.series("lessEdit", "lessCore"), function() {
   // @todo concat both bundles
-  gulp
+  return gulp
     .src([
       "./dist/story-tools-core.css",
       "./dist/story-tools-edit.css",
@@ -321,35 +328,9 @@ gulp.task("bundleCoreCSS", ["lessEdit", "lessCore"], function() {
 /**
  * combined bundle of all edit
  */
-gulp.task("bundleEdit", ["bundleEditLibs", "bundleEditNg"], function() {
-  // @todo concat both bundles
-});
+gulp.task("bundleEdit", gulp.series("bundleEditLibs", "bundleEditNg"));
 
-gulp.task("lessEdit", function() {
-  gulp
-    .src(editLess)
-    .pipe(
-      less({
-        paths: ["node_modules/bootstrap/less"]
-      })
-    )
-    .pipe(rename("story-tools-edit.css"))
-    .pipe(gulp.dest("dist"));
-});
-
-gulp.task("lessCore", function() {
-  gulp
-    .src(coreLess)
-    .pipe(
-      less({
-        paths: ["node_modules/bootstrap/less"]
-      })
-    )
-    .pipe(rename("story-tools-core.css"))
-    .pipe(gulp.dest("dist"));
-});
-
-gulp.task("scripts", [
+gulp.task("scripts", gulp.series(
   "bundleVendorCore",
   "bundleCore",
   "bundleOwsjsLibs",
@@ -359,17 +340,33 @@ gulp.task("scripts", [
   "bundleCoreTemplates",
   "bundleEditTemplates",
   "bundleCoreCSS"
-]);
+));
+
+gulp.task("minify", gulp.series("scripts"), function() {
+  function doMinify(src) {
+    gulp
+      .src(src)
+      .pipe(uglify())
+      .pipe(rename({ extname: ".min.js" }))
+      .pipe(gulp.dest("dist"));
+  }
+  doMinify("dist/" + coreLibsBundle);
+  doMinify("dist/" + owsjsBundle);
+  doMinify("dist/" + mapstoryLibsBundle);
+  doMinify("dist/" + editLibsBundle);
+  doMinify("dist/" + coreNgBundle);
+  doMinify("dist/" + editNgBundle);
+  doMinify("dist/" + coreLibsAllBundle);
+});
 
 gulp.task("testsBundle", function() {
   return doBundle(
     browserify({ entries: "./test/tests.js", debug: true, paths: ["../lib/"] }),
-    "tests.js",
-    ["karma"]
+    "tests.js"
   );
 });
 
-gulp.task("karma", ["testsBundle"], function(done) {
+gulp.task("karma", gulp.series("testsBundle"), function(done) {
   // var server = util.env['server'] ? true : false;
   // var conf = {
   //     configFile: __dirname + '/karma.conf.js',
@@ -387,21 +384,13 @@ gulp.task("karma", ["testsBundle"], function(done) {
   // });
 });
 
-gulp.task("tdd", ["test"], function() {
+gulp.task("test", gulp.series("scripts", "karma"));
+
+gulp.task("tdd", gulp.series("test"), function() {
   watch = true;
   gulp.watch(sources, ["karma"]);
   gulp.watch("test/*", ["karma"]);
 });
-
-gulp.task("test", ["scripts", "karma"]);
-
-gulp.task("lazy", ["clean", "lint", "lessEdit", "scripts", "bundleCore"]);
-
-gulp.task("default", ["test", "minify"]);
-
-gulp.task("develop", ["connect", "watch", "minify", "test"]);
-
-gulp.task("build", ["scripts", "minify"]);
 
 gulp.task(
   "watch",
@@ -419,6 +408,14 @@ gulp.task(
     });
   }
 );
+
+gulp.task("lazy", gulp.series("clean", "lint", "lessEdit", "scripts", "bundleCore"));
+
+gulp.task("default", gulp.series("test", "minify"));
+
+gulp.task("develop", gulp.series("connect", "watch", "minify", "test"));
+
+gulp.task("build", gulp.series("scripts", "minify"));
 
 /* V2 Related */
 

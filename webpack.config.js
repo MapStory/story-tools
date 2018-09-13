@@ -3,27 +3,32 @@ const Path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const MergeIntoSingleFilePlugin = require('webpack-merge-and-include-globally');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const serverHost = "https://docker";
 
 module.exports = {
   context: __dirname,
-  devtool: "cheap-module-source-map",
+  // devtool: "cheap-module-source-map",
   resolve: {
     modules: ["node_modules"],
     alias: {
       jquery: Path.join(__dirname, "node_modules/jquery/dist/jquery")
     }
   },
-  entry: './examples/viewer.js',
+  entry: {
+    "core": './lib/core/index.js',
+    "ows": './lib/owsjs/index.js'
+  },
   output: {
-    filename: '[name]',
+    filename: '[name].js',
     path: Path.resolve(__dirname, 'testdist'),
   },
   plugins: [
+    new CleanWebpackPlugin(['testdist']),
     new MergeIntoSingleFilePlugin({
       files: {
-       "bundle.js": [
+       "vendor.js": [
         // bundle vendor core
         Path.resolve(__dirname, "examples/ol-debug.js"),
         Path.resolve(__dirname, "node_modules/angular/angular.min.js"),
