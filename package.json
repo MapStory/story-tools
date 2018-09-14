@@ -49,6 +49,7 @@
     "gulp-rimraf": "~0.2.1",
     "gulp-shell": "~0.6.3",
     "gulp-uglify": "~3.0.0",
+    "gulp-replace": "1.0.0",
     "gulp4": "^4.0.2",
     "html-webpack-plugin": "^3.2.0",
     "jquery": ">=1.8.0",

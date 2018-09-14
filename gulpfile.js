@@ -2,6 +2,7 @@ var ngAnnotate = require("gulp-ng-annotate");
 var gulp = require("gulp");
 var util = require("gulp-util");
 var concat = require("gulp-concat");
+var replace = require("gulp-replace");
 var browserify = require("browserify");
 var rename = require("gulp-rename");
 var watchify = require("watchify");
@@ -107,6 +108,7 @@ function templateBundle(src, dest, module) {
         module: module
       })
     )
+    .pipe(replace(/templateCache.put\('\//g, "templateCache.put('"))
     .pipe(gulp.dest("dist"));
   stream.on("end", function() {
     util.log("bundled", util.colors.cyan(dest));
@@ -333,13 +335,13 @@ gulp.task("bundleCoreCSS", gulp.series("lessEdit", "lessCore", function() {
 gulp.task("bundleEdit", gulp.series("bundleEditLibs", "bundleEditNg"));
 
 gulp.task("scripts", gulp.series(
+  "bundleCoreTemplates",
   "bundleVendorCore",
   "bundleCore",
   "bundleOwsjsLibs",
   "bundleMapstoryLibs",
   "bundleEdit",
   "lessEdit",
-  "bundleCoreTemplates",
   "bundleEditTemplates",
   "bundleCoreCSS"
 ));
