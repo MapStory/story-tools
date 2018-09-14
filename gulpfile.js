@@ -20,6 +20,7 @@ var devServer = require("./dev-server.js");
 var path = require("path");
 var modernizr = require("gulp-modernizr");
 var babel = require('gulp-babel');
+var buffer = require("vinyl-buffer");
 
 // internal
 var watch = false;
@@ -60,7 +61,7 @@ function doBundle(browserify, bundleName, tasks) {
     util.log(util.colors.red("Error:"), err.message);
     notify("browserify error " + err.toString());
   });
-  var bundleStream = bundle.pipe(source(bundleName)).pipe(gulp.dest("dist"));
+  var bundleStream = bundle.pipe(source(bundleName)).pipe(buffer()).pipe(babel({presets: ['env']})).pipe(gulp.dest("dist"));
   bundleStream.on("end", function() {
     util.log("bundled", util.colors.cyan(bundleName));
     if (tasks) {
