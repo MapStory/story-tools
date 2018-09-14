@@ -360,7 +360,7 @@ gulp.task("minify", gulp.series("scripts", function() {
   doMinify("dist/" + editLibsBundle);
   doMinify("dist/" + coreNgBundle);
   doMinify("dist/" + editNgBundle);
-  doMinify("dist/" + coreLibsAllBundle);
+  return doMinify("dist/" + coreLibsAllBundle);
 }));
 
 gulp.task("testsBundle", function() {
@@ -415,11 +415,11 @@ gulp.task(
 
 gulp.task("lazy", gulp.series("clean", "lint", "lessEdit", "scripts", "bundleCore"));
 
-gulp.task("default", gulp.series("test", "minify"));
+gulp.task("default", gulp.series("scripts"));
 
 gulp.task("develop", gulp.series("connect", "watch", "minify", "test"));
 
-gulp.task("build", gulp.series("scripts", "minify"));
+gulp.task("build", gulp.series("scripts"));
 
 /* V2 Related */
 
