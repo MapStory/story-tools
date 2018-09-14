@@ -238,7 +238,7 @@ gulp.task("bundleCoreNg", function() {
 /**
  * combined bundle of all vendors
  */
-gulp.task("bundleVendorCore", gulp.series("bundleCoreLibs", "bundleCoreNg"), function() {
+gulp.task("bundleVendorCore", gulp.series("bundleCoreLibs", "bundleCoreNg", function() {
   // @todo concat both bundles
   return gulp
     .src([
@@ -251,17 +251,17 @@ gulp.task("bundleVendorCore", gulp.series("bundleCoreLibs", "bundleCoreNg"), fun
     ])
     .pipe(concat("story-tools-vendor-all.js"))
     .pipe(gulp.dest("dist"));
-});
+}));
 
 /**
  * combined bundle of all core
  */
 gulp.task(
   "bundleCore",
-  gulp.series("bundleCoreLibs", "bundleCoreNg", "bundleOwsjsLibs"),
+  gulp.series("bundleCoreLibs", "bundleCoreNg", "bundleOwsjsLibs",
   function() {
     // @todo concat both bundles
-    gulp
+    var stream = gulp
       .src([
         "./dist/story-tools-core-tpls.js",
         "./dist/story-tools-core.js",
@@ -270,8 +270,9 @@ gulp.task(
       ])
       .pipe(concat("story-tools-core-all.js"))
       .pipe(gulp.dest("dist"));
+    return stream;
   }
-);
+));
 
 gulp.task("minify-css", function() {
   return gulp
@@ -312,7 +313,7 @@ gulp.task("lessCore", function() {
 /**
  * combined bundle of all core
  */
-gulp.task("bundleCoreCSS", gulp.series("lessEdit", "lessCore"), function() {
+gulp.task("bundleCoreCSS", gulp.series("lessEdit", "lessCore", function() {
   // @todo concat both bundles
   return gulp
     .src([
@@ -323,7 +324,7 @@ gulp.task("bundleCoreCSS", gulp.series("lessEdit", "lessCore"), function() {
     ])
     .pipe(concat("story-tools-core-all.css"))
     .pipe(gulp.dest("dist"));
-});
+}));
 
 /**
  * combined bundle of all edit
@@ -342,9 +343,9 @@ gulp.task("scripts", gulp.series(
   "bundleCoreCSS"
 ));
 
-gulp.task("minify", gulp.series("scripts"), function() {
+gulp.task("minify", gulp.series("scripts", function() {
   function doMinify(src) {
-    gulp
+    return gulp
       .src(src)
       .pipe(uglify())
       .pipe(rename({ extname: ".min.js" }))
@@ -357,7 +358,7 @@ gulp.task("minify", gulp.series("scripts"), function() {
   doMinify("dist/" + coreNgBundle);
   doMinify("dist/" + editNgBundle);
   doMinify("dist/" + coreLibsAllBundle);
-});
+}));
 
 gulp.task("testsBundle", function() {
   return doBundle(
@@ -366,7 +367,7 @@ gulp.task("testsBundle", function() {
   );
 });
 
-gulp.task("karma", gulp.series("testsBundle"), function(done) {
+gulp.task("karma", gulp.series("testsBundle", function(done) {
   // var server = util.env['server'] ? true : false;
   // var conf = {
   //     configFile: __dirname + '/karma.conf.js',
@@ -382,15 +383,15 @@ gulp.task("karma", gulp.series("testsBundle"), function(done) {
   //     }
   //     done();
   // });
-});
+}));
 
 gulp.task("test", gulp.series("scripts", "karma"));
 
-gulp.task("tdd", gulp.series("test"), function() {
+gulp.task("tdd", gulp.series("test", function() {
   watch = true;
   gulp.watch(sources, ["karma"]);
   gulp.watch("test/*", ["karma"]);
-});
+}));
 
 gulp.task(
   "watch",
