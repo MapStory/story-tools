@@ -401,14 +401,13 @@ gulp.task(
   function() {
     // enable watch mode and start watchify tasks
     watch = true;
-    gulp.start("scripts");
-    gulp.watch(sources, ["scripts"]);
-    gulp.watch(coreTemplates, ["bundleCoreTemplates"]);
-    gulp.watch(editTemplates, ["bundleEditTemplates"]);
-    gulp.watch("lib/ng/**/*.less", ["lessEdit"]);
+    gulp.watch(sources, gulp.series("scripts"));
+    gulp.watch(coreTemplates, gulp.series("bundleCoreTemplates"));
+    gulp.watch(editTemplates, gulp.series("bundleEditTemplates"));
+    gulp.watch("lib/ng/**/*.less", gulp.series("lessEdit"));
     // reload on changes to bundles but ignore tests bundle
-    gulp.watch(["dist/*", "examples/**/*"]).on("change", function(f) {
-      gulp.src([f.path, "!**/tests.js"]).pipe(connect.reload());
+    return gulp.watch(["dist/*", "examples/**/*"]).on("change", function(f) {
+      return connect.reload();
     });
   }
 );
