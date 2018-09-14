@@ -1,32 +1,51 @@
 <div ng-form="label" class="style-editor-item">
     <div class="title">Label</div>
     <div class="controls">
-        <attribute-combo layer="layer" st-model="model" css="label-attribute" filter="nogeom"></attribute-combo>
-        <number-editor st-model="model" property="fontSize"></number-editor>
+        <!--Attribute-->
+        <div>
+            <div class="style-editor-label">Attribute:</div>
+            <attribute-combo layer="layer" st-model="model" css="label-attribute" filter="nogeom"></attribute-combo>
+        </div>
+        <!--Font Size-->
+        <div>
+            <div class="style-editor-label">Size:</div>
+            <number-editor st-model="model" property="fontSize"></number-editor>
+        </div>
     </div>
     <div class="controls">
-        <div data-dropdown>
-            <button type="button" class="dropdown-toggle" data-toggle="dropdown">
-                {{model.fontFamily}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu scrollable-combo font-family" role="menu">
-                <li ng-repeat="family in styleChoices.fontFamily" ng-click="model.fontFamily=family">{{family}}</li>
-            </ul>
+        <!--Font Family-->
+        <div>
+            <div class="style-editor-label">Font Family:</div>
+            <div data-dropdown>
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                    {{model.fontFamily}} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu scrollable-combo font-family" role="menu">
+                    <li ng-repeat="family in styleChoices.fontFamily" ng-click="model.fontFamily=family">{{family}}</li>
+                </ul>
+            </div>
         </div>
-        <color-editor st-model="model" property="fillColor" ></color-editor>
-        <div class="btn-group">
-            <button ng-class="{active: styleModel.bold}" ng-click="styleModel.bold = !styleModel.bold" class="btn style-btn" ng-model="styleModel.bold" btn-checkbox>
-                <strong>B</strong>
-            </button>
-            <button ng-class="{active: styleModel.underline}" ng-click="styleModel.underline = !styleModel.underline" class="btn style-btn" ng-model="styleModel.underline" btn-checkbox>
-                <u>U</u>
-            </button>
-            <button ng-class="{active: styleModel.italic}" class="btn style-btn" ng-click="styleModel.italic = !styleModel.italic"  ng-model="styleModel.italic" btn-checkbox >
-                <i>I</i>
-            </button>
-            <button ng-class="{active: styleModel.halo}" ng-click="styleModel.halo = !styleModel.halo" class="btn style-btn" ng-model="styleModel.halo" btn-checkbox>
-                H
-            </button>
+        <div>
+            <div class="style-editor-label">Color:</div>
+            <color-editor st-model="model" property="fillColor" ></color-editor>
         </div>
+        <div>
+            <div class="style-editor-label">Style:</div>
+            <div class="btn-group">
+                <button ng-class="{active: styleModel.bold}" ng-click="styleModel.bold = !styleModel.bold" class="btn style-btn" ng-model="styleModel.bold" btn-checkbox>
+                    <strong>B</strong>
+                </button>
+                <button ng-class="{active: styleModel.underline}" ng-click="styleModel.underline = !styleModel.underline" class="btn style-btn" ng-model="styleModel.underline" btn-checkbox>
+                    <u>U</u>
+                </button>
+                <button ng-class="{active: styleModel.italic}" class="btn style-btn" ng-click="styleModel.italic = !styleModel.italic"  ng-model="styleModel.italic" btn-checkbox >
+                    <i>I</i>
+                </button>
+                <button ng-class="{active: styleModel.halo}" ng-click="styleModel.halo = !styleModel.halo" class="btn style-btn" ng-model="styleModel.halo" btn-checkbox>
+                    H
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
