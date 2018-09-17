@@ -63,6 +63,7 @@
     "nouislider": "9.2.0",
     "ogc-schemas": "2.6.1",
     "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
     "vis": "4.21.0",
     "w3c-schemas": "^1.4.0",
     "watchify": "3.9.0"
@@ -81,7 +82,6 @@
     "gulp-babel": "^7.0.1",
     "gulp-util": "^3.0.8",
     "jasmine-core": "^3.2.1",
-    "proxy-middleware": "0.15.0",
-    "vinyl-source-stream": "^2.0.0"
+    "proxy-middleware": "0.15.0"
   }
 }
