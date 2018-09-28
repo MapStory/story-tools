@@ -20,11 +20,12 @@
   },
   "main": "./index",
   "scripts": {
+    "gulp": "./node_modules/gulp/bin/gulp.js",
     "test": "mocha",
-    "build": "gulp",
-    "watch": "gulp watch",
-    "watch-dev": "gulp watch --bundle",
-    "postinstall": "gulp build"
+    "build": "npm run gulp",
+    "watch": "npm run gulp watch",
+    "watch-dev": "npm run gulp watch --bundle",
+    "postinstall": "npm run gulp scripts"
   },
   "dependencies": {
     "amdefine": ">=0.1.0",
@@ -33,13 +34,13 @@
     "angular-bootstrap-colorpicker": "~3.0.8",
     "angular-sortable-view": "0.0.13",
     "angular-ui-bootstrap": "^2.5.6",
-    "gulp": "^3.9.1",
+    "gulp": "gulpjs/gulp.git#4.0",
     "gulp-angular-templatecache": "~2.0.0",
     "gulp-clean-css": "^3.0.4",
     "gulp-concat": "~2.6.1",
     "gulp-connect": "5.0.0",
     "gulp-jshint": "^2.0.4",
-    "gulp-less": "~3.3.2",
+    "gulp-less": "^4.0.1",
     "gulp-minify-html": "~1.0.6",
     "gulp-modernizr": "^1.0.0-alpha",
     "gulp-ng-annotate": "~2.0.0",
@@ -47,10 +48,12 @@
     "gulp-rimraf": "~0.2.1",
     "gulp-shell": "~0.6.3",
     "gulp-uglify": "~3.0.0",
+    "gulp-replace": "1.0.0",
+    "gulp4": "^4.0.2",
     "jquery": ">=1.8.0",
     "jshint": "^2.9.5",
     "jsonix": "git+http://github.com/highsource/jsonix#e285e82fb15fa3d62665a35eb728022936df1f4b",
-    "karma": "~1.7.1",
+    "karma": "~2.0.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1",
     "karma-jasmine-html-reporter": "~0.2.2",
@@ -62,7 +65,9 @@
     "node-notifier": "~5.1.2",
     "nouislider": "9.2.0",
     "ogc-schemas": "2.6.1",
+    "vinyl-source-stream": "^2.0.0",
     "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
     "vis": "4.21.0",
     "w3c-schemas": "^1.4.0",
     "watchify": "3.9.0"
@@ -81,7 +86,6 @@
     "gulp-babel": "^7.0.1",
     "gulp-util": "^3.0.8",
     "jasmine-core": "^3.2.1",
-    "proxy-middleware": "0.15.0",
-    "vinyl-source-stream": "^2.0.0"
+    "proxy-middleware": "0.15.0"
   }
 }

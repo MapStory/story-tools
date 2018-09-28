@@ -2,13 +2,14 @@
     <div class="style-type-header">
         <div class="btn-group" data-dropdown>
             <button type="button" data-toggle="dropdown" class="btn btn-inverse dropdown-toggle">
-                Style: {{currentEditor.displayName}}<span class="caret"></span>
+                Style: {{currentEditor.displayName}} <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
                 <li ng-repeat="styleType in styleTypes" ng-click="setActiveStyle(styleType)">{{styleType.displayName}}</li>
             </ul>
         </div>
     </div>
+    <hr/>
     <div>
         <style-type-editor ng-if="layer"></style-type-editor>
         <rules-editor ng-if="activeStyle.rules"></rules-editor>
