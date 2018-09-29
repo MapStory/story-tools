@@ -2,11 +2,12 @@
   "name": "story-tools",
   "version": "0.0.1",
   "description": "time slider and timeline controls for maps",
-  "homepage": "",
+  "homepage": "https://github.com/MapStory/story-tools",
   "repository": {
     "type": "git",
     "url": "git://github.com/mapstory/story-tools.git"
   },
+  "license": "MIT",
   "keywords": [
     "time",
     "timeslider",
@@ -49,7 +50,6 @@
     "gulp-shell": "~0.6.3",
     "gulp-uglify": "~3.0.0",
     "gulp-replace": "1.0.0",
-    "gulp4": "^4.0.2",
     "jquery": ">=1.8.0",
     "jshint": "^2.9.5",
     "jsonix": "git+http://github.com/highsource/jsonix#e285e82fb15fa3d62665a35eb728022936df1f4b",
@@ -65,7 +65,6 @@
     "node-notifier": "~5.1.2",
     "nouislider": "9.2.0",
     "ogc-schemas": "2.6.1",
-    "vinyl-source-stream": "^2.0.0",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
     "vis": "4.21.0",
