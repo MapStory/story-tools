@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/MapStory/story-tools.svg?branch=master)](https://travis-ci.org/MapStory/story-tools)
+[![Build Status](https://travis-ci.org/MapStory/story-tools.svg?branch=master)](https://travis-ci.org/MapStory/story-tools) [![Greenkeeper badge](https://badges.greenkeeper.io/MapStory/story-tools.svg)](https://greenkeeper.io/)
 
 # story-tools
 
