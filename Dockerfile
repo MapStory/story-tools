@@ -1,4 +1,4 @@
-FROM node:9-alpine
+FROM node:10.12-alpine
 LABEL maintainer="Tyler Battle <tbattle@boundlessgeo.com>"
 
 RUN set -ex; \
