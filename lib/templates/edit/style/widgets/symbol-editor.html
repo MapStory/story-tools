@@ -13,7 +13,7 @@
         </div>
         <!--Color-->
         <div>
-            <div class="style-editor-label">Color:</div>
+            <div ng-if="!hideColor" class="style-editor-label">Color:</div>
             <div data-dropdown ng-if="showGraphic && model.graphic !== null && model.shape === null">
                 <button type="button" class="dropdown-toggle" data-toggle="dropdown">
                      {{model.graphicColorType}}
@@ -25,7 +25,7 @@
                     </li>
                 </ul>
             </div>
-            <color-editor ng-if="!hideColor" st-model="model" property="fillColor" ></color-editor>
+            <color-editor ng-if="!hideColor && (model.graphicColorType !== 'Original Color' || model.shape !== null || currentEditor.name === 'simple point')" st-model="model" property="fillColor" ></color-editor>
         </div>
         <!--Transparency-->
         <div>
