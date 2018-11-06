@@ -1,12 +1,12 @@
 <button class="btn btn-xs btn-inverse" ng-click="play()" tooltip-placement=top tooltip-append-to-body=true
          uib-tooltip="{{ playbackState }}"><i class="glyphicon glyphicon-{{ playbackState | lowercase }}"></i></button>
-<div id="slider" tooltip-placement=top tooltip-append-to-body=true uib-tooltip="{{ currentRange.start|date:'medium' }}"></div>
+<div id="slider" tooltip-placement=top tooltip-append-to-body=true uib-tooltip="{{ formatTime(currentRange.start) }}"></div>
 <button class="btn btn-xs btn-inverse" ng-click="prev()" tooltip-placement=top tooltip-append-to-body=true
          uib-tooltip="Previous"><i class="glyphicon glyphicon-fast-backward"></i></button>
-<span class="small" ng-hide="playbackOptions.mode == 'cumulative'">{{ currentRange.start|date:'medium' }}</span>
+<span class="small" ng-hide="playbackOptions.mode == 'cumulative'">{{ formatTime(currentRange.start) }}</span>
 
 
-<span class="small" ng-show="playbackOptions.mode == 'cumulative'">{{ currentRange.end|date:'medium' }}</span>
+<span class="small" ng-show="playbackOptions.mode == 'cumulative'">{{ formatTime(currentRange.end) }}</span>
 
 
 <button class="btn btn-xs btn-inverse" ng-click="next()" tooltip-placement=top tooltip-append-to-body=true
