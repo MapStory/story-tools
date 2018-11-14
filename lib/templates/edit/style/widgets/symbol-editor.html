@@ -7,7 +7,7 @@
             <graphic-editor ng-if="showGraphic" st-model="model" property="shape" symbol="model"></graphic-editor>
         </div>
         <!--Size-->
-        <div>
+        <div ng-if="!hideSize">
             <div class="style-editor-label">Size:</div>
             <number-editor ng-if="showGraphic" st-model="model" property="size" max="64"></number-editor>
         </div>
